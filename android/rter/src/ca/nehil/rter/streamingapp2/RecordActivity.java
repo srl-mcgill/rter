@@ -85,7 +85,7 @@ public class RecordActivity extends Activity implements OnClickListener {
         super.onCreate(savedInstanceState);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
-        setContentView(R.layout.javacvtext_main);
+        setContentView(R.layout.activity_streaming);
 
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE); 
         mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, CLASS_LABEL); 

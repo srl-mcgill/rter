@@ -250,14 +250,9 @@ public class StreamingActivity extends Activity implements LocationListener,
 		myInflate = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		FrameLayout topLayout = new FrameLayout(this);
 		setContentView(topLayout);
-		LinearLayout preViewLayout = (LinearLayout) myInflate.inflate(
-				R.layout.javacvtext_main, null);
-		layoutParam = new FrameLayout.LayoutParams(screenWidth, screenHeight);
 
 		// openGLview
 		mGLView = overlay.getGLView();
-
-		topLayout.addView(preViewLayout, layoutParam);
 
 		/* add camera view */
 		// int display_width_d = (int) (1.0 * bg_screen_width * screenWidth /
@@ -296,7 +291,9 @@ public class StreamingActivity extends Activity implements LocationListener,
 			prev_rh = (int) (1.0 * display_width_d * live_height / live_width);
 		}
 
-		layoutParam = new FrameLayout.LayoutParams(prev_rw, prev_rh);
+		layoutParam = new FrameLayout.LayoutParams(prev_rw, prev_rh, Gravity.CENTER);
+		//layoutParam = new FrameLayout.LayoutParams(prev_rw / 2, prev_rh / 2, Gravity.BOTTOM | Gravity.CENTER_VERTICAL);
+		
 		// layoutParam.topMargin = (int) (1.0 * bg_screen_by * screenHeight /
 		// bg_height);
 		// layoutParam.leftMargin = (int) (1.0 * bg_screen_bx * screenWidth /
@@ -313,7 +310,32 @@ public class StreamingActivity extends Activity implements LocationListener,
 
 		topLayout.addView(cameraView, layoutParam);
 		topLayout.addView(mGLView, layoutParam);
+		
+		FrameLayout preViewLayout = (FrameLayout) myInflate.inflate(
+				R.layout.activity_streaming, null);
+		layoutParam = new FrameLayout.LayoutParams(screenWidth, screenHeight);
+		topLayout.addView(preViewLayout, layoutParam);
 		Log.i(LOG_TAG, "cameara preview start: OK");
+				
+		final Button recorderButton = (Button) findViewById(R.id.recorder_control);
+		recorderButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (!recording) {
+					Log.d(TAG, "attemptHandshaking");
+					attemptHandshake();
+					Log.w(LOG_TAG, "Start Button Pushed");
+					recorderButton.setText("Stop");
+					//item.setTitle("Stop");
+				} else {
+					stopRecording();
+					Log.w(LOG_TAG, "Stop Button Pushed");
+					recorderButton.setText("Start");
+					//item.setTitle("Start");
+				}
+			}
+		});
+		
 	}
 
 	// ---------------------------------------
@@ -453,7 +475,7 @@ public class StreamingActivity extends Activity implements LocationListener,
 		mMag = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-		setContentView(R.layout.javacvtext_main);
+		setContentView(R.layout.activity_streaming);
 
 		// Find the total number of cameras available
 		numberOfCameras = Camera.getNumberOfCameras();
