@@ -36,8 +36,14 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ByteArrayEntity;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.googlecode.javacpp.BytePointer;
+import com.googlecode.javacpp.Pointer;
+import com.googlecode.javacv.cpp.avformat.AVIOContext;
 
 import android.app.Activity;
 import android.content.Context;
@@ -70,6 +76,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -84,6 +91,8 @@ import ca.nehil.rter.streamingapp2.GetTokenActivity.HandshakeTask;
 import ca.nehil.rter.streamingapp2.overlay.CameraGLSurfaceView;
 import ca.nehil.rter.streamingapp2.overlay.OverlayController;
 import android.view.KeyEvent;
+import android.view.OrientationEventListener;
+import android.content.res.Configuration;
 
 import java.nio.ShortBuffer;
 import static com.googlecode.javacv.cpp.opencv_core.*;
@@ -177,6 +186,9 @@ public class StreamingActivity extends Activity implements LocationListener,
 	/* video data getting thread */
 	private Camera cameraDevice;
 	private CameraView cameraView;
+	
+	private OrientationEventListener myOrientationEventListener;
+	private Boolean flipVideo = false;
 
 	private IplImage yuvIplimage = null;
 
@@ -221,10 +233,26 @@ public class StreamingActivity extends Activity implements LocationListener,
 		Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
 	}
 
+	// gets called when device orientation is changed
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+	    super.onConfigurationChanged(newConfig);
+	    Log.d("CONFIG", "Config changed.");
+	    // Checks the orientation of the screen
+	    /*
+	    if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+	        Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
+	    } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+	        Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
+	    }
+	    */
+	}
+	
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
 		recording = false;
+		myOrientationEventListener.disable();
 
 		if (cameraView != null) {
 			cameraView.stopPreview();
@@ -459,6 +487,22 @@ public class StreamingActivity extends Activity implements LocationListener,
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		// Orientation listenever implementation
+		myOrientationEventListener = new OrientationEventListener(this, SensorManager.SENSOR_DELAY_NORMAL) {
+    	    @Override
+    	    public void onOrientationChanged(int orientation) {
+    	    	int rotation = getWindowManager().getDefaultDisplay().getRotation();
+    	    	if(rotation == Surface.ROTATION_270) {
+    	    		flipVideo = true;
+    	    	}
+    	    	else {
+    	    		flipVideo = false;
+    	    	}
+    	    }
+    	};
+    	myOrientationEventListener.enable();
+		
 		// stopService(new Intent(StreamingActivity.this,
 		// BackgroundService.class));
 
@@ -474,7 +518,7 @@ public class StreamingActivity extends Activity implements LocationListener,
 		mAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		mMag = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
-		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+		//setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		setContentView(R.layout.activity_streaming);
 
 		// Find the total number of cameras available
@@ -987,6 +1031,14 @@ public class StreamingActivity extends Activity implements LocationListener,
 		@Override
 		public void onPreviewFrame(byte[] data, Camera camera) {
 			/* get video data */
+			if(flipVideo) {
+				camera.setDisplayOrientation(180);
+				data = rotateYUV420Degree90(data, imageWidth, imageHeight);
+				data = rotateYUV420Degree90(data, imageHeight, imageWidth);
+			}
+			else {
+				camera.setDisplayOrientation(0);
+			}
 			if (yuvIplimage != null && recording) {
 				yuvIplimage.getByteBuffer().put(data);
 
@@ -1002,9 +1054,6 @@ public class StreamingActivity extends Activity implements LocationListener,
 					Log.v(LOG_TAG, e.getMessage());
 					e.printStackTrace();
 				}
-
-				// Log.i(LOG_TAG,"Sending frame");
-				// PostVideoData(data, 0, data.length);
 			}
 		}
 	}
@@ -1153,6 +1202,34 @@ public class StreamingActivity extends Activity implements LocationListener,
 			handshakeTask = null;
 
 		}
+	}
+	
+	private byte[] rotateYUV420Degree90(byte[] data, int imageWidth, int imageHeight) 
+	{
+	    byte [] yuv = new byte[imageWidth*imageHeight*3/2];
+	    // Rotate the Y luma
+	    int i = 0;
+	    for(int x = 0;x < imageWidth;x++)
+	    {
+	        for(int y = imageHeight-1;y >= 0;y--)                               
+	        {
+	            yuv[i] = data[y*imageWidth+x];
+	            i++;
+	        }
+	    }
+	    // Rotate the U and V color components 
+	    i = imageWidth*imageHeight*3/2-1;
+	    for(int x = imageWidth-1;x > 0;x=x-2)
+	    {
+	        for(int y = 0;y < imageHeight/2;y++)                                
+	        {
+	            yuv[i] = data[(imageWidth*imageHeight)+(y*imageWidth)+x];
+	            i--;
+	            yuv[i] = data[(imageWidth*imageHeight)+(y*imageWidth)+(x-1)];
+	            i--;
+	        }
+	    }
+	    return yuv;
 	}
 
 }

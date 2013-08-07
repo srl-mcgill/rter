@@ -37,6 +37,7 @@ import static com.googlecode.javacv.cpp.avutil.*;
 import static com.googlecode.javacv.cpp.opencv_core.*;
 import static com.googlecode.javacv.cpp.swresample.*;
 import static com.googlecode.javacv.cpp.swscale.*;
+import static com.googlecode.javacv.cpp.opencv_imgproc.*;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ByteArrayEntity;
@@ -666,6 +667,7 @@ public class FFmpegFrameSender extends com.googlecode.javacv.FrameRecorder {
             int width = image.width();
             int height = image.height();
             int step = image.widthStep();
+            
             BytePointer data = image.imageData();
 
             if (pixelFormat == AV_PIX_FMT_NONE) {
