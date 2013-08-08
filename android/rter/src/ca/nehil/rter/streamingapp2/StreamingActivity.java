@@ -333,6 +333,19 @@ public class StreamingActivity extends Activity implements LocationListener,
 				+ ":: button_width:" + button_width + ":: button_height:"
 				+ button_height);
 		cameraDevice = Camera.open();
+		for(int i = 0; i < Camera.getNumberOfCameras() && cameraDevice == null; i++) {
+			Log.d(LOG_TAG, "opening camera #" + String.valueOf(i));
+			cameraDevice = Camera.open(i);
+		}
+		try {
+			if(cameraDevice == null) {
+				throw new Exception("No camera device found");
+			}
+		} catch (Exception e) {
+			cameraDevice.release();
+			Log.e(LOG_TAG, e.getMessage());
+			e.printStackTrace();
+		}
 		Log.i(LOG_TAG, "cameara open");
 		cameraView = new CameraView(this, cameraDevice);
 
