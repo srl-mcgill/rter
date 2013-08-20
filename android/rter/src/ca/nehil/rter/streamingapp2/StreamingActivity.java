@@ -332,21 +332,7 @@ public class StreamingActivity extends Activity implements LocationListener,
 				+ live_width + ":: live_height:" + live_height
 				+ ":: button_width:" + button_width + ":: button_height:"
 				+ button_height);
-		cameraDevice = Camera.open();
-		for(int i = 0; i < Camera.getNumberOfCameras() && cameraDevice == null; i++) {
-			Log.d(LOG_TAG, "opening camera #" + String.valueOf(i));
-			cameraDevice = Camera.open(i);
-		}
-		try {
-			if(cameraDevice == null) {
-				throw new Exception("No camera device found");
-			}
-		} catch (Exception e) {
-			cameraDevice.release();
-			Log.e(LOG_TAG, e.getMessage());
-			e.printStackTrace();
-		}
-		Log.i(LOG_TAG, "cameara open");
+		cameraDevice = openCamera();
 		cameraView = new CameraView(this, cameraDevice);
 
 		topLayout.addView(cameraView, layoutParam);
@@ -367,16 +353,32 @@ public class StreamingActivity extends Activity implements LocationListener,
 					attemptHandshake();
 					Log.w(LOG_TAG, "Start Button Pushed");
 					recorderButton.setText("Stop");
-					//item.setTitle("Stop");
 				} else {
 					stopRecording();
 					Log.w(LOG_TAG, "Stop Button Pushed");
 					recorderButton.setText("Start");
-					//item.setTitle("Start");
 				}
 			}
 		});
 		
+	}
+	
+	private Camera openCamera() {
+		Camera cameraDevice = Camera.open();
+		for(int i = 0; i < numberOfCameras && cameraDevice == null; i++) {
+			Log.d(LOG_TAG, "opening camera #" + String.valueOf(i));
+			cameraDevice = Camera.open(i);
+		}
+		try {
+			if(cameraDevice == null) {
+				throw new Exception("No camera device found");
+			}
+		} catch (Exception e) {
+			cameraDevice.release();
+			Log.e(LOG_TAG, e.getMessage());
+			e.printStackTrace();
+		}
+		return cameraDevice;
 	}
 
 	// ---------------------------------------
@@ -585,7 +587,6 @@ public class StreamingActivity extends Activity implements LocationListener,
 		mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK,
 				CLASS_LABEL);
 		mWakeLock.acquire();
-		initLayout();
 
 		// test, set desired orienation to north
 		overlay.letFreeRoam(false);
@@ -628,6 +629,7 @@ public class StreamingActivity extends Activity implements LocationListener,
 	@Override
 	protected void onResume() {
 		super.onResume();
+		
 		if (mWakeLock == null) {
 			PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 			mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK,
@@ -640,16 +642,13 @@ public class StreamingActivity extends Activity implements LocationListener,
 		// the geomagnetic field
 		locationManager.requestLocationUpdates(provider, 0, 1000, overlay);
 
-		// @Nehil should this be removed?
-		// Open the default i.e. the first rear facing camera.
-		// mCamera = Camera.open();
-		// cameraCurrentlyLocked = defaultCameraId;
-
 		// sensors
 		mSensorManager.registerListener(overlay, mAcc,
 				SensorManager.SENSOR_DELAY_NORMAL);
 		mSensorManager.registerListener(overlay, mMag,
 				SensorManager.SENSOR_DELAY_NORMAL);
+		
+		initLayout();
 
 	}
 
