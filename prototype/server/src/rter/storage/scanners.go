@@ -190,7 +190,7 @@ func scanUser(user *data.User, rows *sql.Rows) error {
 		&user.Lat,
 		&user.Lng,
 		&updateTimeString,
-		&user.status,
+		&user.Status,
 		&statusTimeString,
 	)
 
