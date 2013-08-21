@@ -176,6 +176,8 @@ func scanRole(role *data.Role, rows *sql.Rows) error {
 
 func scanUser(user *data.User, rows *sql.Rows) error {
 	var createTimeString string
+	var updateTimeString string
+	var statusTimeString string
 
 	err := rows.Scan(
 		&user.Username,
