@@ -101,3 +101,8 @@ xcuserdata
 #         xcschememanagement.plist
 #
 #
+
+####
+# Sublime Text workspaces
+
+*.sublime-workspace
