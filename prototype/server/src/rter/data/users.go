@@ -15,6 +15,14 @@ type User struct {
 	TrustLevel int
 
 	CreateTime time.Time `json:",omitempty"`
+
+	Heading		float64
+	Lat			float64
+	Lng			float64
+	UpdateTime 	time.Time `json:",omitempty"`
+	Status		string
+	StatusTime	time.Time `json:",omitempty"`
+
 }
 
 func (u *User) CRUDPrefix() string {
