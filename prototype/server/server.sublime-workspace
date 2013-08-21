@@ -1,0 +1,256 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "www/js/rter.js",
+			"settings":
+			{
+				"buffer_size": 2124,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 67.0,
+		"selected_items":
+		[
+			[
+				"project",
+				"Project: Save As"
+			],
+			[
+				"add",
+				"Project: Add Folder"
+			],
+			[
+				"",
+				"Hex Viewer: Toggle Hex View"
+			]
+		],
+		"width": 467.0
+	},
+	"console":
+	{
+		"height": 125.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/Users/mike/Downloads/javacv/src/main/java/com/googlecode/javacv/cpp/avfilter.java",
+		"/Users/mike/Downloads/javacv/src/main/java/com/googlecode/javacv/ImageTransformer.java",
+		"/Users/mike/rter-msterle/rter/.gitignore",
+		"/Users/mike/rter-msterle/rter/prototype/server/www/index.html",
+		"/Users/mike/tmp/index.html",
+		"/Users/mike/Downloads/javacv/src/main/java/com/googlecode/javacv/cpp/opencv_core.java",
+		"/Users/mike/Downloads/javacv/src/main/java/com/googlecode/javacv/cpp/avformat.java",
+		"/Users/mike/FFmpegFrameSender.java",
+		"/Users/mike/Downloads/javacv/src/main/java/com/googlecode/javacv/FrameRecorder.java",
+		"/Users/mike/Downloads/javacv/src/main/java/com/googlecode/javacv/FFmpegFrameRecorder.java",
+		"/Users/mike/Downloads/javacv/src/main/java/com/googlecode/javacv/FFmpegFrameGrabber.java",
+		"/Users/mike/Downloads/stream (2).ts",
+		"/Users/mike/Downloads/javacv 2/src/main/java/com/googlecode/javacv/cpp/avformat.java",
+		"/Users/mike/Downloads/example_code-mine.cpp",
+		"/Users/mike/Downloads/canarie-rter-scrum.txt",
+		"/Users/mike/Downloads/packet-stream.ts",
+		"/Users/mike/Downloads/packet-stream (2).ts",
+		"/Users/mike/Downloads/packet-stream (1).ts",
+		"/Users/mike/stream.ts",
+		"/Users/mike/Downloads/stream (1).ts",
+		"/Users/mike/Downloads/stream.ts",
+		"/Users/mike/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings",
+		"/Users/mike/Library/Application Support/Sublime Text 2/Packages/Default/Preferences.sublime-settings"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+			"/Users/mike/Downloads/javacv",
+			"/Users/mike/Downloads/javacv/src/main/java/com/googlecode/javacv,/Users/mike/Downloads/javacv/src/main/resources",
+			"/Users/mike/Downloads/javacv/src/main/java/com/googlecode/javacv",
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"tsunam",
+			"cvCreateMat",
+			"cvGetMat",
+			"cv2DRotationMatrix",
+			"getRotationMatrix2D",
+			"point2f",
+			"vflip",
+			"videoQuality",
+			"Write_packet",
+			"avio_close_dyn_buf",
+			"URLProtocol",
+			"open_file",
+			"dyn_buf",
+			"avio_close_dyn_buf",
+			"dyn_buf",
+			"pb",
+			"47",
+			"\\n",
+			"AVIOContext",
+			"pb",
+			"tmp_picture",
+			"PointerPointer",
+			"tmp_picture",
+			"pointerpointer",
+			"malloc",
+			"\\n",
+			"^.*?buffer size: (\\d+)$",
+			"AVIOContext",
+			"pb(",
+			"avformat_write_header",
+			"video_outbuf",
+			"pb",
+			"open_dyn_buf",
+			"pb",
+			"pb(",
+			"AVIOContext",
+			"avio_alloc_context",
+			"AVIOContext",
+			"avio_open_dyn_buf",
+			"AVIOContext",
+			"url_open_dyn_buf",
+			"ByteIOContext",
+			"Epic",
+			"epic",
+			"Epic",
+			"r detected"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": true,
+		"replace_history":
+		[
+			"",
+			"+",
+			"$1"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "www/js/rter.js",
+					"settings":
+					{
+						"buffer_size": 2124,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"replace":
+	{
+		"height": 64.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"show_minimap": true,
+	"show_open_files": true,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 150.0,
+	"status_bar_visible": true
+}
