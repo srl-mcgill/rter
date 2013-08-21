@@ -106,3 +106,5 @@ xcuserdata
 # Sublime Text workspaces
 
 *.sublime-workspace
+*.sublime-project
+sftp-config.json
