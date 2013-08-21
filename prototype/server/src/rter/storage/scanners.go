@@ -60,6 +60,10 @@ func scanItem(item *data.Item, rows *sql.Rows) error {
 		return err
 	}
 
+	// TODO: this is a hacky fix for null times
+	if startTimeString == "0000-00-00 00:00:00" {
+		startTimeString = "0000-00-00 00:00:01"
+	}
 	startTime, err := time.Parse("2006-01-02 15:04:05", startTimeString) // this assumes UTC as timezone
 
 	if err != nil {
@@ -69,6 +73,10 @@ func scanItem(item *data.Item, rows *sql.Rows) error {
 
 	item.StartTime = startTime
 
+	// TODO: this is a hacky fix for null times
+	if stopTimeString == "0000-00-00 00:00:00" {
+		stopTimeString = "0000-00-00 00:00:01"
+	}
 	stopTime, err := time.Parse("2006-01-02 15:04:05", stopTimeString) // this assumes UTC as timezone
 
 	if err != nil {
@@ -176,6 +184,12 @@ func scanUser(user *data.User, rows *sql.Rows) error {
 		&user.Role,
 		&user.TrustLevel,
 		&createTimeString,
+		&user.Heading,
+		&user.Lat,
+		&user.Lng,
+		&updateTimeString,
+		&user.status,
+		&statusTimeString,
 	)
 
 	if err != nil {
@@ -185,11 +199,29 @@ func scanUser(user *data.User, rows *sql.Rows) error {
 	createTime, err := time.Parse("2006-01-02 15:04:05", createTimeString) // this assumes UTC as timezone
 
 	if err != nil {
-		log.Println("User scanner failed to parse time.")
+		log.Println("User scanner failed to parse create time.")
 		return err
 	}
 
 	user.CreateTime = createTime
+
+	updateTime, err := time.Parse("2006-01-02 15:04:05", updateTimeString) // this assumes UTC as timezone
+
+	if err != nil {
+		log.Println("User scanner failed to parse update time.")
+		return err
+	}
+
+	user.UpdateTime = updateTime
+
+	statusTime, err := time.Parse("2006-01-02 15:04:05", statusTimeString) // this assumes UTC as timezone
+
+	if err != nil {
+		log.Println("User scanner failed to parse time.")
+		return err
+	}
+
+	user.StatusTime = statusTime
 
 	return nil
 }
