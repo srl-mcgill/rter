@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 	token "videoserver/auth"
+	"code.google.com/p/goconf/conf"
 )
 
 var decoder = schema.NewDecoder()
@@ -149,9 +150,19 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	switch v := val.(type) {
 	case *data.Item:
 		if v.Type == "streaming-video-v1" {
-			v.UploadURI = "http://192.168.30.8:8080/v1/ingest/" + strconv.FormatInt(v.ID, 10)
-			v.ThumbnailURI = "http://192.168.30.8:8080/v1/videos/" + strconv.FormatInt(v.ID, 10) + "/thumb/000000001.jpg"
-			v.ContentURI = "http://192.168.30.8:8080/v1/videos/" + strconv.FormatInt(v.ID, 10)
+			c, err := conf.ReadConfigFile("rter.config")
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			baseUrl, err := c.GetString("videoserver", "base-url")
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			v.UploadURI = baseUrl + "/v1/ingest/" + strconv.FormatInt(v.ID, 10)
+			v.ThumbnailURI = baseUrl + "/v1/videos/" + strconv.FormatInt(v.ID, 10) + "/thumb/000000001.jpg"
+			v.ContentURI = baseUrl + "/v1/videos/" + strconv.FormatInt(v.ID, 10)
 
 			host, _, err := net.SplitHostPort(r.RemoteAddr)
 
