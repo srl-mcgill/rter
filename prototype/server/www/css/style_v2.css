@@ -337,6 +337,61 @@ label {
 	display: none;
 }
 
+/* -- TermView Panorama -- */
+
+.term-view .panorama-view .left {
+	width: 100%;
+}
+
+.term-view .panorama-view .right {
+	display: none;
+}
+
+.term-view .panorama-view .item-list {
+	list-style: none;
+	padding: 0;
+	margin: 0 auto 0 auto;
+}
+
+.term-view .panorama-view .item-list li {
+	float: left;
+	text-align: center;
+}
+
+.term-view .panorama-view .tile-item {
+	width: 100%;
+	height: 140px;
+	position: relative;
+}
+
+.term-view .panorama-view .tile-item img {
+	vertical-align: middle;
+	width: 333px;
+}
+
+.term-view .panorama-view .tile-item .author-badge, .term-view .panorama-view .tile-item .type-badge{
+	display: none;
+}
+.term-view .panorama-view .tile-item .tile-summary-badge {
+	display: none;
+}
+
+.term-view .panorama-view .ts-thumb {
+	padding: 0;
+	border: none;
+	-webkit-box-shadow: none;
+	-moz-box-shadow: none;
+	box-shadow: none;
+	-webkit-transition: none;
+	-moz-transition: none;
+	-o-transition: none;
+	transition: none;
+}
+
+
+
+
+
 /* -- Forms -- */
 
 .form-item input {
