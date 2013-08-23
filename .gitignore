@@ -1,6 +1,8 @@
 # Files
 *.pem
 *.a
+*.log
+nohup.out
 
 # Folders
 bin
