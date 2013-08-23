@@ -62,4 +62,23 @@ angular.module('genericItem', [
 			
 		}
 	};
+})
+
+.controller('PanoramaGenericItemCtrl', function($scope) {
+
+})
+
+.directive('panoramaGenericItem', function() {
+	return {
+		restrict: 'E',
+		scope: {
+			item: "=",
+			dialog: "="
+		},
+		templateUrl: '/template/items/generic/panorama-generic-item.html',
+		controller: 'PanoramaGenericItemCtrl',
+		link: function(scope, element, attr) {
+			
+		}
+	};
 });

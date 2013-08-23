@@ -68,6 +68,25 @@ angular.module('streamingVideoV1Item', [
 	};
 })
 
+.controller('PanoramaStreamingVideoV1ItemCtrl', function($scope, ItemCache, CloseupItemDialog) {
+
+})
+
+.directive('panoramaStreamingVideoV1Item', function() {
+	return {
+		restrict: 'E',
+		scope: {
+			item: "=",
+			dialog: "="
+		},
+		templateUrl: '/template/items/streamingVideoV1/panorama-streamingVideoV1-item.html',
+		controller: 'PanoramaStreamingVideoV1ItemCtrl',
+		link: function(scope, element, attr) {
+
+		}
+	};
+})
+
 .directive('ngPoster', function() {
 	return {
 		priority: 99, // it needs to run after the attributes are interpolated

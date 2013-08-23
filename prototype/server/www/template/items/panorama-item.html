@@ -1,0 +1,24 @@
+<div class="panorama-item" ng-switch on="item.Type">
+	<!--
+	<div ng-switch-when="twitter">
+		<panorama-twitter-item item="item" dialog="dialog"></panorama-twitter-item>
+	</div>
+	<div ng-switch-when="singletweet">		
+		<panorama-singletweet-item item="item" dialog="dialog"></panorama-singletweet-item>
+	</div>
+	<div ng-switch-when="youtube">
+		<panorama-youtube-item item="item" dialog="dialog"></panorama-youtube-item>
+	</div>
+	<div ng-switch-when="raw">
+		<panorama-raw-item item="item" dialog="dialog"></panorama-raw-item>
+	</div>
+	-->
+	<div ng-switch-when="streaming-video-v1">
+		<panorama-streaming-video-v1-item item="item" dialog="dialog"></panorama-streaming-video-v1-item>
+	</div>
+	<!--
+	<div ng-switch-default>
+		<panorama-generic-item item="item" dialog="dialog"></panorama-generic-item>
+	</div>
+	-->
+</div>

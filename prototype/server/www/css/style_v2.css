@@ -339,6 +339,22 @@ label {
 
 /* -- TermView Panorama -- */
 
+.term-view .panorama-view .item-list {
+	list-style: none;
+	padding: 20px 0 0 0;
+	margin: 0 auto 0 auto;
+}
+
+.term-view .panorama-view .item-list li {
+	float: left;
+	text-align: center;
+}
+
+.term-view .panorama-view .panorama-item {
+	width: 333px;
+}
+
+/*
 .term-view .panorama-view .left {
 	width: 100%;
 }
@@ -388,8 +404,11 @@ label {
 	transition: none;
 }
 
+.term-view .panorama-view .nodrag-warn {
+	display: none;
+}
 
-
+*/
 
 
 /* -- Forms -- */

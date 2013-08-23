@@ -318,4 +318,22 @@ angular.module('items', [
 			return d.open();
 		}
 	};
+})
+
+.controller('PanoramaItemCtrl', function($scope) {
+
+})
+
+.directive('panoramaItem', function() {
+	return {
+		restrict: 'E',
+		scope: {
+			item: "="
+		},
+		templateUrl: '/template/items/panorama-item.html',
+		controller: 'PanoramaItemCtrl',
+		link: function(scope, element, attrs) {
+
+		}
+	};
 });

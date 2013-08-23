@@ -21,49 +21,59 @@
 		</div>
 	</div>
 	
-	<div class="{{viewmode}}">
-		<div class="row-fluid">
-			<div class="left span8">
-				<div class="nodrag-warn" ng-hide="term.Term.length">You cannot drag and drop in the "Live Feed" view. Please use the "+" to open another workspace.</div>
+	<div class="{{viewmode}}" ng-switch on="viewmode">
+		<div ng-switch-when="panorama-view">
+			<div class="row-fluid">
 				<div class="nocontent" ng-show="!items.length">No Content<span ng-show="term.Term.length"> for {{term.Term}}</span></div>
-				<div ng-switch on="term.Term">
-					<div ng-switch-when="">
-						<ul class="item-list">		
-							<li ng-class="'blur' | if:isFiltered(item)" ng-repeat="item in finalFilteredItems"><a href="" ng-click="closeupItemDialog(item)"><tile-item item="item"></tile-item></a></li>
-						</ul>
-					</div>
-
-					<div ng-switch-default>
-						<ul class="item-list" ui-sortable="{stop: dragCallback, enable: false}" ng-model="rankedItems">		
-							<li ng-class="'blur' | if:isFiltered(item)" ng-repeat="item in finalFilteredItems"><a href="" ng-click="closeupItemDialog(item)"><tile-item item="item"></tile-item></a></li>
-						</ul>
-					</div>
-				</div>
+				<ul class="item-list">		
+					<li ng-class="'blur' | if:isFiltered(item)" ng-repeat="item in finalFilteredItems" ng-show="$index < 3"><panorama-item item="item"></panorama-item></li>
+				</ul>
 			</div>
+		</div>
+		<div ng-switch-default>
+			<div class="row-fluid">
+				<div class="left span8">
+					<div class="nodrag-warn" ng-hide="term.Term.length">You cannot drag and drop in the "Live Feed" view. Please use the "+" to open another workspace.</div>
+					<div class="nocontent" ng-show="!items.length">No Content<span ng-show="term.Term.length"> for {{term.Term}}</span></div>
+					<div ng-switch on="term.Term">
+						<div ng-switch-when="">
+							<ul class="item-list">		
+								<li ng-class="'blur' | if:isFiltered(item)" ng-repeat="item in finalFilteredItems"><a href="" ng-click="closeupItemDialog(item)"><tile-item item="item"></tile-item></a></li>
+							</ul>
+						</div>
 
-			<div class="right span4">
-				<div class="filter filter-text">	
-					<header>
-						<label for="textQuery">Text Filter</label>
-					</header>
-					<input type="text" class="search-query" name="textQuery" ng-model="textQuery" placeholder="Search">
+						<div ng-switch-default>
+							<ul class="item-list" ui-sortable="{stop: dragCallback, enable: false}" ng-model="rankedItems">		
+								<li ng-class="'blur' | if:isFiltered(item)" ng-repeat="item in finalFilteredItems"><a href="" ng-click="closeupItemDialog(item)"><tile-item item="item"></tile-item></a></li>
+							</ul>
+						</div>
+					</div>
 				</div>
 
-				<div class="filter filter-map">
-					<header>
-						<label for="mapFitlerEnable">Map Filter</label>
-						<div class="btn-group" name="mapFilterEnable" data-toggle="buttons-checkbox">
-						    <button type="button" class="btn btn-primary" ng-model="mapFilterEnable" btn-radio="true">On</button>
-						    <button type="button" class="btn btn-primary" ng-model="mapFilterEnable" btn-radio="false">Off</button>
-						</div>
-					</header>
-
-					<div ng-repeat="bundle in markerBundles" ui-map-marker="bundle.marker"
-					  ui-event="{'map-click': 'closeupItemDialog(bundle.item)'}">
+				<div class="right span4">
+					<div class="filter filter-text">	
+						<header>
+							<label for="textQuery">Text Filter</label>
+						</header>
+						<input type="text" class="search-query" name="textQuery" ng-model="textQuery" placeholder="Search">
 					</div>
-					<div id="map_canvas" class="map" ui-map="map" ui-options="mapOptions" ui-event="{'map-dragend': 'boundsChanged()', 'map-zoom_changed': 'boundsChanged()'}"></div>
-	
-					<!-- 'bounds_changed center_changed click dblclick drag dragend dragstart heading_changed idle maptypeid_changed mousemove mouseout mouseover projection_changed resize rightclick tilesloaded tilt_changed zoom_changed' -->	
+
+					<div class="filter filter-map">
+						<header>
+							<label for="mapFitlerEnable">Map Filter</label>
+							<div class="btn-group" name="mapFilterEnable" data-toggle="buttons-checkbox">
+							    <button type="button" class="btn btn-primary" ng-model="mapFilterEnable" btn-radio="true">On</button>
+							    <button type="button" class="btn btn-primary" ng-model="mapFilterEnable" btn-radio="false">Off</button>
+							</div>
+						</header>
+
+						<div ng-repeat="bundle in markerBundles" ui-map-marker="bundle.marker"
+						  ui-event="{'map-click': 'closeupItemDialog(bundle.item)'}">
+						</div>
+						<div id="map_canvas" class="map" ui-map="map" ui-options="mapOptions" ui-event="{'map-dragend': 'boundsChanged()', 'map-zoom_changed': 'boundsChanged()'}"></div>
+		
+						<!-- 'bounds_changed center_changed click dblclick drag dragend dragstart heading_changed idle maptypeid_changed mousemove mouseout mouseover projection_changed resize rightclick tilesloaded tilt_changed zoom_changed' -->	
+					</div>
 				</div>
 			</div>
 		</div>
