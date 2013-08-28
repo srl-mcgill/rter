@@ -9,7 +9,8 @@
 #ifndef rterCamera_Config_h
 #define rterCamera_Config_h
 
-#define SERVER @"rter.cim.mcgill.ca"
+//#define SERVER @"rter.cim.mcgill.ca"
+#define SERVER @"ec2-54-242-181-96.compute-1.amazonaws.com"
 //@"142.157.58.153:8080"
 //
 

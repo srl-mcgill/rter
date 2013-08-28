@@ -163,7 +163,7 @@
 								<int key="IBUIContentVerticalAlignment">0</int>
 								<string key="IBUIText"/>
 								<int key="IBUIBorderStyle">3</int>
-								<string key="IBUIPlaceholder">rter.cim.mcgill.ca</string>
+								<string key="IBUIPlaceholder">ec2-54-242-181-96.compute-1.amazonaws.com</string>
 								<object class="NSColor" key="IBUITextColor">
 									<int key="NSColorSpace">3</int>
 									<bytes key="NSWhite">MAA</bytes>
