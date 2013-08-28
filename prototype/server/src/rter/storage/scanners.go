@@ -22,6 +22,10 @@ func scanItemComment(comment *data.ItemComment, rows *sql.Rows) error {
 		return err
 	}
 
+	// TODO: this is a hacky fix for null times
+	if updateTimeString == "0000-00-00 00:00:00" {
+		updateTimeString = "0001-01-01 00:00:00"
+	}
 	updateTime, err := time.Parse("2006-01-02 15:04:05", updateTimeString) // this assumes UTC as timezone
 
 	if err != nil {
@@ -62,7 +66,7 @@ func scanItem(item *data.Item, rows *sql.Rows) error {
 
 	// TODO: this is a hacky fix for null times
 	if startTimeString == "0000-00-00 00:00:00" {
-		startTimeString = "0000-00-00 00:00:01"
+		startTimeString = "0001-01-01 00:00:00"
 	}
 	startTime, err := time.Parse("2006-01-02 15:04:05", startTimeString) // this assumes UTC as timezone
 
@@ -75,7 +79,7 @@ func scanItem(item *data.Item, rows *sql.Rows) error {
 
 	// TODO: this is a hacky fix for null times
 	if stopTimeString == "0000-00-00 00:00:00" {
-		stopTimeString = "0000-00-00 00:00:01"
+		stopTimeString = "0001-01-01 00:00:00"
 	}
 	stopTime, err := time.Parse("2006-01-02 15:04:05", stopTimeString) // this assumes UTC as timezone
 
@@ -119,6 +123,10 @@ func scanTerm(term *data.Term, rows *sql.Rows) error {
 		return err
 	}
 
+	// TODO: this is a hacky fix for null times
+	if updateTimeString == "0000-00-00 00:00:00" {
+		updateTimeString = "0001-01-01 00:00:00"
+	}
 	updateTime, err := time.Parse("2006-01-02 15:04:05", updateTimeString) // this assumes UTC as timezone
 
 	if err != nil {
@@ -153,6 +161,10 @@ func scanTermRanking(ranking *data.TermRanking, rows *sql.Rows) error {
 		return err
 	}
 
+	// TODO: this is a hacky fix for null times
+	if updateTimeString == "0000-00-00 00:00:00" {
+		updateTimeString = "0001-01-01 00:00:00"
+	}
 	updateTime, err := time.Parse("2006-01-02 15:04:05", updateTimeString) // this assumes UTC as timezone
 
 	if err != nil {
@@ -198,6 +210,10 @@ func scanUser(user *data.User, rows *sql.Rows) error {
 		return err
 	}
 
+	// TODO: this is a hacky fix for null times
+	if createTimeString == "0000-00-00 00:00:00" {
+		createTimeString = "0001-01-01 00:00:00"
+	}
 	createTime, err := time.Parse("2006-01-02 15:04:05", createTimeString) // this assumes UTC as timezone
 
 	if err != nil {
@@ -207,6 +223,10 @@ func scanUser(user *data.User, rows *sql.Rows) error {
 
 	user.CreateTime = createTime
 
+	// TODO: this is a hacky fix for null times
+	if updateTimeString == "0000-00-00 00:00:00" {
+		updateTimeString = "0001-01-01 00:00:00"
+	}
 	updateTime, err := time.Parse("2006-01-02 15:04:05", updateTimeString) // this assumes UTC as timezone
 
 	if err != nil {
@@ -216,6 +236,10 @@ func scanUser(user *data.User, rows *sql.Rows) error {
 
 	user.UpdateTime = updateTime
 
+	// TODO: this is a hacky fix for null times
+	if statusTimeString == "0000-00-00 00:00:00" {
+		statusTimeString = "0001-01-01 00:00:00"
+	}
 	statusTime, err := time.Parse("2006-01-02 15:04:05", statusTimeString) // this assumes UTC as timezone
 
 	if err != nil {
@@ -245,6 +269,10 @@ func scanUserDirection(direction *data.UserDirection, rows *sql.Rows) error {
 		return err
 	}
 
+	// TODO: this is a hacky fix for null times
+	if updateTimeString == "0000-00-00 00:00:00" {
+		updateTimeString = "0001-01-01 00:00:00"
+	}
 	updateTime, err := time.Parse("2006-01-02 15:04:05", updateTimeString) // this assumes UTC as timezone
 
 	if err != nil {
