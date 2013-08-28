@@ -1,6 +1,6 @@
 # Files
 *.pem
-*.a
+#*.a
 *.log
 nohup.out
 
