@@ -49,8 +49,25 @@ angular.module('streamingVideoV1Item', [
 	};
 })
 
-.controller('CloseupStreamingVideoV1ItemCtrl', function($scope, ItemCache, CloseupItemDialog) {
-
+.controller('CloseupStreamingVideoV1ItemCtrl', function($scope, ItemCache, CloseupItemDialog) {	
+	$scope.$on("playing", function(e, video) {
+		//console.log("playing");
+	});
+	
+	$scope.$on("paused", function(e, video) {
+		//console.log("paused");
+	});
+	
+	$scope.$on("live", function(e, video) {
+		//console.log("live");
+	});
+	
+	$scope.toggleLive = function() {
+		$scope.item.Liveseek = false;
+		$timeout(function() {
+			$scope.item.Liveseek = true;
+		}, 100);
+	};
 })
 
 .directive('closeupStreamingVideoV1Item', function() {

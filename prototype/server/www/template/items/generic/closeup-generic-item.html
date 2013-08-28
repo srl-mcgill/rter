@@ -1,7 +1,7 @@
 <div class="closeup-generic-item row-fluid" ng-switch on="item.HasGeo">
 	<div ng-switch-when="true">
 		<div class="span6 left">
-			<a target="_blank" href="{{item.ContentURI}}">
+			<a target="_blank" ng-href="{{item.ContentURI}}">
 				<img ng-src="{{item.ThumbnailURI}}">
 				<div>{{item.ContentURI}}</div>
 			</a>
@@ -24,7 +24,7 @@
 
 	<div ng-switch-default>
 		<div class="span12 left">
-			<a target="_blank" href="{{item.ContentURI}}">
+			<a target="_blank" ng-href="{{item.ContentURI}}">
 				<img ng-src="{{item.ThumbnailURI}}">
 				<div>{{item.ContentURI}}</div>
 			</a>
