@@ -31,6 +31,7 @@ import (
 	"rter/rest"
 	"rter/storage"
 	"rter/streaming"
+	"rter/panorama"
 )
 
 // TODO: Make a flag for the secret token (video server)
@@ -146,6 +147,8 @@ func main() {
 	}
 
 	http.Handle("/", rootHandler)
+
+	panorama.Start()
 
 	// Launch Server
 
