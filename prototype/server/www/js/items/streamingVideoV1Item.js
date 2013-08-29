@@ -49,7 +49,7 @@ angular.module('streamingVideoV1Item', [
 	};
 })
 
-.controller('CloseupStreamingVideoV1ItemCtrl', function($scope, ItemCache, CloseupItemDialog) {	
+.controller('CloseupStreamingVideoV1ItemCtrl', function($scope, $timeout, ItemCache, CloseupItemDialog) {	
 	$scope.$on("playing", function(e, video) {
 		//console.log("playing");
 	});
@@ -63,6 +63,7 @@ angular.module('streamingVideoV1Item', [
 	});
 	
 	$scope.toggleLive = function() {
+		console.log($scope.item);
 		$scope.item.Liveseek = false;
 		$timeout(function() {
 			$scope.item.Liveseek = true;
