@@ -343,11 +343,11 @@ label {
 	list-style: none;
 	padding: 20px 0 0 0;
 	margin: 0 auto 0 auto;
+	position: relative;
 }
 
 .term-view .panorama-view .item-list li {
-	float: left;
-	text-align: center;
+	position: absolute;
 }
 
 .term-view .panorama-view .panorama-item {

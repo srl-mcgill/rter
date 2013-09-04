@@ -78,6 +78,8 @@ angular.module('termview', [
 	$scope.orderedByID = $filter('orderBy')($scope.filteredItems, 'ID', true);
 	$scope.orderedByTime = $filter('orderBy')($scope.orderedByID, 'StartTime', true);
 
+	$scope.panoramaItems = $scope.orderedByTime.slice(0, 3);
+
 	$scope.rankedItems = $filter('orderByRanking')($scope.orderedByTime, $scope.ranking);
 
 	$scope.finalMapItems = $scope.rankedItems;
@@ -90,6 +92,7 @@ angular.module('termview', [
 		$scope.filteredItems = $filter('filterByTerm')($scope.items, $scope.term.Term);
 		$scope.orderedByID = $filter('orderBy')($scope.filteredItems, 'ID', true);
 		$scope.orderedByTime = $filter('orderBy')($scope.orderedByID, 'StartTime', true);
+		$scope.panoramaItems = $scope.orderedByTime.slice(0, 3);
 	}, true);
 
 	$scope.$watch('[ranking, orderedByTime]', function() {
@@ -134,6 +137,19 @@ angular.module('termview', [
 			$scope.finalFilteredItems = $scope.mapFilteredItems;
 		}
 	}, true);
+
+	$scope.$watch('viewmode', function() {
+		if($scope.viewmode == 'panorama-view') {
+			//
+		}
+	}, true);
+
+	$scope.panoramaItemWidth = 250;
+	$scope.getLeftValue = function(item) {
+		//console.log(item.ID + ": " + item.Heading);
+		//$scope.panoramaItems;
+		return (item.Heading + 180) * (1000 - $scope.panoramaItemWidth) / 360;
+	}
 
 	$scope.isFiltered = function(item) {
 		var filtered = [item];
