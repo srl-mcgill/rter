@@ -31,6 +31,7 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
@@ -90,6 +91,7 @@ import android.widget.Toast;
 import ca.nehil.rter.streamingapp2.GetTokenActivity.HandshakeTask;
 import ca.nehil.rter.streamingapp2.overlay.CameraGLSurfaceView;
 import ca.nehil.rter.streamingapp2.overlay.OverlayController;
+import ca.nehil.rter.streamingapp2.util.SensorFusion;
 import android.view.KeyEvent;
 import android.view.OrientationEventListener;
 import android.content.res.Configuration;
@@ -150,6 +152,7 @@ public class StreamingActivity extends Activity implements LocationListener,
 
 	private LocationManager locationManager;
 	private String provider;
+	private SensorFusion mSensorFusion;
 
 	FrameInfo frameInfo;
 
@@ -201,6 +204,8 @@ public class StreamingActivity extends Activity implements LocationListener,
 	private final int live_width = 640;
 	private final int live_height = 480;
 	private int screenWidth, screenHeight;
+	
+	DecimalFormat d = new DecimalFormat("#.##");
 
 	/* mikes variables ends ******* */// ////////
 
@@ -581,6 +586,8 @@ public class StreamingActivity extends Activity implements LocationListener,
 				Log.d(TAG, "Location not available");
 			}
 		}
+		
+		mSensorFusion = new SensorFusion(this);
 
 		// power manager
 		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
@@ -622,8 +629,9 @@ public class StreamingActivity extends Activity implements LocationListener,
 		if (mCamera != null) {
 			mCamera.release();
 			mCamera = null;
-
 		}
+		
+		mSensorFusion.stopListeners();
 	}
 
 	@Override
@@ -649,7 +657,8 @@ public class StreamingActivity extends Activity implements LocationListener,
 				SensorManager.SENSOR_DELAY_NORMAL);
 		
 		initLayout();
-
+		
+		mSensorFusion.initListeners();
 	}
 
 	@Override
@@ -685,6 +694,8 @@ public class StreamingActivity extends Activity implements LocationListener,
 			mWakeLock.release();
 			mWakeLock = null;
 		}
+		
+		mSensorFusion.stopListeners();
 	}
 
 	public static byte[] convertStringToByteArray(String s) {
@@ -837,10 +848,16 @@ public class StreamingActivity extends Activity implements LocationListener,
 
 				float lat = lati;
 				float lng = longi;
-				float heading = overlay.getCurrentOrientation();
+				//float heading = overlay.getCurrentOrientation();
+				double heading = mSensorFusion.getHeading();
+				
+				Log.d("SENSOR", d.format(mSensorFusion.getMagHeading()) + ", " +
+						d.format(mSensorFusion.getGyroHeading()) + ", " +
+						d.format(mSensorFusion.getFusedHeading()));
+				
 				jsonObjSend.put("Lat", lat);
 				jsonObjSend.put("Lng", lng);
-				jsonObjSend.put("Heading", heading);
+				jsonObjSend.put("Heading", (float) heading);
 
 				// Output the JSON object we're sending to Logcat:
 				Log.i(TAG, "PUTHEADNG::Body of update heading feed json = "
