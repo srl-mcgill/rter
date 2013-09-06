@@ -26,7 +26,7 @@
 			<div class="row-fluid">
 				<div class="nocontent" ng-show="!items.length">No Content<span ng-show="term.Term.length"> for {{term.Term}}</span></div>
 				<ul class="item-list">		
-					<li ng-repeat="item in panoramaItems" x-heading="{{item.Heading}}" style="left: {{getLeftValue(item)}}px"><panorama-item item="item"></panorama-item></li>
+					<li ng-repeat="item in panoramaItems" x-heading="{{item.Heading}}" style="left: {{getLeftValue(item)}}px; z-index: {{3 - $index}}"><panorama-item item="item"></panorama-item></li>
 				</ul>
 			</div>
 			<!--
