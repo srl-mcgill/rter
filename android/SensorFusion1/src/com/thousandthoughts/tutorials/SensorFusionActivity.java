@@ -30,6 +30,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
@@ -69,6 +70,10 @@ implements SensorEventListener, RadioGroup.OnCheckedChangeListener {
     // accelerometer and magnetometer based rotation matrix
     private float[] rotationMatrix = new float[9];
     
+    // accelerometer and magnetometer based initial rotation matrix
+    private float[] initMatrix = new float[9];
+    private float[] initMatrixTranspose = new float[9];
+    
     public static final float EPSILON = 0.000000001f;
     private static final float NS2S = 1.0f / 1000000000.0f;
 	private float timestamp;
@@ -101,6 +106,11 @@ implements SensorEventListener, RadioGroup.OnCheckedChangeListener {
         gyroMatrix[0] = 1.0f; gyroMatrix[1] = 0.0f; gyroMatrix[2] = 0.0f;
         gyroMatrix[3] = 0.0f; gyroMatrix[4] = 1.0f; gyroMatrix[5] = 0.0f;
         gyroMatrix[6] = 0.0f; gyroMatrix[7] = 0.0f; gyroMatrix[8] = 1.0f;
+        
+        // initialise initMatrix with identity matrix
+        initMatrix[0] = 1.0f; initMatrix[1] = 0.0f; initMatrix[2] = 0.0f;
+        initMatrix[3] = 0.0f; initMatrix[4] = 1.0f; initMatrix[5] = 0.0f;
+        initMatrix[6] = 0.0f; initMatrix[7] = 0.0f; initMatrix[8] = 1.0f;
  
         // get sensorManager and initialise sensor listeners
         mSensorManager = (SensorManager) this.getSystemService(SENSOR_SERVICE);
@@ -122,6 +132,8 @@ implements SensorEventListener, RadioGroup.OnCheckedChangeListener {
         mPitchView = (TextView)findViewById(R.id.textView5);
         mRollView = (TextView)findViewById(R.id.textView6);
         mRadioGroup.setOnCheckedChangeListener(this);
+        
+        Log.d("MSC", "onCreate called...");
     }
     
     @Override
@@ -143,21 +155,24 @@ implements SensorEventListener, RadioGroup.OnCheckedChangeListener {
     	super.onResume();
     	// restore the sensor listeners when user resumes the application.
     	initListeners();
+    	initState = true;
     }
     
     // This function registers sensor listeners for the accelerometer, magnetometer and gyroscope.
     public void initListeners(){
         mSensorManager.registerListener(this,
-            mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-            SensorManager.SENSOR_DELAY_FASTEST);
+	            mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+	            SensorManager.SENSOR_DELAY_FASTEST);
      
         mSensorManager.registerListener(this,
-            mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
-            SensorManager.SENSOR_DELAY_FASTEST);
-     
-        mSensorManager.registerListener(this,
-            mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
-            SensorManager.SENSOR_DELAY_FASTEST);
+	            mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
+	            SensorManager.SENSOR_DELAY_FASTEST);
+    }
+    
+    private void initGyroListener() {
+    	mSensorManager.registerListener(this,
+                mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
+                SensorManager.SENSOR_DELAY_FASTEST);
     }
 
 	@Override
@@ -185,10 +200,25 @@ implements SensorEventListener, RadioGroup.OnCheckedChangeListener {
 	    }
 	}
 	
+	private int count = 0;
 	// calculates orientation angles from accelerometer and magnetometer output
 	public void calculateAccMagOrientation() {
 	    if(SensorManager.getRotationMatrix(rotationMatrix, null, accel, magnet)) {
-	        SensorManager.getOrientation(rotationMatrix, accMagOrientation);
+	        if(initState) {
+	        	SensorManager.getOrientation(rotationMatrix, accMagOrientation);
+	    		initMatrix = getRotationMatrixFromOrientation(accMagOrientation);
+	            initMatrixTranspose = transposeMatrix(initMatrix);
+	            //Log.d("MSC", matrixToString(initMatrix));
+	            //Log.d("MSC", "init: " + orientationToString(accMagOrientation));
+	            float[] test = new float[3];
+	            SensorManager.getOrientation(initMatrix, test);
+	            gyroMatrix = matrixMultiplication(gyroMatrix, initMatrix);
+	            initState = false;
+	    		initGyroListener();
+	    	}
+	        else {
+	        	SensorManager.getOrientation(matrixMultiplication(rotationMatrix, initMatrixTranspose), accMagOrientation);
+	        }
 	    }
 	}
 	
@@ -230,20 +260,6 @@ implements SensorEventListener, RadioGroup.OnCheckedChangeListener {
     // This function performs the integration of the gyroscope data.
     // It writes the gyroscope based orientation into gyroOrientation.
     public void gyroFunction(SensorEvent event) {
-        // don't start until first accelerometer/magnetometer orientation has been acquired
-        if (accMagOrientation == null)
-            return;
-     
-        // initialisation of the gyroscope based rotation matrix
-        if(initState) {
-            float[] initMatrix = new float[9];
-            initMatrix = getRotationMatrixFromOrientation(accMagOrientation);
-            float[] test = new float[3];
-            SensorManager.getOrientation(initMatrix, test);
-            gyroMatrix = matrixMultiplication(gyroMatrix, initMatrix);
-            initState = false;
-        }
-     
         // copy the new gyro values into the gyro array
         // convert the raw gyro data into a rotation vector
         float[] deltaVector = new float[4];
@@ -318,15 +334,25 @@ implements SensorEventListener, RadioGroup.OnCheckedChangeListener {
         return result;
     }
     
+    private float[] transposeMatrix(float[] m) {
+    	float[] result = new float[9];
+    	
+    	result[0] = m[0]; result[1] = m[3]; result[2] = m[6];
+        result[3] = m[1]; result[4] = m[4]; result[5] = m[7];
+        result[6] = m[2]; result[7] = m[5]; result[8] = m[8];
+        
+        return result;
+    }
+    
     class calculateFusedOrientationTask extends TimerTask {
         public void run() {
             float oneMinusCoeff = 1.0f - FILTER_COEFFICIENT;
             
             /*
-             * Fix for 179° <--> -179° transition problem:
+             * Fix for 179âˆž <--> -179âˆž transition problem:
              * Check whether one of the two orientation angles (gyro or accMag) is negative while the other one is positive.
-             * If so, add 360° (2 * math.PI) to the negative value, perform the sensor fusion, and remove the 360° from the result
-             * if it is greater than 180°. This stabilizes the output in positive-to-negative-transition cases.
+             * If so, add 360âˆž (2 * math.PI) to the negative value, perform the sensor fusion, and remove the 360âˆž from the result
+             * if it is greater than 180âˆž. This stabilizes the output in positive-to-negative-transition cases.
              */
             
             // azimuth
@@ -379,6 +405,20 @@ implements SensorEventListener, RadioGroup.OnCheckedChangeListener {
         }
     }
     
+    private String matrixToString(float[] m) {
+    	String result = "";
+    	
+    	result += "âŒˆ " + d.format(m[0]) + " " + d.format(m[1]) + " " + d.format(m[2]) + " âŒ‰\n";
+    	result += "| " + d.format(m[3]) + " " + d.format(m[4]) + " " + d.format(m[5]) + " |\n";
+    	result += "âŒŠ " + d.format(m[6]) + " " + d.format(m[7]) + " " + d.format(m[8]) + " âŒ‹";
+    	
+    	return result;
+    }
+    
+    private String orientationToString(float[] o) {
+    	return "[ " + d.format(o[0]) + " " + d.format(o[1]) + " " + d.format(o[2]) + " ]";
+    }
+    
     
     // **************************** GUI FUNCTIONS *********************************
     
@@ -400,19 +440,19 @@ implements SensorEventListener, RadioGroup.OnCheckedChangeListener {
     public void updateOreintationDisplay() {
     	switch(radioSelection) {
     	case 0:
-    		mAzimuthView.setText(d.format(accMagOrientation[0] * 180/Math.PI) + '°');
-            mPitchView.setText(d.format(accMagOrientation[1] * 180/Math.PI) + '°');
-            mRollView.setText(d.format(accMagOrientation[2] * 180/Math.PI) + '°');
+    		mAzimuthView.setText(d.format(accMagOrientation[0] * 180/Math.PI) + 'âˆž');
+            mPitchView.setText(d.format(accMagOrientation[1] * 180/Math.PI) + 'âˆž');
+            mRollView.setText(d.format(accMagOrientation[2] * 180/Math.PI) + 'âˆž');
     		break;
     	case 1:
-    		mAzimuthView.setText(d.format(gyroOrientation[0] * 180/Math.PI) + '°');
-            mPitchView.setText(d.format(gyroOrientation[1] * 180/Math.PI) + '°');
-            mRollView.setText(d.format(gyroOrientation[2] * 180/Math.PI) + '°');
+    		mAzimuthView.setText(d.format(gyroOrientation[0] * 180/Math.PI) + 'âˆž');
+            mPitchView.setText(d.format(gyroOrientation[1] * 180/Math.PI) + 'âˆž');
+            mRollView.setText(d.format(gyroOrientation[2] * 180/Math.PI) + 'âˆž');
     		break;
     	case 2:
-    		mAzimuthView.setText(d.format(fusedOrientation[0] * 180/Math.PI) + '°');
-            mPitchView.setText(d.format(fusedOrientation[1] * 180/Math.PI) + '°');
-            mRollView.setText(d.format(fusedOrientation[2] * 180/Math.PI) + '°');
+    		mAzimuthView.setText(d.format(fusedOrientation[0] * 180/Math.PI) + 'âˆž');
+            mPitchView.setText(d.format(fusedOrientation[1] * 180/Math.PI) + 'âˆž');
+            mRollView.setText(d.format(fusedOrientation[2] * 180/Math.PI) + 'âˆž');
     		break;
     	}
     }
