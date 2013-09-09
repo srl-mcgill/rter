@@ -7,6 +7,10 @@
 					<source ng-src="{{item.ContentURI}}/webm_index.m3u8" type="application/x-mpegURL;profile='video/webm; codecs=vp8'">
 					<source ng-src="{{item.ContentURI}}/video.webm" type="video/webm; codecs=vp8,vorbis">
 				</video>
+<<<<<<< HEAD
+=======
+				<button style="float: right;" class="btn btn-primary" ng-click="toggleLive($event)">Seek to Live</button>
+>>>>>>> 8f9b942... Re-added Live Mode button on streaming items
 			</div>
 			<div ng-switch-default>
 				<video live controls ng-poster="{{item.ContentURI}}/poster/000000001.jpg" x-webkit-airplay="allow">
