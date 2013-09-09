@@ -31,7 +31,7 @@ import (
 	"rter/rest"
 	"rter/storage"
 	"rter/streaming"
-	"rter/panorama"
+	//"rter/panorama"
 )
 
 // TODO: Make a flag for the secret token (video server)
