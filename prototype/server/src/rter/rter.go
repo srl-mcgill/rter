@@ -148,7 +148,7 @@ func main() {
 
 	http.Handle("/", rootHandler)
 
-	panorama.Start()
+	//panorama.Start()
 
 	// Launch Server
 
