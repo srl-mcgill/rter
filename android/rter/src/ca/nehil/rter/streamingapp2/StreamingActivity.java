@@ -105,7 +105,8 @@ public class StreamingActivity extends Activity implements LocationListener,
 		OnClickListener {
 
 	//private static final String SERVER_URL = "http://rter.cim.mcgill.ca";
-	private static final String SERVER_URL = "http://132.206.74.145:8000";
+	private static final String SERVER_URL = "http://ec2-54-242-181-96.compute-1.amazonaws.com";
+	//private static final String SERVER_URL = "http://132.206.74.145:8000";
 
 	private HandShakeTask handshakeTask = null;
 	private int PutHeadingTimer = 2000; /*

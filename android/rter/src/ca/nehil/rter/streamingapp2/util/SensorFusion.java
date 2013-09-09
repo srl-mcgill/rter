@@ -60,14 +60,7 @@ public class SensorFusion implements SensorEventListener {
 	public SensorFusion(Context context) {
 		this.context = context;
 		
-		gyroOrientation[0] = 0.0f;
-        gyroOrientation[1] = 0.0f;
-        gyroOrientation[2] = 0.0f;
- 
-        // initialise gyroMatrix with identity matrix
-        gyroMatrix[0] = 1.0f; gyroMatrix[1] = 0.0f; gyroMatrix[2] = 0.0f;
-        gyroMatrix[3] = 0.0f; gyroMatrix[4] = 1.0f; gyroMatrix[5] = 0.0f;
-        gyroMatrix[6] = 0.0f; gyroMatrix[7] = 0.0f; gyroMatrix[8] = 1.0f;
+		initValues();
  
         // get sensorManager and initialise sensor listeners
         mSensorManager = (SensorManager) this.context.getSystemService(this.context.SENSOR_SERVICE);
@@ -77,6 +70,17 @@ public class SensorFusion implements SensorEventListener {
         // data is initialised then scedule the complementary filter task
         fuseTimer.scheduleAtFixedRate(new calculateFusedOrientationTask(),
                                       1000, TIME_CONSTANT);
+	}
+	
+	public void initValues() {
+		gyroOrientation[0] = 0.0f;
+        gyroOrientation[1] = 0.0f;
+        gyroOrientation[2] = 0.0f;
+ 
+        // initialise gyroMatrix with identity matrix
+        gyroMatrix[0] = 1.0f; gyroMatrix[1] = 0.0f; gyroMatrix[2] = 0.0f;
+        gyroMatrix[3] = 0.0f; gyroMatrix[4] = 1.0f; gyroMatrix[5] = 0.0f;
+        gyroMatrix[6] = 0.0f; gyroMatrix[7] = 0.0f; gyroMatrix[8] = 1.0f;
 	}
 
     // This function registers sensor listeners for the accelerometer, magnetometer and gyroscope.
@@ -99,6 +103,7 @@ public class SensorFusion implements SensorEventListener {
     public void stopListeners() {
     	mSensorManager.unregisterListener(this);
     	initState = true;
+    	initValues();
     }
 
 	@Override
@@ -135,9 +140,9 @@ public class SensorFusion implements SensorEventListener {
 	            initMatrixTranspose = transposeMatrix(initMatrix);
 	            //Log.d("MSC", matrixToString(initMatrix));
 	            //Log.d("MSC", "init: " + orientationToString(accMagOrientation));
-	            float[] test = new float[3];
-	            SensorManager.getOrientation(initMatrix, test);
-	            gyroMatrix = matrixMultiplication(gyroMatrix, initMatrix);
+	            //float[] test = new float[3];
+	            //SensorManager.getOrientation(initMatrix, test);
+	            //gyroMatrix = matrixMultiplication(gyroMatrix, initMatrix);
 	            initState = false;
 	    		initGyroListener();
 	    	}
@@ -353,7 +358,7 @@ public class SensorFusion implements SensorEventListener {
     }
     
     private String orientationToString(float[] o) {
-    	return "[ " + d.format(o[0]) + " " + d.format(o[1]) + " " + d.format(o[2]) + " ]";
+    	return "[ " + d.format(o[0] * 180/Math.PI) + " " + d.format(o[1] * 180/Math.PI) + " " + d.format(o[2] * 180/Math.PI) + " ]";
     }
     
     /*

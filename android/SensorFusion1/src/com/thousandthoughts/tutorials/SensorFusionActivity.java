@@ -31,6 +31,8 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
@@ -98,23 +100,11 @@ implements SensorEventListener, RadioGroup.OnCheckedChangeListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
  
-        gyroOrientation[0] = 0.0f;
-        gyroOrientation[1] = 0.0f;
-        gyroOrientation[2] = 0.0f;
- 
-        // initialise gyroMatrix with identity matrix
-        gyroMatrix[0] = 1.0f; gyroMatrix[1] = 0.0f; gyroMatrix[2] = 0.0f;
-        gyroMatrix[3] = 0.0f; gyroMatrix[4] = 1.0f; gyroMatrix[5] = 0.0f;
-        gyroMatrix[6] = 0.0f; gyroMatrix[7] = 0.0f; gyroMatrix[8] = 1.0f;
         
-        // initialise initMatrix with identity matrix
-        initMatrix[0] = 1.0f; initMatrix[1] = 0.0f; initMatrix[2] = 0.0f;
-        initMatrix[3] = 0.0f; initMatrix[4] = 1.0f; initMatrix[5] = 0.0f;
-        initMatrix[6] = 0.0f; initMatrix[7] = 0.0f; initMatrix[8] = 1.0f;
  
         // get sensorManager and initialise sensor listeners
         mSensorManager = (SensorManager) this.getSystemService(SENSOR_SERVICE);
-        initListeners();
+        init();
         
         // wait for one second until gyroscope and magnetometer/accelerometer
         // data is initialised then scedule the complementary filter task
@@ -133,7 +123,18 @@ implements SensorEventListener, RadioGroup.OnCheckedChangeListener {
         mRollView = (TextView)findViewById(R.id.textView6);
         mRadioGroup.setOnCheckedChangeListener(this);
         
-        Log.d("MSC", "onCreate called...");
+        Button logValues = (Button) this.findViewById(R.id.log_values);
+        logValues.setOnClickListener(new View.OnClickListener() {
+        	@Override
+        	public void onClick(View v) {
+        		Log.d("SENSORS", "accMag: " + orientationToString(accMagOrientation));
+        		Log.d("SENSORS", "gyro:   " + orientationToString(gyroOrientation));
+        		Log.d("SENSORS", "fused:  " + orientationToString(fusedOrientation));
+        		Log.d("SENSORS", "---------------------------------");
+        	}
+        });
+        
+        Log.d("MSC", "Starting...");
     }
     
     @Override
@@ -154,8 +155,26 @@ implements SensorEventListener, RadioGroup.OnCheckedChangeListener {
     public void onResume() {
     	super.onResume();
     	// restore the sensor listeners when user resumes the application.
-    	initListeners();
+    	init();
     	initState = true;
+    }
+    
+    public void init() {
+    	gyroOrientation[0] = 0.0f;
+        gyroOrientation[1] = 0.0f;
+        gyroOrientation[2] = 0.0f;
+ 
+        // initialise gyroMatrix with identity matrix
+        gyroMatrix[0] = 1.0f; gyroMatrix[1] = 0.0f; gyroMatrix[2] = 0.0f;
+        gyroMatrix[3] = 0.0f; gyroMatrix[4] = 1.0f; gyroMatrix[5] = 0.0f;
+        gyroMatrix[6] = 0.0f; gyroMatrix[7] = 0.0f; gyroMatrix[8] = 1.0f;
+        
+        // initialise initMatrix with identity matrix
+        initMatrix[0] = 1.0f; initMatrix[1] = 0.0f; initMatrix[2] = 0.0f;
+        initMatrix[3] = 0.0f; initMatrix[4] = 1.0f; initMatrix[5] = 0.0f;
+        initMatrix[6] = 0.0f; initMatrix[7] = 0.0f; initMatrix[8] = 1.0f;
+        
+        initListeners();
     }
     
     // This function registers sensor listeners for the accelerometer, magnetometer and gyroscope.
@@ -212,7 +231,7 @@ implements SensorEventListener, RadioGroup.OnCheckedChangeListener {
 	            //Log.d("MSC", "init: " + orientationToString(accMagOrientation));
 	            float[] test = new float[3];
 	            SensorManager.getOrientation(initMatrix, test);
-	            gyroMatrix = matrixMultiplication(gyroMatrix, initMatrix);
+	            //gyroMatrix = matrixMultiplication(gyroMatrix, initMatrix);
 	            initState = false;
 	    		initGyroListener();
 	    	}
@@ -416,7 +435,7 @@ implements SensorEventListener, RadioGroup.OnCheckedChangeListener {
     }
     
     private String orientationToString(float[] o) {
-    	return "[ " + d.format(o[0]) + " " + d.format(o[1]) + " " + d.format(o[2]) + " ]";
+    	return "[ " + d.format(o[0] * 180/Math.PI) + " " + d.format(o[1] * 180/Math.PI) + " " + d.format(o[2] * 180/Math.PI) + " ]";
     }
     
     

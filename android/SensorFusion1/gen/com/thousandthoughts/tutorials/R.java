@@ -14,6 +14,7 @@ public final class R {
         public static final int ic_launcher=0x7f020000;
     }
     public static final class id {
+        public static final int log_values=0x7f05000f;
         public static final int radio0=0x7f05000c;
         public static final int radio1=0x7f05000d;
         public static final int radio2=0x7f05000e;
