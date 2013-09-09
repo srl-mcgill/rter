@@ -1,18 +1,19 @@
-<div class="panorama-streamingVideoV1-item row-fluid item-{{item.ID}}">
+<div class="panorama-small-streamingVideoV1-item row-fluid item-{{item.ID}}">
 	<div ng-switch on="item.Live">
 		<div ng-switch-when="true">
-			<video hls-video live="{{item.Liveseek}}" controls ng-poster="{{item.ContentURI}}/poster/000000001.jpg" x-webkit-airplay="allow" width="{{panoramaItemWidth}}"  height="{{panoramaItemHeight}}" autoplay="{{item.Liveseek}}">
+			<video hls-video live="{{item.Liveseek}}" controls ng-poster="{{item.ContentURI}}/poster/000000001.jpg" x-webkit-airplay="allow" width="{{panoramaSmallItemWidth}}"  height="{{panoramaSmallItemHeight}}" autoplay="{{item.Liveseek}}">
 				<source ng-src="{{item.ContentURI}}/index.m3u8" type="application/x-mpegURL;profile='video/mp2t'">
 				<source ng-src="{{item.ContentURI}}/webm_index.m3u8" type="application/x-mpegURL;profile='video/webm; codecs=vp8'">
 				<source ng-src="{{item.ContentURI}}/video.webm" type="video/webm; codecs=vp8,vorbis">
 			</video>
 		</div>
 		<div ng-switch-default>
-			<video live controls ng-poster="{{item.ContentURI}}/poster/000000001.jpg" x-webkit-airplay="allow" width="{{panoramaItemWidth}}" height="{{panoramaItemHeight}}">
+			<video live controls ng-poster="{{item.ContentURI}}/poster/000000001.jpg" x-webkit-airplay="allow" width="{{panoramaSmallItemWidth}}" height="{{panoramaSmallItemHeight}}">
 				<source ng-src="{{item.ContentURI}}/index.m3u8" type="application/x-mpegURL;profile='video/mp2t'">
 				<source ng-src="{{item.ContentURI}}/webm_index.m3u8" type="application/x-mpegURL;profile='video/webm; codecs=vp8'">
 				<source ng-src="{{item.ContentURI}}/video.webm" type="video/webm; codecs=vp8,vorbis">
 			</video>
 		</div>
 	</div>
+	<div style="text-align: center"><strong>{{item.Heading}}</strong></div>
 </div>

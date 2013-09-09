@@ -89,6 +89,12 @@ angular.module('streamingVideoV1Item', [
 .controller('PanoramaStreamingVideoV1ItemCtrl', function($scope, $timeout, ItemCache, CloseupItemDialog) {
 	$scope.$on("playing", function(e, video) {
 		console.log("playing video " + $scope.item.ID);
+		var videoNode = $(".panorama-streamingVideoV1-item.item-" + $scope.item.ID + " video").first();
+		if(videoNode.attr("width") != $scope.panoramaItemWidth) {
+			console.log("fixed dimensions for video " + $scope.item.ID);
+			videoNode.attr("width", $scope.panoramaItemWidth)
+			videoNode.attr("height", $scope.panoramaItemHeight)
+		}
 	});
 	
 	$scope.$on("paused", function(e, video) {
@@ -100,7 +106,7 @@ angular.module('streamingVideoV1Item', [
 		console.log("live video " + $scope.item.ID);
 	});
 
-	$scope.panoramaItemWidth = 250;
+	$scope.panoramaItemWidth = 300;
 	$scope.panoramaItemHeight = $scope.panoramaItemWidth * 3 / 4;
 	
 	$scope.toggleLive = function() {
@@ -120,6 +126,52 @@ angular.module('streamingVideoV1Item', [
 		},
 		templateUrl: '/template/items/streamingVideoV1/panorama-streamingVideoV1-item.html',
 		controller: 'PanoramaStreamingVideoV1ItemCtrl',
+		link: function(scope, element, attr) {
+
+		}
+	};
+})
+
+.controller('PanoramaSmallStreamingVideoV1ItemCtrl', function($scope, $timeout, ItemCache, CloseupItemDialog) {
+	$scope.$on("playing", function(e, video) {
+		console.log("playing small video " + $scope.item.ID);
+		var videoNode = $(".panorama-small-streamingVideoV1-item.item-" + $scope.item.ID + " video").first();
+		if(videoNode.attr("width") != $scope.panoramaSmallItemWidth) {
+			console.log("fixed dimensions for small video " + $scope.item.ID);
+			videoNode.attr("width", $scope.panoramaSmallItemWidth)
+			videoNode.attr("height", $scope.panoramaSmallItemHeight)
+		}
+	});
+	
+	$scope.$on("paused", function(e, video) {
+		console.log("paused video " + $scope.item.ID);
+		$scope.toggleLive();
+	});
+	
+	$scope.$on("live", function(e, video) {
+		console.log("live video " + $scope.item.ID);
+	});
+
+	$scope.panoramaSmallItemWidth = 200;
+	$scope.panoramaSmallItemHeight = $scope.panoramaItemWidth * 3 / 4;
+	
+	$scope.toggleLive = function() {
+		$scope.item.Liveseek = false;
+		$timeout(function() {
+			$scope.item.Liveseek = true;
+		}, 100);
+	};
+})
+
+.directive('panoramaSmallStreamingVideoV1Item', function() {
+	return {
+		restrict: 'E',
+		scope: {
+			item: "=",
+			dialog: "="
+		},
+		templateUrl: '/template/items/streamingVideoV1/panorama-small-streamingVideoV1-item.html',
+		controller: 'PanoramaSmallStreamingVideoV1ItemCtrl',
 		link: function(scope, element, attr) {
 
 		}

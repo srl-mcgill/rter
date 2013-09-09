@@ -111,6 +111,18 @@ angular.module('items', [
 	};
 })
 
+.filter('filterByLive', function() {
+	return function(input) {
+		var out = [];
+		for(var i = 0;i < input.length;i++) {
+			if(input[i].Live === true) {
+				out.push(input[i]);
+			}
+		}
+		return out;
+	};
+})
+
 .controller('CreateItemCtrl', function($scope, Alerter, ItemCache) {
 	var defaultType = "";
 	$scope.item = {Type: defaultType};
@@ -332,6 +344,24 @@ angular.module('items', [
 		},
 		templateUrl: '/template/items/panorama-item.html',
 		controller: 'PanoramaItemCtrl',
+		link: function(scope, element, attrs) {
+
+		}
+	};
+})
+
+.controller('PanoramaSmallItemCtrl', function($scope) {
+
+})
+
+.directive('panoramaSmallItem', function() {
+	return {
+		restrict: 'E',
+		scope: {
+			item: "="
+		},
+		templateUrl: '/template/items/panorama-small-item.html',
+		controller: 'PanoramaSmallItemCtrl',
 		link: function(scope, element, attrs) {
 
 		}

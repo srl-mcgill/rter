@@ -78,7 +78,7 @@ angular.module('termview', [
 	$scope.orderedByID = $filter('orderBy')($scope.filteredItems, 'ID', true);
 	$scope.orderedByTime = $filter('orderBy')($scope.orderedByID, 'StartTime', true);
 
-	$scope.panoramaItems = $scope.orderedByTime.slice(0, 3);
+	$scope.panoramaItems = $filter('filterByLive')($scope.orderedByTime).slice(0, 3);
 
 	$scope.rankedItems = $filter('orderByRanking')($scope.orderedByTime, $scope.ranking);
 
@@ -92,7 +92,7 @@ angular.module('termview', [
 		$scope.filteredItems = $filter('filterByTerm')($scope.items, $scope.term.Term);
 		$scope.orderedByID = $filter('orderBy')($scope.filteredItems, 'ID', true);
 		$scope.orderedByTime = $filter('orderBy')($scope.orderedByID, 'StartTime', true);
-		$scope.panoramaItems = $scope.orderedByTime.slice(0, 3);
+		$scope.panoramaItems = $filter('filterByLive')($scope.orderedByTime).slice(0, 3);
 	}, true);
 
 	$scope.$watch('[ranking, orderedByTime]', function() {
@@ -144,13 +144,13 @@ angular.module('termview', [
 		}
 	}, true);
 
-	$scope.panoramaItemWidth = 250;
+	$scope.panoramaItemWidth = 200;
 	$scope.getLeftValue = function(item) {
 		if(item.Heading < -90)
 			item.Heading = -90;
 		if(item.Heading > 90)
 			item.Heading = 90;
-		return (item.Heading + 90) * (1000 - $scope.panoramaItemWidth) / 180;
+		return (item.Heading + 90) * (1000 - 40 - $scope.panoramaItemWidth) / 180 + 20;
 	}
 
 	$scope.isFiltered = function(item) {
