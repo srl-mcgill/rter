@@ -161,6 +161,16 @@ angular.module('streamingVideoV1Item', [
 			$scope.item.Liveseek = true;
 		}, 100);
 	};
+
+	$scope.item.DelayedHeading = $scope.item.Heading;
+
+	$scope.$watch('item', function() {
+		if(!$scope.item) return;
+		var oldHeading = $scope.item.Heading;
+		$timeout(function() {
+			$scope.item.DelayedHeading = oldHeading;
+		}, 4000);
+	}, true);
 })
 
 .directive('panoramaSmallStreamingVideoV1Item', function() {

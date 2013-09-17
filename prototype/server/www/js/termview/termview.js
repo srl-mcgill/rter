@@ -143,12 +143,13 @@ angular.module('termview', [
 	}, true);
 
 	$scope.panoramaItemWidth = 200;
+
 	$scope.getLeftValue = function(item) {
-		if(item.Heading < -90)
-			item.Heading = -90;
-		if(item.Heading > 90)
-			item.Heading = 90;
-		return (item.Heading + 90) * (1000 - 40 - $scope.panoramaItemWidth) / 180 + 20;
+		if(item.DelayedHeading < -90)
+			item.DelayedHeading = -90;
+		if(item.DelayedHeading > 90)
+			item.DelayedHeading = 90;
+		return (item.DelayedHeading + 90) * (1000 - 40 - $scope.panoramaItemWidth) / 180 + 20;
 	}
 
 	$scope.isFiltered = function(item) {
