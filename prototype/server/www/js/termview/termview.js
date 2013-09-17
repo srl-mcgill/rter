@@ -257,6 +257,10 @@ angular.module('termview', [
 		$scope.map.setCenter(latlng);
 		$scope.mapCenter = latlng;
 	};
+
+	$scope.washoutBackground = true;
+	$scope.videoBorders = true;
+	$scope.cameraIcons = false;
 })
 
 .directive('termview', function() {

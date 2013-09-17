@@ -359,6 +359,9 @@ label {
 	left: 0;
 	background-image: url(/asset/lab-panorama-sized.png);
 	zoom: 1;
+}
+
+.term-view .panorama-view .washout-background .panorama-background {
 	filter: alpha(opacity=60);
 	opacity: 0.6;
 }
@@ -392,6 +395,9 @@ label {
 	top: 60px;
 	height: 150px;
 	line-height: 0;
+}
+
+.term-view .panorama-view .video-borders .item-small-list li {
 	box-shadow: 0px 0px 2px 2px black;
 	-moz-box-shadow: 0px 0px 2px 2px black;
 	-webkit-box-shadow: 0px 0px 2px 2px black;
@@ -399,6 +405,45 @@ label {
 
 .term-view .panorama-view .panorama-small-item {
 	width: 200px;
+}
+
+.panorama-view-options {
+	margin-top: 20px;
+	font-size: 10pt;
+}
+
+.panorama-view-options .btn{
+	line-height: 8pt;
+	font-size: 10pt;
+}
+
+.camera-headings-holder {
+	display: none;
+}
+
+.camera-icons .camera-headings-holder {
+	display: block;
+}
+
+.camera-headings-holder {
+	margin-top: 10px;
+	height: 10px;
+	border-bottom: 1px solid rgb(208, 208, 208);
+	position: relative;
+	overflow: visible;
+}
+
+.camera-headings-item {
+	position: absolute;
+	top: 0;
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	background-color: red;
+	font-size: 14px;
+	font-weight: bold;
+	color: white;
+	text-align: center;
 }
 
 /*
