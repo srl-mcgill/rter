@@ -139,9 +139,7 @@ angular.module('termview', [
 	}, true);
 
 	$scope.$watch('viewmode', function() {
-		if($scope.viewmode == 'panorama-view') {
-			//
-		}
+		angular.element($('body')).scope().viewmode = $scope.viewmode;
 	}, true);
 
 	$scope.panoramaItemWidth = 200;

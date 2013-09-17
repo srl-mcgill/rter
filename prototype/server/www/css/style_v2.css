@@ -5,6 +5,10 @@ body {
 	font-family: Arial;
 }
 
+body.viewmode-panorama-view {
+	background-color: rgb(225, 240, 225);
+}
+
 hr {
 	border-top-color: rgb(208, 208, 208);
 }

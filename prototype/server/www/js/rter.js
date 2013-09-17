@@ -47,6 +47,11 @@ angular.module('rter', [
 	$scope.$on('event:auth-loginRequired', function() {
 		$scope.login();
 	});
+
+	/*
+	console.log();
+	$scope.viewmode = angular.element($('termview')).scope().viewmode;
+	*/
 })
 
 .controller('TabsCtrl', function($scope, TermViewRemote) {

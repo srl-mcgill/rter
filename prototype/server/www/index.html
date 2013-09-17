@@ -75,18 +75,26 @@
 	<script src="/vendor/tsunami-tpls-0.1.1.min.js"></script>
 
 </head>
-<body ng-controller="RterCtrl">
+<body ng-controller="RterCtrl" class="viewmode-{{viewmode}}">
 	
 	<div id="alerter" ng-controller="AlertsCtrl">
 		<alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
 	</div>
 
-	<header id="appbadge">
-		<img src="asset/rter.png" width="50">
-		<hgroup>
-			<h1>Real-Time Emergency Response</h1>
-			<h2>A project for the Mozilla <a target="_blank" href="https://mozillaignite.org/">Ignite Challenge</a></h2>
-		</hgroup>
+	<header id="appbadge" ng-switch on="viewmode">
+		<div ng-switch-when="panorama-view">
+			<hgroup>
+				<h1>Panorama Proof of Concept</h1>
+				<h2>An extension to Real-Time Emergency Response</h2>
+			</hgroup>
+		</div>
+		<div ng-switch-default>
+			<img src="asset/rter.png" width="50">
+			<hgroup>
+				<h1>Real-Time Emergency Response</h1>
+				<h2>A project for the Mozilla <a target="_blank" href="https://mozillaignite.org/">Ignite Challenge</a></h2>
+			</hgroup>
+		</div>
 	</header>
 
 	<div class="login-control" ng-switch on="loggedIn">
