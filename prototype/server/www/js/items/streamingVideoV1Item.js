@@ -153,7 +153,7 @@ angular.module('streamingVideoV1Item', [
 	});
 
 	$scope.panoramaSmallItemWidth = 200;
-	$scope.panoramaSmallItemHeight = $scope.panoramaItemWidth * 3 / 4;
+	$scope.panoramaSmallItemHeight = $scope.panoramaSmallItemWidth * 3 / 4;
 	
 	$scope.toggleLive = function() {
 		$scope.item.Liveseek = false;
