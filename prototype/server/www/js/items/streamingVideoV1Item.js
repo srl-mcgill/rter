@@ -171,6 +171,17 @@ angular.module('streamingVideoV1Item', [
 			$scope.item.DelayedHeading = oldHeading;
 		}, 4000);
 	}, true);
+
+	var liveUpdate = function() {
+	    cancelRefresh = $timeout(function myFunction() {
+	        $scope.toggleLive
+	        cancelRefresh = $timeout(liveUpdate, 3000);
+	    }, 3000);
+	};
+
+	$scope.$on('$destroy', function(e) {
+        $timeout.cancel(cancelRefresh);
+	});
 })
 
 .directive('panoramaSmallStreamingVideoV1Item', function() {
