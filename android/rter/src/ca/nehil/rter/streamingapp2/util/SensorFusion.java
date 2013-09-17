@@ -82,6 +82,11 @@ public class SensorFusion implements SensorEventListener {
         gyroMatrix[3] = 0.0f; gyroMatrix[4] = 1.0f; gyroMatrix[5] = 0.0f;
         gyroMatrix[6] = 0.0f; gyroMatrix[7] = 0.0f; gyroMatrix[8] = 1.0f;
 	}
+	
+	public void resetHeading() {
+		initState = true;
+    	initValues();
+	}
 
     // This function registers sensor listeners for the accelerometer, magnetometer and gyroscope.
     public void initListeners(){

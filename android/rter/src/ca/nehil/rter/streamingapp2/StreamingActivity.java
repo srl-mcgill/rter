@@ -418,6 +418,7 @@ public class StreamingActivity extends Activity implements LocationListener,
 	}
 
 	public void startRecording() {
+		mSensorFusion.resetHeading();
 		putHeadingfeed = new PutSensorsFeed(this.handler,
 				this.notificationRunnable);
 		try {
