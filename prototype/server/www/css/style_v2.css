@@ -343,10 +343,30 @@ label {
 
 /* -- TermView Panorama -- */
 
+.term-view .panorama-view .panorama-holder {
+	height: 272px;
+	margin-top: 20px;
+	border: 1px solid rgb(208, 208, 208);
+	position: relative;
+	background-color: gray;
+}
+
+.term-view .panorama-view .panorama-background {
+	height: 272px;
+	width: 998px;
+	position: absolute;
+	top: 0;
+	left: 0;
+	background-image: url(/asset/lab-panorama-sized.png);
+	zoom: 1;
+	filter: alpha(opacity=60);
+	opacity: 0.6;
+}
+
 .term-view .panorama-view .item-small-list, .term-view .panorama-view .item-list {
 	list-style: none;
-	padding: 20px 0 0 0;
-	margin: 0 auto 0 auto;
+	padding: 0;
+	margin: 0 auto;
 }
 
 .term-view .panorama-view .item-list {
@@ -363,16 +383,18 @@ label {
 }
 
 .term-view .panorama-view .item-small-list {
-	position: relative;
-	height: 250px;
-	margin-top: 20px;
-	border: 1px solid rgb(208, 208, 208);
-	background-image: url(/asset/lab-panorama-sized.png);
+	padding: 0;
+	margin: 0;
 }
 
 .term-view .panorama-view .item-small-list li {
 	position: absolute;
 	top: 60px;
+	height: 150px;
+	line-height: 0;
+	box-shadow: 0px 0px 2px 2px black;
+	-moz-box-shadow: 0px 0px 2px 2px black;
+	-webkit-box-shadow: 0px 0px 2px 2px black;
 }
 
 .term-view .panorama-view .panorama-small-item {
