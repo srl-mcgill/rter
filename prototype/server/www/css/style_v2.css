@@ -364,9 +364,10 @@ label {
 
 .term-view .panorama-view .item-small-list {
 	position: relative;
-	height: 200px;
+	height: 250px;
 	margin-top: 20px;
 	border: 1px solid rgb(208, 208, 208);
+	background-image: url(/asset/lab-panorama-sized.png);
 }
 
 .term-view .panorama-view .item-small-list li {
