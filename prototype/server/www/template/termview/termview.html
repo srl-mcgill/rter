@@ -22,19 +22,19 @@
 	</div>
 	
 	<div class="{{viewmode}}" ng-switch on="viewmode">
-		<div ng-switch-when="panorama-view" ng-class="{'washout-background': washoutBackground, 'video-borders': videoBorders, 'camera-icons': cameraIcons}">
+		<div ng-switch-when="panorama-view" ng-class="{'washout-background': washoutBackground, 'video-borders': videoBorders, 'colored-borders': coloredBorders, 'camera-icons': cameraIcons}">
 			<div class="row-fluid">
 				<div class="nocontent" ng-show="!items.length">No Content<span ng-show="term.Term.length"> for {{term.Term}}</span></div>
 				<div class="panorama-holder">
 					<div class="panorama-background">&nbsp;</div>
 					<ul class="item-small-list">	
-						<li ng-repeat="item in panoramaItems" style="left: {{getLeftValue(item)}}px; z-index: {{3 - $index}}"><panorama-small-item item="item"></panorama-small-item></li>
+						<li ng-repeat="item in panoramaItems" style="left: {{getLeftValue(item)}}px; z-index: {{3 - $index}}" class="author-{{item.Author}}"><panorama-small-item item="item"></panorama-small-item></li>
 					</ul>
 				</div>
 			</div>
 			<div class="row-fluid">
 				<div class="camera-headings-holder">
-					<div class="camera-headings-item" ng-repeat="item in panoramaItems" style="left: {{getLeftValue(item) + panoramaItemWidth / 2 - 10}}px; z-index: {{3 - $index}}">{{$index}}</div>
+					<div class="camera-headings-item author-{{item.Author}}" ng-repeat="item in panoramaItems" style="left: {{getLeftValue(item) + panoramaItemWidth / 2 - 10}}px; z-index: {{3 - $index}}">&nbsp;</div>
 				</div>
 			</div>
 			<div class="panorama-view-options row-fluid">
@@ -42,6 +42,7 @@
 				<div class="btn-group">
 					<button type="button" class="btn btn-primary" ng-model="washoutBackground" btn-checkbox>Washout Background</button>
 				    <button type="button" class="btn btn-primary" ng-model="videoBorders" btn-checkbox>Video Borders</button>
+				    <button type="button" ng-disabled="!videoBorders" class="btn btn-primary" ng-model="coloredBorders" btn-checkbox>Colored Borders</button>
 				    <button type="button" class="btn btn-primary" ng-model="cameraIcons" btn-checkbox>Camera Headings</button>
 			    </div>
 			</div>
