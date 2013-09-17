@@ -372,6 +372,7 @@ label {
 
 .term-view .panorama-view .item-small-list li {
 	position: absolute;
+	top: 60px;
 }
 
 .term-view .panorama-view .panorama-small-item {
