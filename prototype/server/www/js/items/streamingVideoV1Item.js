@@ -179,6 +179,22 @@ angular.module('streamingVideoV1Item', [
 	    }, 3000);
 	};
 
+	/*
+	var checkVideoStatus = function() {
+	    cancelcheckVideoStatus = $timeout(function myFunction() {
+	        var url = $scope.item.ContentURI + '/webm_index.m3u8';
+			jQuery.ajax(url,
+				{
+					statusCode: {
+						404: function() {
+							alert('page not found');
+						}
+					}
+	        cancelcheckVideoStatus = $timeout(checkVideoStatus, 250);
+	    }, 250);
+	};
+	*/
+
 	$scope.$on('$destroy', function(e) {
         $timeout.cancel(cancelRefresh);
 	});
