@@ -2,7 +2,7 @@
 	<div ng-switch-when="true">
 		<div class="span6 left" ng-switch on="item.Live">
 			<div ng-switch-when="true">
-				<video hls-video live controls ng-poster="{{item.ContentURI}}/poster/000000001.jpg" x-webkit-airplay="allow" width="480" height="360" autoplay>
+				<video hls-video live="{{item.Liveseek}}" controls ng-poster="{{item.ContentURI}}/poster/000000001.jpg" x-webkit-airplay="allow" width="480" height="360" autoplay="{{item.Liveseek}}">
 					<source ng-src="{{item.ContentURI}}/index.m3u8" type="application/x-mpegURL;profile='video/mp2t'">
 					<source ng-src="{{item.ContentURI}}/webm_index.m3u8" type="application/x-mpegURL;profile='video/webm; codecs=vp8'">
 					<source ng-src="{{item.ContentURI}}/video.webm" type="video/webm; codecs=vp8,vorbis">
