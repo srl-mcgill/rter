@@ -46,7 +46,8 @@ public class LoginActivity extends Activity {
 	private static final String[] DUMMY_CREDENTIALS = new String[] {
 			"anonymous", "anonymous" };
 	//private static final String SERVER_URL = "http://rter.cim.mcgill.ca";
-	private static final String SERVER_URL = "http://ec2-54-242-181-96.compute-1.amazonaws.com";
+	//private static final String SERVER_URL = "http://ec2-54-242-181-96.compute-1.amazonaws.com";
+	private static final String SERVER_URL = "http://rter.hopto.org";
 	//private static final String SERVER_URL = "http://142.157.36.21:8000";
 	/**
 	 * The default email to populate the email field with.
