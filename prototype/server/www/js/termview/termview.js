@@ -260,6 +260,7 @@ angular.module('termview', [
 
 	$scope.washoutBackground = true;
 	$scope.videoBorders = true;
+	$scope.coloredBorders = true;
 	$scope.cameraIcons = false;
 })
 
