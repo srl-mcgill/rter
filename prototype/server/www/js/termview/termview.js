@@ -78,7 +78,7 @@ angular.module('termview', [
 	$scope.orderedByID = $filter('orderBy')($scope.filteredItems, 'ID', true);
 	$scope.orderedByTime = $filter('orderBy')($scope.orderedByID, 'StartTime', true);
 
-	$scope.panoramaItems = $filter('filterByLive')($scope.orderedByTime).slice(0, 2);
+	$scope.panoramaItems = $filter('filterByLive')($scope.orderedByTime).slice(0, 3);
 
 	$scope.rankedItems = $filter('orderByRanking')($scope.orderedByTime, $scope.ranking);
 
