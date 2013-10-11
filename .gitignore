@@ -10,6 +10,8 @@ nohup.out
 # Folders
 bin
 pkg
+videoserver/data/*
+!videoserver/data/log
 
 ##### Xcode stuff #####
 
