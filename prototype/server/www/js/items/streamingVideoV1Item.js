@@ -50,20 +50,32 @@ angular.module('streamingVideoV1Item', [
 })
 
 .controller('CloseupStreamingVideoV1ItemCtrl', function($scope, $timeout, ItemCache, CloseupItemDialog) {
+	$scope.videoConfig = {
+		width: 480,
+		height: 360
+	};
+
 	$scope.$on("playing", function(e, video) {
-		console.log("playing video " + $scope.item.ID);
+		//console.log("playing video " + $scope.item.ID);
+		// This is a hacky workaround to fix a bug in tsunami that sometimes resizes the video
+		var videoNode = $(".closeup-streamingVideoV1-item video").first();
+		console.log(videoNode);
+		if(videoNode.attr("width") != $scope.videoConfig.width) {
+			console.log("fixed dimensions for video " + $scope.item.ID);
+			videoNode.attr("width", $scope.videoConfig.width)
+			videoNode.attr("height", $scope.videoConfig.height)
+		}
 	});
 
 	$scope.$on("paused", function(e, video) {
-		console.log("paused video " + $scope.item.ID);
+		//console.log("paused video " + $scope.item.ID);
 	});
 
 	$scope.$on("live", function(e, video) {
-		console.log("live video " + $scope.item.ID);
+		//console.log("live video " + $scope.item.ID);
 	});
 
 	$scope.toggleLive = function() {
-		console.log($scope.item);
 		$scope.item.Liveseek = false;
 		$timeout(function() {
 			$scope.item.Liveseek = true;
