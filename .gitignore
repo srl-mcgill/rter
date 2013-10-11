@@ -5,7 +5,7 @@
 nohup.out
 .classpath
 .project
-.class
+*.class
 
 # Folders
 bin
