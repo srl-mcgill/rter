@@ -3,6 +3,9 @@
 *.a
 *.log
 nohup.out
+.classpath
+.project
+.class
 
 # Folders
 bin
