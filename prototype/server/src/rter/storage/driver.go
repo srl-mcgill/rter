@@ -345,6 +345,7 @@ func Select(val interface{}) error {
 		err = scanUserDirection(v, rows)
 	}
 
+	rows.Close()
 	return err
 }
 
