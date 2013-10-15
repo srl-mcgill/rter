@@ -35,7 +35,7 @@
 		"chunk": false
 	},
 	"transcode": {
-		"command": "/usr/local/bin/ffmpeg",
+		"command": "/home/mike/bin/ffmpeg",
 		"log_path": "../../data/log",
 		"output_path": "../../data",
 		"hls": {

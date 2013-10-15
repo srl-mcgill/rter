@@ -47,7 +47,7 @@ public class LoginActivity extends Activity {
 			"anonymous", "anonymous" };
 	//private static final String SERVER_URL = "http://rter.cim.mcgill.ca";
 	private static final String SERVER_URL = "http://rter.zapto.org";
-	//private static final String SERVER_URL = "http://142.157.36.21:8000";
+	//private static final String SERVER_URL = "http://132.206.74.103:8000";
 	/**
 	 * The default email to populate the email field with.
 	 */
