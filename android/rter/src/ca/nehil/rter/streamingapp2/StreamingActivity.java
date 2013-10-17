@@ -308,6 +308,7 @@ public class StreamingActivity extends Activity implements LocationListener,
 		int button_width = 0;
 		int button_height = 0;
 		int prev_rw, prev_rh;
+		
 		if (1.0 * display_width_d / display_height_d > 1.0 * live_width
 				/ live_height) {
 			prev_rh = display_height_d;

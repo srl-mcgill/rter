@@ -72,6 +72,8 @@ public class LoginActivity extends Activity {
 	private TextView mLoginStatusMessageView;
 	private SharedPreferences cookies;
 	private SharedPreferences.Editor prefEditor;
+	
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
