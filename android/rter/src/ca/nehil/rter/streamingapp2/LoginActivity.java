@@ -29,25 +29,30 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
+import android.widget.PopupMenu;
+import android.widget.PopupMenu.OnMenuItemClickListener;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * Activity which displays a login screen to the user, offering registration as
  * well.
  */
-public class LoginActivity extends Activity {
+public class LoginActivity extends Activity implements OnMenuItemClickListener {
 	/**
 	 * A dummy authentication store containing known user names and passwords.
 	 * TODO: remove after connecting to a real authentication system.
 	 */
 	private static final String[] DUMMY_CREDENTIALS = new String[] {
 			"anonymous", "anonymous" };
-	//private static final String SERVER_URL = "http://rter.cim.mcgill.ca";
-	private static final String SERVER_URL = "http://rter.zapto.org";
-	//private static final String SERVER_URL = "http://132.206.74.103:8000";
+
+	private static String server_url;
+	
 	/**
 	 * The default email to populate the email field with.
 	 */
@@ -70,8 +75,10 @@ public class LoginActivity extends Activity {
 	private View mLoginFormView;
 	private View mLoginStatusView;
 	private TextView mLoginStatusMessageView;
-	private SharedPreferences cookies;
-	private SharedPreferences.Editor prefEditor;
+	private SharedPreferences cookies; //To store cookie data related to a user.
+	private SharedPreferences storedValues; //To store general values related to the application.
+	private SharedPreferences.Editor cookieEditor; //SharedPrefs editor for the cookies.
+	private SharedPreferences.Editor storedValuesEditor; //SharedPrefs editor for the stored values.
 	
 	
 	@Override
@@ -81,7 +88,17 @@ public class LoginActivity extends Activity {
 		setContentView(R.layout.activity_login);
 		
 		cookies = getSharedPreferences("RterUserCreds", MODE_PRIVATE);
-		prefEditor = cookies.edit();
+		cookieEditor = cookies.edit();
+		storedValues = getSharedPreferences("CommonValues", MODE_PRIVATE);
+		storedValuesEditor = storedValues.edit();
+		
+		//Get server url.
+		server_url = storedValues.getString("server_url", "not-set");
+		if(server_url.equalsIgnoreCase("not-set")){
+			server_url = getString(R.id.server_value_1);
+			storedValuesEditor.putString("server_url", server_url);
+			storedValuesEditor.commit();
+		}
 		
 		String setUsername = cookies.getString("Username", "not-set");
 		String setPassword = cookies.getString("Password", "not-set");
@@ -89,7 +106,6 @@ public class LoginActivity extends Activity {
 		Log.d(TAG, "Prefs ==> Username:"+setUsername+" :: Password:" + setPassword +" :: rter cred:" + setrter);
 		
 		// Set up the login form.
-		
 		mUsername = getIntent().getStringExtra(EXTRA_USERNAME);
 		if(!(setUsername.equalsIgnoreCase("not-set"))){
 			mUsername = setUsername;		
@@ -146,7 +162,67 @@ public class LoginActivity extends Activity {
 		getMenuInflater().inflate(R.menu.login, menu);
 		return true;
 	}
+	
 
+	/*
+	 * Handle options menu item selection.
+	 * (non-Javadoc)
+	 * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
+	 */
+	public boolean onOptionsItemSelected(MenuItem item) {
+		Log.d("alok", "menu item: "+item.getItemId());
+		switch(item.getItemId()){
+		case R.id.action_forgot_password:
+			//TODO: Implement forgot password.
+			return true;
+			
+		case R.id.action_change_server:
+			View menuItemView = findViewById(R.id.login_status); //login_status is the view to which the popup is anchored to.
+			changeServerPopup(menuItemView);
+			return true;
+			
+		default:
+            return super.onOptionsItemSelected(item);
+		}
+	}
+
+	/*
+	 * Shows the popup to change server.
+	 */
+	public void changeServerPopup(View v){
+		PopupMenu popup = new PopupMenu(this, v);
+		popup.setOnMenuItemClickListener(this);
+		MenuInflater inflator = popup.getMenuInflater();
+		inflator.inflate(R.menu.server_popup, popup.getMenu());
+		popup.show();
+	}
+	
+	@Override
+	public boolean onMenuItemClick(MenuItem arg0) {
+		Toast toast;
+		switch(arg0.getItemId()){
+		case R.id.server_value_1:
+			server_url = getResources().getString(R.string.server_url_1);
+			storedValuesEditor.putString("server_url", server_url);
+			storedValuesEditor.commit();
+			Log.d("alok", "server changed to: "+server_url );
+			toast = Toast.makeText(this, "Server changed to: "+server_url, Toast.LENGTH_SHORT);
+			toast.show();
+			return true;
+			
+		case R.id.server_value_2:
+			server_url = getResources().getString(R.string.server_url_2);
+			storedValuesEditor.putString("server_url", server_url);
+			storedValuesEditor.commit();
+			Log.d("alok", "server changed to: "+server_url );
+			toast = Toast.makeText(this, "Server changed to: "+server_url, Toast.LENGTH_SHORT);
+			toast.show();
+			return true;
+		}
+		
+		return false;
+	}
+	
 	/**
 	 * Attempts to sign in or register the account specified by the login form.
 	 * If there are form errors (invalid email, missing fields, etc.), the
@@ -253,7 +329,7 @@ public class LoginActivity extends Activity {
 			HttpConnectionParams.setConnectionTimeout(httpParams, TIMEOUT_MILLISEC);
 			HttpConnectionParams.setSoTimeout(httpParams, TIMEOUT_MILLISEC);
 			HttpClient client = new DefaultHttpClient(httpParams);
-			HttpPost post_request = new HttpPost(SERVER_URL+"/auth");
+			HttpPost post_request = new HttpPost(server_url+"/auth");
 			Header[] headers= null;
 			HttpResponse response = null;
 			try {
@@ -268,7 +344,7 @@ public class LoginActivity extends Activity {
 				
 				headers = response.getAllHeaders();
 				Log.i(TAG, "response from "
-						+ SERVER_URL 
+						+ server_url 
 						+" = status line : "+ response.getStatusLine().getStatusCode());
 				
 				
@@ -288,10 +364,10 @@ public class LoginActivity extends Activity {
 								      + " ,Value : " + value); 
 							
 							Log.i(TAG,"The value of rter-creds is" + rterCreds);
-							prefEditor.putString("Username", params[0]);  
-							prefEditor.putString("Password", params[1]);
-							prefEditor.putString("RterCreds", rterCreds);
-							prefEditor.commit(); 
+							cookieEditor.putString("Username", params[0]);  
+							cookieEditor.putString("Password", params[1]);
+							cookieEditor.putString("RterCreds", rterCreds);
+							cookieEditor.commit(); 
 						}								
 					}
 					return true; 
@@ -339,4 +415,5 @@ public class LoginActivity extends Activity {
 			showProgress(false);
 		}
 	}
+
 }
