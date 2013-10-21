@@ -94,7 +94,7 @@ public class LoginActivity extends Activity implements OnMenuItemClickListener {
 		
 		//Get server url.
 		server_url = storedValues.getString("server_url", "not-set");
-		if(server_url.equalsIgnoreCase("not-set")){
+		if(server_url.equals("not-set")){
 			server_url = getString(R.id.server_value_1);
 			storedValuesEditor.putString("server_url", server_url);
 			storedValuesEditor.commit();
@@ -170,7 +170,6 @@ public class LoginActivity extends Activity implements OnMenuItemClickListener {
 	 * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
 	 */
 	public boolean onOptionsItemSelected(MenuItem item) {
-		Log.d("alok", "menu item: "+item.getItemId());
 		switch(item.getItemId()){
 		case R.id.action_forgot_password:
 			//TODO: Implement forgot password.
@@ -197,6 +196,11 @@ public class LoginActivity extends Activity implements OnMenuItemClickListener {
 		popup.show();
 	}
 	
+	/*
+	 * Handle the change server popup clicks.
+	 * (non-Javadoc)
+	 * @see android.widget.PopupMenu.OnMenuItemClickListener#onMenuItemClick(android.view.MenuItem)
+	 */
 	@Override
 	public boolean onMenuItemClick(MenuItem arg0) {
 		Toast toast;
@@ -205,7 +209,6 @@ public class LoginActivity extends Activity implements OnMenuItemClickListener {
 			server_url = getResources().getString(R.string.server_url_1);
 			storedValuesEditor.putString("server_url", server_url);
 			storedValuesEditor.commit();
-			Log.d("alok", "server changed to: "+server_url );
 			toast = Toast.makeText(this, "Server changed to: "+server_url, Toast.LENGTH_SHORT);
 			toast.show();
 			return true;
@@ -214,7 +217,6 @@ public class LoginActivity extends Activity implements OnMenuItemClickListener {
 			server_url = getResources().getString(R.string.server_url_2);
 			storedValuesEditor.putString("server_url", server_url);
 			storedValuesEditor.commit();
-			Log.d("alok", "server changed to: "+server_url );
 			toast = Toast.makeText(this, "Server changed to: "+server_url, Toast.LENGTH_SHORT);
 			toast.show();
 			return true;

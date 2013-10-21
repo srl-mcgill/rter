@@ -40,16 +40,12 @@ import android.widget.Toast;
 public class BackgroundService extends Service implements 
 LocationListener  {
 
-	/**
-	 * 
-	 */
-	
 	private int PutLocationTimer = 15000; /* Updating the User location, heading and orientation every 4 secs. */
 	private static final String TAG = "Background Service";
 	private static final String SERVER_URL = "http://rter.cim.mcgill.ca";
-//	private static final String SERVER_URL = "http://132.206.74.145:8000";
 	
 	private SharedPreferences cookies;
+	private SharedPreferences storedValues;
 	private SharedPreferences.Editor prefEditor;
 	private String setRterResource;
 	private String setRterCredentials;
@@ -65,9 +61,6 @@ LocationListener  {
 		// TODO Auto-generated constructor stub
 	}
 
-	/* (non-Javadoc)
-	 * @see android.app.Service#onBind(android.content.Intent)
-	 */
 	@Override
 	public IBinder onBind(Intent arg0) {
 		// TODO Auto-generated method stub

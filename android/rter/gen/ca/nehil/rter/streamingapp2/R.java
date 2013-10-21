@@ -70,14 +70,12 @@ public final class R {
         /**  This is a complex string containing style runs. 
          */
         public static final int main_label=0x7f060003;
-        /**  Popup menu item strings 
-         */
-        public static final int option_server_1=0x7f060012;
-        public static final int option_server_2=0x7f060013;
         public static final int prompt_password=0x7f060006;
         /**  Strings related to login 
          */
         public static final int prompt_username=0x7f060005;
+        /**  Popup menu item strings 
+         */
         public static final int server_url_1=0x7f060010;
         public static final int server_url_2=0x7f060011;
         /**  Simple strings. 

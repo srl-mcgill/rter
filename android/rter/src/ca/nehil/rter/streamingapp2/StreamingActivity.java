@@ -87,7 +87,6 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
-import ca.nehil.rter.streamingapp2.GetTokenActivity.HandshakeTask;
 import ca.nehil.rter.streamingapp2.overlay.CameraGLSurfaceView;
 import ca.nehil.rter.streamingapp2.overlay.OverlayController;
 import android.view.KeyEvent;
@@ -268,7 +267,6 @@ public class StreamingActivity extends Activity implements LocationListener,
 	}
 
 	private void initLayout() {
-
 		/* get size of screen */
 		Display display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE))
 				.getDefaultDisplay();
