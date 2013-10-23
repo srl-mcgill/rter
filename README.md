@@ -12,3 +12,14 @@ Links
 * [Project Page](https://www.cim.mcgill.ca/sre/projects/rter/)
 * [Updates](https://www.cim.mcgill.ca/sre/projects/rter/blog.html)
 * [Panoia Street View Library](https://github.com/sparks/panoia)
+
+Developers
+----------
+The two key folders for you are for the Android rter app in:
+
+	android/rter
+	
+and the server code (written in Go) in:
+
+	prototype/server
+	prototype/videoserver
