@@ -134,7 +134,7 @@ angular.module('auth', [
 				Alerter.success("User "+$scope.username+" created!", 2000);
 			},
 			function(e) {
-				Alerter.error("Couldn't signup, Username already taken.", 2000);
+				Alerter.error(e.data, 2000);
 				console.log(e);
 			}
 		);

@@ -8,7 +8,34 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
+	"strings"
 )
+
+type StorageError struct {
+	code int    // error code 
+    msg  string // description of error
+}
+
+func (e *StorageError) Error() string { 
+	return e.msg 
+}
+
+func (e *StorageError) Code() int {
+	return e.code
+}
+
+func NewStorageError(e error) *StorageError {
+	parts := strings.SplitN(e.Error(), ": ", 2)
+	se := new(StorageError)
+	var err error
+	se.code, err = strconv.Atoi(strings.Split(parts[0], " ")[1])
+	if err != nil {
+		se.code = 0
+	}
+	se.msg = e.Error()
+	return se
+}
 
 var (
 	ErrZeroAffected        = errors.New("Query didn't match anything.")
@@ -23,12 +50,14 @@ func Begin() (*sql.Tx, error) {
 
 // Run an exec against the current connected db.
 func Exec(query string, args ...interface{}) (sql.Result, error) {
-	return db.Exec(query, args...)
+	result, err := db.Exec(query, args...)
+	return result, NewStorageError(err)
 }
 
 // Run a query against the current connected db.
 func Query(query string, args ...interface{}) (*sql.Rows, error) {
-	return db.Query(query, args...)
+	result, err := db.Query(query, args...)
+	return result, NewStorageError(err)
 }
 
 // Run an exec against the current connected db. Fatal if the query throws an error.

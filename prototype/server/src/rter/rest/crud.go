@@ -125,6 +125,12 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		v.ItemID, err = strconv.ParseInt(vars["key"], 10, 64)
 		v.Author = user.Username
 	case *data.User:
+		err := v.Validate()
+		if err != nil {
+			log.Println(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 		v.HashAndSalt()
 		v.Role = "public" // TODO: Temporary while anyone can sign up maybe this will change?
 	case *data.Term:
@@ -142,7 +148,24 @@ func Create(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "Insert Database error, likely due to malformed request.", http.StatusInternalServerError)
+		var errorMsg string
+		switch dbErr := err.(type) {
+		case *storage.StorageError:
+			switch dbErr.Code() {
+			case 1062:
+				switch val.(type) {
+				case *data.User:
+					errorMsg = "User already exists"
+				default:
+					errorMsg = "Database entry already exists"
+				}
+			default:
+				errorMsg = "Database error (" + dbErr.Error() + ")"
+			}
+		default:
+			errorMsg = "Insert Database error, likely due to malformed request"
+		}
+		http.Error(w, errorMsg, http.StatusInternalServerError)
 		return
 	}
 
