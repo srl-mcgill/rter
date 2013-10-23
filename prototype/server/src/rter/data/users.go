@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"time"
+	"errors"
 )
 
 type User struct {
@@ -31,6 +32,17 @@ func (u *User) CRUDPrefix() string {
 
 func (u *User) CRUDPath() string {
 	return u.CRUDPrefix() + "/" + u.Username
+}
+
+// Validate new user, return error if invalid
+func (user *User) Validate() error{
+	if len(user.Password) < 4 {
+		return errors.New("Password must be at least 4 characters")
+	} else if len(user.Password) > 32 {
+		return errors.New("Password must be at most 32 characters")
+	}
+
+	return nil
 }
 
 // Generates first a Salt for the user, then using that Salt generates a hash of the Password. The Password field should be set on the User when the func is called. The function will then replace the Password field with the hash and populate the Salt field.
