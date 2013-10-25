@@ -9,6 +9,8 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.InputType;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
@@ -114,6 +116,7 @@ public class ServerList extends Activity {
 				
 				// Set an EditText view to get user input 
 				final EditText input = new EditText(ServerList.this);
+				input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
 				input.setText("http://");
 				addServerAlert.setView(input);
 
@@ -158,6 +161,8 @@ public class ServerList extends Activity {
 	private void updateServerList(){
 		tempSet.clear();
 		tempSet.addAll(server_list);
+		storedValuesEditor.remove("server_list");
+		storedValuesEditor.commit();
 		storedValuesEditor.putStringSet("server_list", tempSet);
 		storedValuesEditor.commit();
 		((BaseAdapter) listView.getAdapter()).notifyDataSetChanged();

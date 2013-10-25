@@ -148,7 +148,7 @@ public class LoginActivity extends Activity{
 	}
 	
 	/*
-	 * This method is called within onCreate. It simple sets up the server list, which server is active and stores
+	 * This method is called within onCreate. It simply sets up the server list, which server is active and stores
 	 * server values in sharedpreferences.
 	 */
 	private void serverSetup(){
@@ -203,50 +203,6 @@ public class LoginActivity extends Activity{
             return super.onOptionsItemSelected(item);
 		}
 	}
-
-//	/*
-//	 * Shows the popup to change server.
-//	 */
-//	public void changeServerPopup(View v){
-//		PopupMenu popup = new PopupMenu(this, v);
-//		popup.setOnMenuItemClickListener(this);
-//		MenuInflater inflator = popup.getMenuInflater();
-//		inflator.inflate(R.menu.server_popup, popup.getMenu());
-//		popup.show();
-//	}
-//	
-//	/*
-//	 * Handle the change server popup clicks.
-//	 * (non-Javadoc)
-//	 * @see android.widget.PopupMenu.OnMenuItemClickListener#onMenuItemClick(android.view.MenuItem)
-//	 */
-//	@Override
-//	public boolean onMenuItemClick(MenuItem arg0) {
-//		Toast toast;
-//		switch(arg0.getItemId()){
-//		case R.id.server_value_1:
-//			server_url = getResources().getString(R.string.server_url_1);
-//			storedValuesEditor.putString("server_url", server_url);
-//			storedValuesEditor.commit();
-//			toast = Toast.makeText(this, "Server changed to: "+server_url, Toast.LENGTH_SHORT);
-//			toast.show();
-//			return true;
-//			
-//		case R.id.server_value_2:
-//			server_url = getResources().getString(R.string.server_url_2);
-//			storedValuesEditor.putString("server_url", server_url);
-//			storedValuesEditor.commit();
-//			toast = Toast.makeText(this, "Server changed to: "+server_url, Toast.LENGTH_SHORT);
-//			toast.show();
-//			return true;
-//			
-//		case R.id.add_server:
-//			
-//		}
-//		
-//		return false;
-//	}
-	
 	
 	/**
 	 * Attempts to sign in or register the account specified by the login form.
