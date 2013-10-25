@@ -96,14 +96,11 @@ import android.content.res.Configuration;
 import java.nio.ShortBuffer;
 import static com.googlecode.javacv.cpp.opencv_core.*;
 
-// ----------------------------------------------------------------------
-
 public class StreamingActivity extends Activity implements LocationListener,
 		OnClickListener {
 
-	//private static final String SERVER_URL = "http://rter.cim.mcgill.ca";
-	private static final String SERVER_URL = "http://rter.zapto.org";
-	//private static final String SERVER_URL = "http://132.206.74.103";
+	private static String server_url;
+	private SharedPreferences storedValues;
 
 	private HandShakeTask handshakeTask = null;
 	private int PutHeadingTimer = 2000; /*
@@ -129,8 +126,7 @@ public class StreamingActivity extends Activity implements LocationListener,
 	private Thread putHeadingfeed;
 
 	public MediaRecorder mrec = new MediaRecorder();
-	private FrameLayout mFrame; // need this to merge camera preview and openGL
-								// view
+	private FrameLayout mFrame; // need this to merge camera preview and openGL view
 	private CameraGLSurfaceView mGLView;
 	private OverlayController overlay;
 	SensorManager mSensorManager;
@@ -202,7 +198,7 @@ public class StreamingActivity extends Activity implements LocationListener,
 	private final int live_height = 480;
 	private int screenWidth, screenHeight;
 
-	/* mikes variables ends ******* */// ////////
+	/* mikes variables ends */
 
 	private static final String TAG = "Streaming Activity";
 
@@ -503,6 +499,8 @@ public class StreamingActivity extends Activity implements LocationListener,
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
+		storedValues = getSharedPreferences("CommonValues", MODE_PRIVATE);
+		server_url = storedValues.getString("server_url", "not-set");
 		// Orientation listenever implementation
 		myOrientationEventListener = new OrientationEventListener(this, SensorManager.SENSOR_DELAY_NORMAL) {
     	    @Override
@@ -565,11 +563,10 @@ public class StreamingActivity extends Activity implements LocationListener,
 		// the geomagnetic field
 		locationManager.requestLocationUpdates(provider, 0, 1000, overlay);
 		if (provider != null) {
-			Location location = locationManager.getLastKnownLocation(provider);
+			Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 			// Initialize the location fields
+			Log.d("alok","Provider " + provider + " has been selected. and location " + location);
 			if (location != null) {
-				System.out.println("Provider " + provider
-						+ " has been selected. and location " + location);
 				onLocationChanged(location);
 			} else {
 				Toast toast = Toast.makeText(this, "Location not available",
@@ -769,7 +766,7 @@ public class StreamingActivity extends Activity implements LocationListener,
 						"Body of closefeed json = " + jsonObjSend.toString(2));
 
 				int TIMEOUT_MILLISEC = 10000; // = 10 seconds
-				URL url = new URL(SERVER_URL + "/1.0/items/" + recievedItemID);
+				URL url = new URL(server_url + "/1.0/items/" + recievedItemID);
 				HttpURLConnection httpcon = (HttpURLConnection) url
 						.openConnection();
 
@@ -847,9 +844,9 @@ public class StreamingActivity extends Activity implements LocationListener,
 						+ jsonObjSend.toString(2));
 
 				int TIMEOUT_MILLISEC = 1000; // = 1 seconds
-				Log.i(TAG, "postHeading()Put Request being sent" + SERVER_URL
+				Log.i(TAG, "postHeading()Put Request being sent" + server_url
 						+ "/1.0/items/" + recievedItemID);
-				URL url = new URL(SERVER_URL + "/1.0/items/" + recievedItemID);
+				URL url = new URL(server_url + "/1.0/items/" + recievedItemID);
 				HttpURLConnection httpcon = (HttpURLConnection) url
 						.openConnection();
 				httpcon.setRequestProperty("Cookie", setRterCredentials);
@@ -894,7 +891,7 @@ public class StreamingActivity extends Activity implements LocationListener,
 
 				// Getting the user orientation
 				int TIMEOUT_MILLISEC = 1000; // = 1 seconds
-				URL getUrl = new URL(SERVER_URL + "/1.0/users/" + setUsername
+				URL getUrl = new URL(server_url + "/1.0/users/" + setUsername
 						+ "/direction");
 				Log.i(TAG, "Get user heading URL" + getUrl);
 
@@ -1021,6 +1018,9 @@ public class StreamingActivity extends Activity implements LocationListener,
 			try {
 				mHolder.addCallback(null);
 				mCamera.setPreviewCallback(null);
+				if (mCamera != null) { //Alok.
+			        mCamera.release();
+			    }
 			} catch (RuntimeException e) {
 				// The camera has probably just been released, ignore.
 			}
@@ -1112,7 +1112,7 @@ public class StreamingActivity extends Activity implements LocationListener,
 				Log.i(TAG, "Cookie being sent" + setRterCredentials);
 
 				int TIMEOUT_MILLISEC = 10000; // = 10 seconds
-				URL url = new URL(SERVER_URL + "/1.0/items");
+				URL url = new URL(server_url + "/1.0/items");
 				HttpURLConnection httpcon = (HttpURLConnection) url
 						.openConnection();
 				// httpcon.setDoOutput(true);

@@ -15,8 +15,4 @@
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
     
-    <!-- Popup menu item strings -->
-    <string name="server_url_1">http://rter.zapto.org</string>
-    <string name="server_url_2">http://132.206.74.103:8000</string>
-
 </resources>

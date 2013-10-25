@@ -2,6 +2,10 @@ package ca.nehil.rter.streamingapp2;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -29,21 +33,17 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
-import android.widget.PopupMenu;
-import android.widget.PopupMenu.OnMenuItemClickListener;
 import android.widget.TextView;
-import android.widget.Toast;
 
 /**
  * Activity which displays a login screen to the user, offering registration as
  * well.
  */
-public class LoginActivity extends Activity implements OnMenuItemClickListener {
+public class LoginActivity extends Activity{
 	/**
 	 * A dummy authentication store containing known user names and passwords.
 	 * TODO: remove after connecting to a real authentication system.
@@ -51,7 +51,8 @@ public class LoginActivity extends Activity implements OnMenuItemClickListener {
 	private static final String[] DUMMY_CREDENTIALS = new String[] {
 			"anonymous", "anonymous" };
 
-	private static String server_url;
+	private String server_url;
+	final String VALUES_SHAREDPREF_FILE = "CommonValues";
 	
 	/**
 	 * The default email to populate the email field with.
@@ -86,19 +87,9 @@ public class LoginActivity extends Activity implements OnMenuItemClickListener {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.activity_login);
-		
+		serverSetup();
 		cookies = getSharedPreferences("RterUserCreds", MODE_PRIVATE);
 		cookieEditor = cookies.edit();
-		storedValues = getSharedPreferences("CommonValues", MODE_PRIVATE);
-		storedValuesEditor = storedValues.edit();
-		
-		//Get server url.
-		server_url = storedValues.getString("server_url", "not-set");
-		if(server_url.equals("not-set")){
-			server_url = getString(R.id.server_value_1);
-			storedValuesEditor.putString("server_url", server_url);
-			storedValuesEditor.commit();
-		}
 		
 		String setUsername = cookies.getString("Username", "not-set");
 		String setPassword = cookies.getString("Password", "not-set");
@@ -155,6 +146,32 @@ public class LoginActivity extends Activity implements OnMenuItemClickListener {
 		
 //		startService(new Intent(LoginActivity.this, BackgroundService.class));
 	}
+	
+	/*
+	 * This method is called within onCreate. It simple sets up the server list, which server is active and stores
+	 * server values in sharedpreferences.
+	 */
+	private void serverSetup(){
+		ArrayList<String> serverList;
+		
+		storedValues = getSharedPreferences(VALUES_SHAREDPREF_FILE, MODE_PRIVATE);
+		storedValuesEditor = storedValues.edit();
+		
+		//Get server url.
+		server_url = storedValues.getString("server_url", "not-set");
+		
+		if(server_url.equals("not-set")){
+			// This means there is no server data present, likely because the app is newly installed.
+			serverList = new ArrayList<String>(Arrays.asList(getResources().getStringArray(R.array.servers)));
+			server_url = serverList.get(0); //If no server set, set it by default as the first one
+			storedValuesEditor.putString("server_url", server_url); 
+			Set<String> set = new HashSet<String>();
+			set.addAll(serverList); // Converting serverList from an ArrayList to a HashSet since sharedprefs takes only sets, not arrays.
+			storedValuesEditor.putStringSet("server_list", set);
+			storedValuesEditor.commit();
+		}
+		
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -176,8 +193,10 @@ public class LoginActivity extends Activity implements OnMenuItemClickListener {
 			return true;
 			
 		case R.id.action_change_server:
-			View menuItemView = findViewById(R.id.login_status); //login_status is the view to which the popup is anchored to.
-			changeServerPopup(menuItemView);
+			Intent listIntent = new Intent(this, ServerList.class);
+			startActivity(listIntent);
+//			View menuItemView = findViewById(R.id.login_status); //login_status is the view to which the popup is anchored to.
+//			changeServerPopup(menuItemView);
 			return true;
 			
 		default:
@@ -185,45 +204,49 @@ public class LoginActivity extends Activity implements OnMenuItemClickListener {
 		}
 	}
 
-	/*
-	 * Shows the popup to change server.
-	 */
-	public void changeServerPopup(View v){
-		PopupMenu popup = new PopupMenu(this, v);
-		popup.setOnMenuItemClickListener(this);
-		MenuInflater inflator = popup.getMenuInflater();
-		inflator.inflate(R.menu.server_popup, popup.getMenu());
-		popup.show();
-	}
+//	/*
+//	 * Shows the popup to change server.
+//	 */
+//	public void changeServerPopup(View v){
+//		PopupMenu popup = new PopupMenu(this, v);
+//		popup.setOnMenuItemClickListener(this);
+//		MenuInflater inflator = popup.getMenuInflater();
+//		inflator.inflate(R.menu.server_popup, popup.getMenu());
+//		popup.show();
+//	}
+//	
+//	/*
+//	 * Handle the change server popup clicks.
+//	 * (non-Javadoc)
+//	 * @see android.widget.PopupMenu.OnMenuItemClickListener#onMenuItemClick(android.view.MenuItem)
+//	 */
+//	@Override
+//	public boolean onMenuItemClick(MenuItem arg0) {
+//		Toast toast;
+//		switch(arg0.getItemId()){
+//		case R.id.server_value_1:
+//			server_url = getResources().getString(R.string.server_url_1);
+//			storedValuesEditor.putString("server_url", server_url);
+//			storedValuesEditor.commit();
+//			toast = Toast.makeText(this, "Server changed to: "+server_url, Toast.LENGTH_SHORT);
+//			toast.show();
+//			return true;
+//			
+//		case R.id.server_value_2:
+//			server_url = getResources().getString(R.string.server_url_2);
+//			storedValuesEditor.putString("server_url", server_url);
+//			storedValuesEditor.commit();
+//			toast = Toast.makeText(this, "Server changed to: "+server_url, Toast.LENGTH_SHORT);
+//			toast.show();
+//			return true;
+//			
+//		case R.id.add_server:
+//			
+//		}
+//		
+//		return false;
+//	}
 	
-	/*
-	 * Handle the change server popup clicks.
-	 * (non-Javadoc)
-	 * @see android.widget.PopupMenu.OnMenuItemClickListener#onMenuItemClick(android.view.MenuItem)
-	 */
-	@Override
-	public boolean onMenuItemClick(MenuItem arg0) {
-		Toast toast;
-		switch(arg0.getItemId()){
-		case R.id.server_value_1:
-			server_url = getResources().getString(R.string.server_url_1);
-			storedValuesEditor.putString("server_url", server_url);
-			storedValuesEditor.commit();
-			toast = Toast.makeText(this, "Server changed to: "+server_url, Toast.LENGTH_SHORT);
-			toast.show();
-			return true;
-			
-		case R.id.server_value_2:
-			server_url = getResources().getString(R.string.server_url_2);
-			storedValuesEditor.putString("server_url", server_url);
-			storedValuesEditor.commit();
-			toast = Toast.makeText(this, "Server changed to: "+server_url, Toast.LENGTH_SHORT);
-			toast.show();
-			return true;
-		}
-		
-		return false;
-	}
 	
 	/**
 	 * Attempts to sign in or register the account specified by the login form.

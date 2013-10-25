@@ -87,12 +87,12 @@ LocationListener  {
 		locationManager.requestLocationUpdates(provider, 2, 1, this);
 		if(provider != null){
 			Location location = locationManager.getLastKnownLocation(provider);
+			Log.d("alok","Provider " + provider+ " has been selected and location "+ location);
 			// Initialize the location fields
 			if (location != null) {
-				System.out.println("Provider " + provider
-						+ " has been selected. and location "+ location);
 				onLocationChanged(location);
 			} else {
+				Log.d("alok","Provider " + provider+ " has been selected and location "+ location);
 				Toast toast = Toast.makeText(this, "Location not available", Toast.LENGTH_LONG);
 				toast.setGravity(Gravity.TOP, 0, 0);
 				toast.show();
