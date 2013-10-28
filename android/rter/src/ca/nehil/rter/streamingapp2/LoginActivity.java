@@ -118,15 +118,16 @@ public class LoginActivity extends Activity {
 		mLoginStatusMessageView = (TextView) findViewById(R.id.login_status_message);
 
 		// BEGIN Auto-login
-		/*
+		
 		mLoginStatusMessageView.setText(R.string.login_progress_signing_in);
 		showProgress(true);
 		Log.d(TAG, "Username:"+"video"+" :: Password:" + "video");
 		mAuthTask = new UserLoginTask();
 		mAuthTask.execute("video", "video");
-		*/
+		
 		// END Auto-login
 		
+		/*
 		findViewById(R.id.sign_in_button).setOnClickListener(
 				new View.OnClickListener() {
 					@Override
@@ -134,6 +135,7 @@ public class LoginActivity extends Activity {
 						attemptLogin();
 					}
 				});
+		*/
 		
 //		startService(new Intent(LoginActivity.this, BackgroundService.class));
 	}
