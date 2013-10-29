@@ -21,11 +21,9 @@ package ca.nehil.rter.streamingapp2;
 //import static com.googlecode.javacv.cpp.opencv_core.IPL_DEPTH_8U;
 
 import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.File;
 import java.io.FileDescriptor;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
@@ -36,20 +34,12 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ByteArrayEntity;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.googlecode.javacpp.BytePointer;
-import com.googlecode.javacpp.Pointer;
-import com.googlecode.javacv.cpp.avformat.AVIOContext;
-
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
 import android.hardware.Camera;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.Sensor;
@@ -59,12 +49,8 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.MediaRecorder;
-import android.net.LocalServerSocket;
-import android.net.LocalSocket;
-import android.net.LocalSocketAddress;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 import android.os.PowerManager;
@@ -82,29 +68,24 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
+import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
-import ca.nehil.rter.streamingapp2.GetTokenActivity.HandshakeTask;
 import ca.nehil.rter.streamingapp2.overlay.CameraGLSurfaceView;
 import ca.nehil.rter.streamingapp2.overlay.OverlayController;
-import android.view.KeyEvent;
 import android.view.OrientationEventListener;
 import android.content.res.Configuration;
 
-import java.nio.ShortBuffer;
 import static com.googlecode.javacv.cpp.opencv_core.*;
-
-// ----------------------------------------------------------------------
 
 public class StreamingActivity extends Activity implements LocationListener,
 		OnClickListener {
 
-	//private static final String SERVER_URL = "http://rter.cim.mcgill.ca";
-	private static final String SERVER_URL = "http://rter.zapto.org";
-	//private static final String SERVER_URL = "http://132.206.74.103";
+	private static String server_url;
+	private SharedPreferences storedValues;
 
 	private HandShakeTask handshakeTask = null;
 	private int PutHeadingTimer = 2000; /*
@@ -130,13 +111,12 @@ public class StreamingActivity extends Activity implements LocationListener,
 	private Thread putHeadingfeed;
 
 	public MediaRecorder mrec = new MediaRecorder();
-	private FrameLayout mFrame; // need this to merge camera preview and openGL
-								// view
 	private CameraGLSurfaceView mGLView;
 	private OverlayController overlay;
 	SensorManager mSensorManager;
 	Sensor mAcc, mMag;
 	Camera mCamera;
+	WebView mWebView;
 	int numberOfCameras;
 	int cameraCurrentlyLocked;
 
@@ -144,7 +124,6 @@ public class StreamingActivity extends Activity implements LocationListener,
 	static boolean isFPS = false;
 
 	private String AndroidId;
-	private String selected_uid; // passed from other activity right now
 
 	private float lati;
 	private float longi;
@@ -203,9 +182,10 @@ public class StreamingActivity extends Activity implements LocationListener,
 	private final int live_height = 480;
 	private int screenWidth, screenHeight;
 
-	/* mikes variables ends ******* */// ////////
+	/* mikes variables ends */
 
 	private static final String TAG = "Streaming Activity";
+	FrameLayout topLayout;
 
 	// protected static final String MEDIA_TYPE_IMAGE = null;
 
@@ -256,19 +236,12 @@ public class StreamingActivity extends Activity implements LocationListener,
 		myOrientationEventListener.disable();
 
 		if (cameraView != null) {
-			cameraView.stopPreview();
 			cameraDevice.release();
 			cameraDevice = null;
-		}
-
-		if (mWakeLock != null) {
-			mWakeLock.release();
-			mWakeLock = null;
 		}
 	}
 
 	private void initLayout() {
-
 		/* get size of screen */
 		Display display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE))
 				.getDefaultDisplay();
@@ -277,7 +250,7 @@ public class StreamingActivity extends Activity implements LocationListener,
 		FrameLayout.LayoutParams layoutParam = null;
 		LayoutInflater myInflate = null;
 		myInflate = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		FrameLayout topLayout = new FrameLayout(this);
+		topLayout = new FrameLayout(this);
 		setContentView(topLayout);
 
 		// openGLview
@@ -308,6 +281,7 @@ public class StreamingActivity extends Activity implements LocationListener,
 		int button_width = 0;
 		int button_height = 0;
 		int prev_rw, prev_rh;
+		
 		if (1.0 * display_width_d / display_height_d > 1.0 * live_width
 				/ live_height) {
 			prev_rh = display_height_d;
@@ -321,12 +295,6 @@ public class StreamingActivity extends Activity implements LocationListener,
 		}
 
 		layoutParam = new FrameLayout.LayoutParams(prev_rw, prev_rh, Gravity.CENTER);
-		//layoutParam = new FrameLayout.LayoutParams(prev_rw / 2, prev_rh / 2, Gravity.BOTTOM | Gravity.CENTER_VERTICAL);
-		
-		// layoutParam.topMargin = (int) (1.0 * bg_screen_by * screenHeight /
-		// bg_height);
-		// layoutParam.leftMargin = (int) (1.0 * bg_screen_bx * screenWidth /
-		// bg_width);
 		Log.d("LAYOUT", "display_width_d:" + display_width_d
 				+ ":: display_height_d:" + display_height_d + ":: prev_rw:"
 				+ prev_rw + ":: prev_rh:" + prev_rh + ":: live_width:"
@@ -335,9 +303,33 @@ public class StreamingActivity extends Activity implements LocationListener,
 				+ button_height);
 		cameraDevice = openCamera();
 		cameraView = new CameraView(this, cameraDevice);
-
+		
+		WebView mWebView = new WebView(this); //Alok
+		mWebView.setWebChromeClient(new WebChromeClient());
+		mWebView.getSettings().setJavaScriptEnabled(true);
+		mWebView.addJavascriptInterface(new JSInterface(this), "Android");
+		
+		//Get html data
+		InputStream is;
+		byte[] buffer;
+		String htmlString = null;
+		try {
+			is = getAssets().open("WebContent.html");
+			int size = is.available();
+			buffer = new byte[size];
+			is.read(buffer);
+			is.close();
+			htmlString = new String(buffer);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		mWebView.loadData(htmlString, "text/html", "UTF-8");
+		mWebView.setBackgroundColor(0x00000000); //Set invisible webview
+		
 		topLayout.addView(cameraView, layoutParam);
 		topLayout.addView(mGLView, layoutParam);
+		topLayout.addView(mWebView, layoutParam); //End Alok
 		
 		FrameLayout preViewLayout = (FrameLayout) myInflate.inflate(
 				R.layout.activity_streaming, null);
@@ -504,6 +496,8 @@ public class StreamingActivity extends Activity implements LocationListener,
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
+		storedValues = getSharedPreferences("CommonValues", MODE_PRIVATE);
+		server_url = storedValues.getString("server_url", "not-set");
 		// Orientation listenever implementation
 		myOrientationEventListener = new OrientationEventListener(this, SensorManager.SENSOR_DELAY_NORMAL) {
     	    @Override
@@ -566,11 +560,9 @@ public class StreamingActivity extends Activity implements LocationListener,
 		// the geomagnetic field
 		locationManager.requestLocationUpdates(provider, 0, 1000, overlay);
 		if (provider != null) {
-			Location location = locationManager.getLastKnownLocation(provider);
+			Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 			// Initialize the location fields
 			if (location != null) {
-				System.out.println("Provider " + provider
-						+ " has been selected. and location " + location);
 				onLocationChanged(location);
 			} else {
 				Toast toast = Toast.makeText(this, "Location not available",
@@ -598,14 +590,12 @@ public class StreamingActivity extends Activity implements LocationListener,
 		// Toast toast = Toast.makeText(this, text, duration);
 		// toast.setGravity(Gravity.TOP|Gravity.RIGHT, 0, 0);
 		// toast.show();
-
 	}
 
 	public void attemptHandshake() {
 
 		// Show a progress spinner, and kick off a background task to
 		// perform the user login attempt.
-
 		handshakeTask = new HandShakeTask();
 		handshakeTask.execute();
 
@@ -630,7 +620,6 @@ public class StreamingActivity extends Activity implements LocationListener,
 	@Override
 	protected void onResume() {
 		super.onResume();
-		
 		if (mWakeLock == null) {
 			PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 			mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK,
@@ -659,7 +648,9 @@ public class StreamingActivity extends Activity implements LocationListener,
 		Log.d(TAG, "onPause");
 		locationManager.removeUpdates(this);
 		locationManager.removeUpdates(overlay);
-
+		
+		topLayout.removeAllViews(); // Removes the camera view from the layout, as it is readded in initlayout from onResume.
+		
 		// stop sensor updates
 		mSensorManager.unregisterListener(overlay);
 
@@ -770,7 +761,7 @@ public class StreamingActivity extends Activity implements LocationListener,
 						"Body of closefeed json = " + jsonObjSend.toString(2));
 
 				int TIMEOUT_MILLISEC = 10000; // = 10 seconds
-				URL url = new URL(SERVER_URL + "/1.0/items/" + recievedItemID);
+				URL url = new URL(server_url + "/1.0/items/" + recievedItemID);
 				HttpURLConnection httpcon = (HttpURLConnection) url
 						.openConnection();
 
@@ -848,9 +839,9 @@ public class StreamingActivity extends Activity implements LocationListener,
 						+ jsonObjSend.toString(2));
 
 				int TIMEOUT_MILLISEC = 1000; // = 1 seconds
-				Log.i(TAG, "postHeading()Put Request being sent" + SERVER_URL
+				Log.i(TAG, "postHeading()Put Request being sent" + server_url
 						+ "/1.0/items/" + recievedItemID);
-				URL url = new URL(SERVER_URL + "/1.0/items/" + recievedItemID);
+				URL url = new URL(server_url + "/1.0/items/" + recievedItemID);
 				HttpURLConnection httpcon = (HttpURLConnection) url
 						.openConnection();
 				httpcon.setRequestProperty("Cookie", setRterCredentials);
@@ -895,7 +886,7 @@ public class StreamingActivity extends Activity implements LocationListener,
 
 				// Getting the user orientation
 				int TIMEOUT_MILLISEC = 1000; // = 1 seconds
-				URL getUrl = new URL(SERVER_URL + "/1.0/users/" + setUsername
+				URL getUrl = new URL(server_url + "/1.0/users/" + setUsername
 						+ "/direction");
 				Log.i(TAG, "Get user heading URL" + getUrl);
 
@@ -1022,6 +1013,10 @@ public class StreamingActivity extends Activity implements LocationListener,
 			try {
 				mHolder.addCallback(null);
 				mCamera.setPreviewCallback(null);
+				
+				if (mCamera != null) { 
+			        mCamera.release();
+			    }
 			} catch (RuntimeException e) {
 				// The camera has probably just been released, ignore.
 			}
@@ -1101,7 +1096,6 @@ public class StreamingActivity extends Activity implements LocationListener,
 			dateFormatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
 			String formattedDate = dateFormatUTC.format(date);
 			Log.i(TAG, "The Time stamp " + formattedDate);
-
 			try {
 				jsonObjSend.put("Type", "streaming-video-v1");
 				jsonObjSend.put("Live", true);
@@ -1113,7 +1107,7 @@ public class StreamingActivity extends Activity implements LocationListener,
 				Log.i(TAG, "Cookie being sent" + setRterCredentials);
 
 				int TIMEOUT_MILLISEC = 10000; // = 10 seconds
-				URL url = new URL(SERVER_URL + "/1.0/items");
+				URL url = new URL(server_url + "/1.0/items");
 				HttpURLConnection httpcon = (HttpURLConnection) url
 						.openConnection();
 				// httpcon.setDoOutput(true);
