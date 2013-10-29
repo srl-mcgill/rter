@@ -9,6 +9,8 @@ package ca.nehil.rter.streamingapp2;
 
 public final class R {
     public static final class array {
+        /**  Default servers. 
+         */
         public static final int servers=0x7f070000;
     }
     public static final class attr {
@@ -70,6 +72,8 @@ public final class R {
         public static final int action_settings=0x7f060005;
         public static final int action_sign_in_register=0x7f06000f;
         public static final int action_sign_in_short=0x7f060010;
+        /**  ServerList.java strings 
+         */
         public static final int add_server=0x7f060007;
         public static final int add_server_dialog_message=0x7f060009;
         public static final int add_server_dialog_title=0x7f060008;

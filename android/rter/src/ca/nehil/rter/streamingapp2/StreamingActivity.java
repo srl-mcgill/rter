@@ -23,6 +23,7 @@ package ca.nehil.rter.streamingapp2;
 import java.io.BufferedReader;
 import java.io.FileDescriptor;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
@@ -67,6 +68,9 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
+import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.Toast;
@@ -112,6 +116,7 @@ public class StreamingActivity extends Activity implements LocationListener,
 	SensorManager mSensorManager;
 	Sensor mAcc, mMag;
 	Camera mCamera;
+	WebView mWebView;
 	int numberOfCameras;
 	int cameraCurrentlyLocked;
 
@@ -290,12 +295,6 @@ public class StreamingActivity extends Activity implements LocationListener,
 		}
 
 		layoutParam = new FrameLayout.LayoutParams(prev_rw, prev_rh, Gravity.CENTER);
-		//layoutParam = new FrameLayout.LayoutParams(prev_rw / 2, prev_rh / 2, Gravity.BOTTOM | Gravity.CENTER_VERTICAL);
-		
-		// layoutParam.topMargin = (int) (1.0 * bg_screen_by * screenHeight /
-		// bg_height);
-		// layoutParam.leftMargin = (int) (1.0 * bg_screen_bx * screenWidth /
-		// bg_width);
 		Log.d("LAYOUT", "display_width_d:" + display_width_d
 				+ ":: display_height_d:" + display_height_d + ":: prev_rw:"
 				+ prev_rw + ":: prev_rh:" + prev_rh + ":: live_width:"
@@ -305,8 +304,32 @@ public class StreamingActivity extends Activity implements LocationListener,
 		cameraDevice = openCamera();
 		cameraView = new CameraView(this, cameraDevice);
 		
+		WebView mWebView = new WebView(this); //Alok
+		mWebView.setWebChromeClient(new WebChromeClient());
+		mWebView.getSettings().setJavaScriptEnabled(true);
+		mWebView.addJavascriptInterface(new JSInterface(this), "Android");
+		
+		//Get html data
+		InputStream is;
+		byte[] buffer;
+		String htmlString = null;
+		try {
+			is = getAssets().open("WebContent.html");
+			int size = is.available();
+			buffer = new byte[size];
+			is.read(buffer);
+			is.close();
+			htmlString = new String(buffer);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		mWebView.loadData(htmlString, "text/html", "UTF-8");
+		mWebView.setBackgroundColor(0x00000000); //Set invisible webview
+		
 		topLayout.addView(cameraView, layoutParam);
 		topLayout.addView(mGLView, layoutParam);
+		topLayout.addView(mWebView, layoutParam); //End Alok
 		
 		FrameLayout preViewLayout = (FrameLayout) myInflate.inflate(
 				R.layout.activity_streaming, null);
@@ -567,7 +590,6 @@ public class StreamingActivity extends Activity implements LocationListener,
 		// Toast toast = Toast.makeText(this, text, duration);
 		// toast.setGravity(Gravity.TOP|Gravity.RIGHT, 0, 0);
 		// toast.show();
-
 	}
 
 	public void attemptHandshake() {
@@ -598,7 +620,6 @@ public class StreamingActivity extends Activity implements LocationListener,
 	@Override
 	protected void onResume() {
 		super.onResume();
-		
 		if (mWakeLock == null) {
 			PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 			mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK,
