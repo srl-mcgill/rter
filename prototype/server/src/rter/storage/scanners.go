@@ -93,6 +93,58 @@ func scanItem(item *data.Item, rows *sql.Rows) error {
 	return nil
 }
 
+func scanGeolocation(geolocation *data.Geolocation, rows *sql.Rows) error {
+	var (
+		timestampString string
+		lat sql.NullFloat64
+		lng sql.NullFloat64
+		heading sql.NullFloat64
+		radius sql.NullFloat64
+	)
+
+	err := rows.Scan(
+		&geolocation.ItemID,
+		&lat,
+		&lng,
+		&heading,
+		&radius,
+		&timestampString,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	// Don't assign if NULL
+	if lat.Valid == true {
+		geolocation.Lat = lat.Float64
+	}
+	if lng.Valid == true {
+		geolocation.Lng = lng.Float64
+	}
+	if heading.Valid == true {
+		geolocation.Heading = heading.Float64
+	}
+	if radius.Valid == true {
+		geolocation.Radius = radius.Float64
+	}
+
+	// TODO: this is a hacky fix for null times
+	if timestampString == "0000-00-00 00:00:00" {
+		timestampString = "0001-01-01 00:00:00"
+	}
+	timestamp, err := time.Parse("2006-01-02 15:04:05", timestampString) // this assumes UTC as timezone
+
+	if err != nil {
+		log.Println("Geolocation scanner failed to parse time. " + timestampString)
+		return err
+	}
+
+	geolocation.Timestamp = timestamp
+
+	return nil
+}
+
 func scanTerm(term *data.Term, rows *sql.Rows) error {
 	var updateTimeString string
 

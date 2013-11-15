@@ -53,6 +53,11 @@ func CRUDRouter() *mux.Router {
 	r.HandleFunc("/{datatype:items|users|roles|taxonomy}/{key}/{childtype:comments}/{childkey}", Update).Methods("PUT")
 	r.HandleFunc("/{datatype:items|users|roles|taxonomy}/{key}/{childtype:comments}/{childkey}", Delete).Methods("DELETE")
 
+	r.HandleFunc("/{datatype:items}/{key}/{childtype:geolocations}", StateOptions("GET")).Methods("OPTIONS")
+
+	r.HandleFunc("/{datatype:items}/{key}/{childtype:geolocations}", ReadWhere).Methods("GET")
+	//r.HandleFunc("/items/{key}/{childtype:ranking|direction}", Read).Methods("POST")
+
 	return r
 }
 
@@ -260,6 +265,7 @@ func Read(w http.ResponseWriter, r *http.Request) {
 		comment.ID, err = strconv.ParseInt(vars["childkey"], 10, 64)
 
 		val = comment
+
 	case "users":
 		user := new(data.User)
 		user.Username = vars["key"]
@@ -363,6 +369,14 @@ func ReadWhere(w http.ResponseWriter, r *http.Request) {
 		args = append(args, itemID)
 
 		val = &comments
+	case "items/geolocations":
+		geolocations := make([]*data.Geolocation, 0)
+		// Selecting geolocations is reliant on the item ID
+		whereClause = "WHERE ItemID=?"
+		var itemID int64
+		itemID, err = strconv.ParseInt(vars["key"], 10, 64)
+		args = append(args, itemID)
+		val = &geolocations
 	case "users":
 		users := make([]*data.User, 0)
 		val = &users
@@ -394,7 +408,9 @@ func ReadWhere(w http.ResponseWriter, r *http.Request) {
 	if err == storage.ErrZeroAffected {
 		http.Error(w, "No matches for query", http.StatusNotFound)
 		return
-	} else if err != nil {
+	}
+
+	if err != nil {
 		log.Println(err)
 		http.Error(w, "Select2 Database error, likely due to malformed request", http.StatusInternalServerError)
 		return

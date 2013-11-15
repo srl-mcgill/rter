@@ -28,6 +28,8 @@ type Item struct {
 	Lng    float64 `json:",omitempty"`
 	Radius float64 `json:",omitempty"`
 
+	Geolocations []*Geolocation `json:",omitempty"`
+
 	Live      bool      //Marks if this Item's content is 'live'
 	StartTime time.Time `json:",omitempty"`
 	StopTime  time.Time `json:",omitempty"` //Should be set before StartTime for 'live' data when the StopTime is unknown

@@ -359,6 +359,8 @@ func SelectWhere(slicePtr interface{}, whereClause string, args ...interface{}) 
 		return SelectQuery(slicePtr, "SELECT Items.* FROM Items "+whereClause, args...)
 	case *[]*data.ItemComment:
 		return SelectQuery(slicePtr, "SELECT ItemComments.* FROM ItemComments "+whereClause, args...)
+	case *[]*data.Geolocation:
+		return SelectQuery(slicePtr, "SELECT Geolocations.* FROM Geolocations "+whereClause, args...)
 	case *[]*data.Term:
 		return SelectQuery(slicePtr, "SELECT Terms.* FROM Terms "+whereClause, args...)
 	case *[]*data.TermRelationship:
@@ -376,6 +378,7 @@ func SelectQuery(slicePtr interface{}, query string, args ...interface{}) error 
 	switch slicePtr.(type) {
 	case *[]*data.Item:
 	case *[]*data.ItemComment:
+	case *[]*data.Geolocation:
 	case *[]*data.Term:
 	case *[]*data.TermRelationship:
 	case *[]*data.Role:
@@ -416,6 +419,15 @@ func SelectQuery(slicePtr interface{}, query string, args ...interface{}) error 
 			}
 
 			*s = append(*s, comment)
+		case *[]*data.Geolocation:
+			geolocation := new(data.Geolocation)
+			err = scanGeolocation(geolocation, rows)
+
+			if err != nil {
+				return err
+			}
+
+			*s = append(*s, geolocation)
 		case *[]*data.Term:
 			term := new(data.Term)
 			err = scanTerm(term, rows)
@@ -461,6 +473,8 @@ func SelectQuery(slicePtr interface{}, query string, args ...interface{}) error 
 	case *[]*data.Item:
 		sliceLen = len(*s)
 	case *[]*data.ItemComment:
+		sliceLen = len(*s)
+	case *[]*data.Geolocation:
 		sliceLen = len(*s)
 	case *[]*data.Term:
 		sliceLen = len(*s)
