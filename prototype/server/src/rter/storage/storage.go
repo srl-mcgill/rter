@@ -26,6 +26,9 @@ func (e *StorageError) Code() int {
 }
 
 func NewStorageError(e error) *StorageError {
+	if e == nil {
+		return nil
+	}
 	parts := strings.SplitN(e.Error(), ": ", 2)
 	se := new(StorageError)
 	var err error
@@ -51,12 +54,18 @@ func Begin() (*sql.Tx, error) {
 // Run an exec against the current connected db.
 func Exec(query string, args ...interface{}) (sql.Result, error) {
 	result, err := db.Exec(query, args...)
+	if err == nil {
+		return result, nil;
+	}
 	return result, NewStorageError(err)
 }
 
 // Run a query against the current connected db.
 func Query(query string, args ...interface{}) (*sql.Rows, error) {
 	result, err := db.Query(query, args...)
+	if err == nil {
+		return result, nil;
+	}
 	return result, NewStorageError(err)
 }
 
