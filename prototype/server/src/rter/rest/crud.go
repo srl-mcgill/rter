@@ -53,10 +53,10 @@ func CRUDRouter() *mux.Router {
 	r.HandleFunc("/{datatype:items|users|roles|taxonomy}/{key}/{childtype:comments}/{childkey}", Update).Methods("PUT")
 	r.HandleFunc("/{datatype:items|users|roles|taxonomy}/{key}/{childtype:comments}/{childkey}", Delete).Methods("DELETE")
 
-	r.HandleFunc("/{datatype:items}/{key}/{childtype:geolocations}", StateOptions("GET")).Methods("OPTIONS")
+	r.HandleFunc("/{datatype:items}/{key}/{childtype:geolocations}", StateOptions("GET, POST")).Methods("OPTIONS")
 
 	r.HandleFunc("/{datatype:items}/{key}/{childtype:geolocations}", ReadWhere).Methods("GET")
-	//r.HandleFunc("/items/{key}/{childtype:ranking|direction}", Read).Methods("POST")
+	r.HandleFunc("/{datatype:items}/{key}/{childtype:geolocations}", Create).Methods("POST")
 
 	return r
 }
@@ -101,6 +101,8 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		val = new(data.Item)
 	case "items/comments":
 		val = new(data.ItemComment)
+	case "items/geolocations":
+		val = new(data.Geolocation)
 	case "users":
 		val = new(data.User)
 	case "roles":
@@ -129,6 +131,8 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	case *data.ItemComment:
 		v.ItemID, err = strconv.ParseInt(vars["key"], 10, 64)
 		v.Author = user.Username
+	case *data.Geolocation:
+		v.ItemID, err = strconv.ParseInt(vars["key"], 10, 64)
 	case *data.User:
 		err := v.Validate()
 		if err != nil {

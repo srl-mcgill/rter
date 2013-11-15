@@ -42,6 +42,16 @@ func Insert(val interface{}) error {
 			v.Body,
 			now,
 		)
+	case *data.Geolocation:
+		res, err = Exec(
+			"INSERT INTO Geolocations (ItemID, Lat, Lng, Heading, Radius, Timestamp) VALUES (?, ?, ?, ?, ?, ?)",
+			v.ItemID,
+			v.Lat,
+			v.Lng,
+			v.Heading,
+			v.Radius,
+			now,
+		)
 	case *data.Term:
 		// There is basically no danger with INSERT IGNORE there is nothing we would want to change if there is 
 		// accidental remake of a term
@@ -132,6 +142,8 @@ func Insert(val interface{}) error {
 	case *data.ItemComment:
 		v.ID = ID
 		v.UpdateTime = now
+	case *data.Geolocation:
+		v.Timestamp = now
 	case *data.Term:
 		v.UpdateTime = now
 
