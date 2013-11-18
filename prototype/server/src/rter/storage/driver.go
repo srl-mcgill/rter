@@ -143,7 +143,7 @@ func Insert(val interface{}) error {
 		v.ID = ID
 		v.UpdateTime = now
 	case *data.Geolocation:
-		v.Timestamp = now
+		v.Timestamp = &now
 	case *data.Term:
 		v.UpdateTime = now
 

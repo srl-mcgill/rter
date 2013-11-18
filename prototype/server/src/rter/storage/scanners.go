@@ -63,16 +63,16 @@ func scanGeolocation(geolocation *data.Geolocation, rows *sql.Rows) error {
 
 	// Don't assign if NULL
 	if lat.Valid == true {
-		geolocation.Lat = lat.Float64
+		geolocation.Lat = &lat.Float64
 	}
 	if lng.Valid == true {
-		geolocation.Lng = lng.Float64
+		geolocation.Lng = &lng.Float64
 	}
 	if heading.Valid == true {
-		geolocation.Heading = heading.Float64
+		geolocation.Heading = &heading.Float64
 	}
 	if radius.Valid == true {
-		geolocation.Radius = radius.Float64
+		geolocation.Radius = &radius.Float64
 	}
 
 	return nil
