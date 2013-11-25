@@ -43,10 +43,10 @@ import android.content.SharedPreferences;
 import android.hardware.Camera;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.Sensor;
+import android.hardware.SensorEvent;
 import android.hardware.SensorManager;
 import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.MediaRecorder;
 import android.os.AsyncTask;
@@ -69,7 +69,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
 import android.webkit.WebChromeClient;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -81,8 +80,7 @@ import android.content.res.Configuration;
 
 import static com.googlecode.javacv.cpp.opencv_core.*;
 
-public class StreamingActivity extends Activity implements LocationListener,
-		OnClickListener {
+public class StreamingActivity extends Activity implements OnClickListener {
 
 	private static String server_url;
 	private SharedPreferences storedValues;
@@ -113,6 +111,7 @@ public class StreamingActivity extends Activity implements LocationListener,
 	public MediaRecorder mrec = new MediaRecorder();
 	private CameraGLSurfaceView mGLView;
 	private OverlayController overlay;
+	private SensorSource sensorSource;
 	SensorManager mSensorManager;
 	Sensor mAcc, mMag;
 	Camera mCamera;
@@ -523,6 +522,7 @@ public class StreamingActivity extends Activity implements LocationListener,
 		frameInfo = new FrameInfo();
 		// openGL overlay
 		overlay = new OverlayController(this);
+		sensorSource = SensorSource.getInstance();
 		// orientation
 		mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 		mAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -552,18 +552,32 @@ public class StreamingActivity extends Activity implements LocationListener,
 		if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
 			Log.e(TAG, "GPS not available");
 		}
+
 		Criteria criteria = new Criteria();
 		provider = locationManager.getBestProvider(criteria, true);
-		Log.d(TAG, "Requesting location");
-		locationManager.requestLocationUpdates(provider, 0, 1, this);
-		// register the overlay control for location updates as well, so we get
-		// the geomagnetic field
-		locationManager.requestLocationUpdates(provider, 0, 1000, overlay);
+//		locationManager.requestLocationUpdates(provider, 0, 1, this);
+		locationManager.requestLocationUpdates(provider, 0, 1000, sensorSource);
 		if (provider != null) {
 			Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 			// Initialize the location fields
 			if (location != null) {
-				onLocationChanged(location);
+//				onLocationChanged(location);
+				sensorSource.subscribeListener(new SensorSourceListener() {
+					
+					@Override
+					public void onSensorSourceEvent(SensorEvent event) {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					@Override
+					public void onLocationSourceEvent(Location location) {
+
+						lati = (float) (location.getLatitude());
+						longi = (float) (location.getLongitude());
+						Log.d(TAG, "Location Changed with lat" + lati + " and lng" + longi);
+					}
+				});
 			} else {
 				Toast toast = Toast.makeText(this, "Location not available",
 						Toast.LENGTH_LONG);
@@ -627,16 +641,16 @@ public class StreamingActivity extends Activity implements LocationListener,
 			mWakeLock.acquire();
 		}
 
-		locationManager.requestLocationUpdates(provider, 0, 1, this);
+		locationManager.requestLocationUpdates(provider, 0, 1, sensorSource);
 		// register the overlay control for location updates as well, so we get
 		// the geomagnetic field
-		locationManager.requestLocationUpdates(provider, 0, 1000, overlay);
+//		locationManager.requestLocationUpdates(provider, 0, 1000, overlay);
 
 		// sensors
-		mSensorManager.registerListener(overlay, mAcc,
+		mSensorManager.registerListener(sensorSource, mAcc,
 				SensorManager.SENSOR_DELAY_NORMAL);
-		mSensorManager.registerListener(overlay, mMag,
-				SensorManager.SENSOR_DELAY_NORMAL);
+//		mSensorManager.registerListener(overlay, mMag,
+//				SensorManager.SENSOR_DELAY_NORMAL);
 		
 		initLayout();
 
@@ -646,13 +660,13 @@ public class StreamingActivity extends Activity implements LocationListener,
 	protected void onPause() {
 		super.onPause();
 		Log.d(TAG, "onPause");
-		locationManager.removeUpdates(this);
-		locationManager.removeUpdates(overlay);
+//		locationManager.removeUpdates(this);
+		locationManager.removeUpdates(sensorSource);
 		
 		topLayout.removeAllViews(); // Removes the camera view from the layout, as it is readded in initlayout from onResume.
 		
 		// stop sensor updates
-		mSensorManager.unregisterListener(overlay);
+		mSensorManager.unregisterListener(sensorSource);
 
 		if (putHeadingfeed != null) {
 			if (putHeadingfeed.isAlive()) {
@@ -670,7 +684,7 @@ public class StreamingActivity extends Activity implements LocationListener,
 		}
 
 		if (mSensorManager != null) {
-			mSensorManager.unregisterListener(overlay);
+			mSensorManager.unregisterListener(sensorSource);
 		}
 
 		if (mWakeLock != null) {
@@ -692,33 +706,16 @@ public class StreamingActivity extends Activity implements LocationListener,
 		super.onSaveInstanceState(outState);
 	}
 
-	@Override
-	public void onLocationChanged(Location location) {
-		// TODO Auto-generated method stub
-
-		lati = (float) (location.getLatitude());
-		longi = (float) (location.getLongitude());
-		Log.d(TAG, "Location Changed with lat" + lati + " and lng" + longi);
-		// frameInfo.lat = convertfloatToByteArray(lati);
-		// frameInfo.lon = convertStringToByteArray(longi);
-	}
-
-	@Override
-	public void onProviderDisabled(String arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void onProviderEnabled(String arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
-		// TODO Auto-generated method stub
-	}
+//	@Override
+//	public void onLocationChanged(Location location) {
+//		// TODO Auto-generated method stub
+//
+//		lati = (float) (location.getLatitude());
+//		longi = (float) (location.getLongitude());
+//		Log.d(TAG, "Location Changed with lat" + lati + " and lng" + longi);
+//		// frameInfo.lat = convertfloatToByteArray(lati);
+//		// frameInfo.lon = convertStringToByteArray(longi);
+//	}
 
 	class CloseFeed extends Thread {
 		private Handler handler = null;
