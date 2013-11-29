@@ -51,7 +51,7 @@ public class OverlayController {
 		orientationFilter = new MovingAverageCompass(30);
 		
 		// Register listener and implement interface
-		SensorSource sensorSource = SensorSource.getInstance();
+		SensorSource sensorSource = SensorSource.getInstance(context);
 		sensorSource.subscribeListener(new SensorSourceListener() {
 			
 			@Override
@@ -65,6 +65,8 @@ public class OverlayController {
 					System.arraycopy(event.values, 0, mValues, 0, 3);
 					break;
 				}
+				
+				//TODO: Alok, take all the following math out of here and put it in SensorSource
 				float[] R = new float[16];
 				float[] orientationValues = new float[3];
 
@@ -151,6 +153,8 @@ public class OverlayController {
 
 		});
 		
+		//Registering sensorSource to the sensorManager. Now sensorSource will receive sensor data.
+		//TODO: Move this to onCreate of Streamingactivity, where sensorSource is being registered for location updates.
 		SensorManager sensorManager = (SensorManager) context.getSystemService(context.SENSOR_SERVICE);
 		Sensor accSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		sensorManager.registerListener(sensorSource, accSensor, SensorManager.SENSOR_DELAY_NORMAL);
