@@ -46,5 +46,8 @@
         <item name="server_1">http://rter.zapto.org</item>
         <item name="server_2">http://132.206.74.103:8000</item>
     </string-array>
-
+    
+    <!-- SensorSource broadcast event names -->
+	<string name="SensorEvent">SensorEvent</string>
+	<string name="LocationEvent">LocationEvent</string>
 </resources>

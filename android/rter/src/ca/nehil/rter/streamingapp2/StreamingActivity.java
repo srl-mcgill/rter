@@ -156,36 +156,36 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
 	}
 
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_streaming);
-		
+
 		storedValues = getSharedPreferences("CommonValues", MODE_PRIVATE);
 		server_url = storedValues.getString("server_url", "not-set");
 		/* Orientation listenever implementation to orient video */
 		myOrientationEventListener = new OrientationEventListener(this, SensorManager.SENSOR_DELAY_NORMAL) {
-    	    @Override
-    	    public void onOrientationChanged(int orientation) {
-    	    	int rotation = getWindowManager().getDefaultDisplay().getRotation();
-    	    	if(rotation == Surface.ROTATION_270) {
-    	    		flipVideo = true;
-    	    	}
-    	    	else {
-    	    		flipVideo = false;
-    	    	}
-    	    }
-    	};
-    	myOrientationEventListener.enable();
-		
+			@Override
+			public void onOrientationChanged(int orientation) {
+				int rotation = getWindowManager().getDefaultDisplay().getRotation();
+				if(rotation == Surface.ROTATION_270) {
+					flipVideo = true;
+				}
+				else {
+					flipVideo = false;
+				}
+			}
+		};
+		myOrientationEventListener.enable();
+
 		Log.e(TAG, "onCreate");
 
 		frameInfo = new FrameInfo();
-		
+
 		overlay = new OverlayController(this); // OpenGL overlay 
 		sensorSource = SensorSource.getInstance(this);
-		
+
 		/* Orientation */
 		mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 		mAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -207,22 +207,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 			Log.e(TAG, "GPS not available");
 		}
 
-		/* Subscribe to sensorSource and listen for sensor & location events */
-		sensorSource.subscribeListener(new SensorSourceListener() {
-			
-			@Override
-			public void onSensorSourceEvent(SensorEvent event) {
-				// Need sensor events?
-			}
-			
-			@Override
-			public void onLocationSourceEvent(Location location) {
-				lati = (float) (location.getLatitude());
-				longi = (float) (location.getLongitude());
-				Log.d("alok", "Location Changed with lat" + lati + " and lng" + longi);
-			}
-		});
-		
+
 		/* Get last known location if possible and initialize location variables */
 		Criteria criteria = new Criteria();
 		provider = locationManager.getBestProvider(criteria, true);
@@ -286,7 +271,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		int button_width = 0;
 		int button_height = 0;
 		int prev_rw, prev_rh;
-		
+
 		if (1.0 * display_width_d / display_height_d > 1.0 * live_width
 				/ live_height) {
 			prev_rh = display_height_d;
@@ -308,13 +293,13 @@ public class StreamingActivity extends Activity implements OnClickListener {
 				+ button_height);
 		cameraDevice = openCamera();
 		cameraView = new CameraView(this, cameraDevice);
-		
+
 		/*	Adding webview for hackathon. To be replaced by OpenGL */
 		WebView mWebView = new WebView(this);
 		mWebView.setWebChromeClient(new WebChromeClient());
 		mWebView.getSettings().setJavaScriptEnabled(true);
 		mWebView.addJavascriptInterface(new JSInterface(this), "Android");
-		
+
 		/*	Get html data */
 		InputStream inStream;
 		byte[] buffer;
@@ -329,19 +314,19 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		mWebView.loadData(htmlString, "text/html", "UTF-8");
 		mWebView.setBackgroundColor(0x00000000); //  Set invisible webview
-		
+
 		topLayout.addView(cameraView, layoutParam);
 		topLayout.addView(mGLView, layoutParam);
 		topLayout.addView(mWebView, layoutParam);
-		
+
 		FrameLayout preViewLayout = (FrameLayout) myInflate.inflate(R.layout.activity_streaming, null);
 		layoutParam = new FrameLayout.LayoutParams(screenWidth, screenHeight);
 		topLayout.addView(preViewLayout, layoutParam);
 		Log.i(LOG_TAG, "cameara preview start: OK");
-				
+
 		final Button recorderButton = (Button) findViewById(R.id.recorder_control);
 		recorderButton.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -359,7 +344,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 			}
 		});
 	}
-	
+
 	/*
 	 * Creates and initiates the Camera object.
 	 */
@@ -452,7 +437,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		}
 	}
 
-	
+
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 
@@ -525,14 +510,18 @@ public class StreamingActivity extends Activity implements OnClickListener {
 					CLASS_LABEL);
 			mWakeLock.acquire();
 		}
-		
+
 		locationManager.requestLocationUpdates(provider, 0, 1000, sensorSource); // Register sensorSource to listen to location events
 		mSensorManager.registerListener(sensorSource, mAcc, SensorManager.SENSOR_DELAY_NORMAL); 
 		// TODO: [URGENT]Alok, find out why mAcc is only being registered.
 		// mSensorManager.registerListener(overlay, mMag, SensorManager.SENSOR_DELAY_NORMAL);
-		Log.d("alok", "registered broadcast listener");
-		LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("my-event"));
-		
+
+		/* Registering a listener for SensorEvent and LocationEvent broadcast */
+		LocalBroadcastManager.getInstance(this).registerReceiver(sensorBroadcastReceiver,
+				new IntentFilter(getString(R.string.SensorEvent)));
+		LocalBroadcastManager.getInstance(this).registerReceiver(locationBroadcastReceiver, 
+				new IntentFilter(getString(R.string.LocationEvent)));
+
 		initLayout();
 	}
 
@@ -541,9 +530,9 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		super.onPause();
 		Log.d(TAG, "onPause");
 		locationManager.removeUpdates(sensorSource);
-		LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);	// Stop listening for broadcast from SensorSource
+		LocalBroadcastManager.getInstance(this).unregisterReceiver(sensorBroadcastReceiver);	// Stop listening for broadcast from SensorSource
 		topLayout.removeAllViews(); // Removes the camera view from the layout, as it is re-added in initlayout from onResume.
-		
+
 		if (putHeadingfeed != null) {
 			if (putHeadingfeed.isAlive()) {
 				putHeadingfeed.interrupt();
@@ -568,15 +557,30 @@ public class StreamingActivity extends Activity implements OnClickListener {
 			mWakeLock = null;
 		}
 	}
-	
-	// handler for received Intents for the "my-event" event 
-	private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
-	  @Override
-	  public void onReceive(Context context, Intent intent) {
-	    // Extract data included in the Intent
-	    String message = intent.getStringExtra("message");
-	    Log.d("alok", "Got message: " + message);
-	  }
+
+	/* Receiver for Sensor broadcast events */ 
+	private BroadcastReceiver sensorBroadcastReceiver = new BroadcastReceiver() {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			// Extract data included in the Intent
+			String message = intent.getStringExtra("message");
+			Log.d("alok", "Got message: " + message);
+		}
+	};
+
+	/* Receiver for Location broadcast events  */
+	private BroadcastReceiver locationBroadcastReceiver = new BroadcastReceiver() {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			// TODO Auto-generated method stub
+			Location location;
+			location = sensorSource.getLocation();
+			lati = (float) (location.getLatitude());
+			longi = (float) (location.getLongitude());
+			Log.d("alok", "Location Changed with lat" + lati + " and lng" + longi);
+		}
 	};
 
 	public static byte[] convertStringToByteArray(String s) {
@@ -589,16 +593,16 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		super.onSaveInstanceState(outState);
 	}
 
-//	@Override
-//	public void onLocationChanged(Location location) {
-//		// TODO Auto-generated method stub
-//
-//		lati = (float) (location.getLatitude());
-//		longi = (float) (location.getLongitude());
-//		Log.d(TAG, "Location Changed with lat" + lati + " and lng" + longi);
-//		// frameInfo.lat = convertfloatToByteArray(lati);
-//		// frameInfo.lon = convertStringToByteArray(longi);
-//	}
+	//	@Override
+	//	public void onLocationChanged(Location location) {
+	//		// TODO Auto-generated method stub
+	//
+	//		lati = (float) (location.getLatitude());
+	//		longi = (float) (location.getLongitude());
+	//		Log.d(TAG, "Location Changed with lat" + lati + " and lng" + longi);
+	//		// frameInfo.lat = convertfloatToByteArray(lati);
+	//		// frameInfo.lon = convertStringToByteArray(longi);
+	//	}
 
 	class CloseFeed extends Thread {
 		private Handler handler = null;
@@ -846,7 +850,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 	// camera thread, gets and encodes video data
 	// ---------------------------------------------
 	class CameraView extends SurfaceView implements SurfaceHolder.Callback,
-			PreviewCallback {
+	PreviewCallback {
 
 		private SurfaceHolder mHolder;
 		private Camera mCamera;
@@ -893,10 +897,10 @@ public class StreamingActivity extends Activity implements OnClickListener {
 			try {
 				mHolder.addCallback(null);
 				mCamera.setPreviewCallback(null);
-				
+
 				if (mCamera != null) { 
-			        mCamera.release();
-			    }
+					mCamera.release();
+				}
 			} catch (RuntimeException e) {
 				// The camera has probably just been released, ignore.
 			}
@@ -1090,33 +1094,33 @@ public class StreamingActivity extends Activity implements OnClickListener {
 
 		}
 	}
-	
+
 	private byte[] rotateYUV420Degree90(byte[] data, int imageWidth, int imageHeight) 
 	{
-	    byte [] yuv = new byte[imageWidth*imageHeight*3/2];
-	    // Rotate the Y luma
-	    int i = 0;
-	    for(int x = 0;x < imageWidth;x++)
-	    {
-	        for(int y = imageHeight-1;y >= 0;y--)                               
-	        {
-	            yuv[i] = data[y*imageWidth+x];
-	            i++;
-	        }
-	    }
-	    // Rotate the U and V color components 
-	    i = imageWidth*imageHeight*3/2-1;
-	    for(int x = imageWidth-1;x > 0;x=x-2)
-	    {
-	        for(int y = 0;y < imageHeight/2;y++)                                
-	        {
-	            yuv[i] = data[(imageWidth*imageHeight)+(y*imageWidth)+x];
-	            i--;
-	            yuv[i] = data[(imageWidth*imageHeight)+(y*imageWidth)+(x-1)];
-	            i--;
-	        }
-	    }
-	    return yuv;
+		byte [] yuv = new byte[imageWidth*imageHeight*3/2];
+		// Rotate the Y luma
+		int i = 0;
+		for(int x = 0;x < imageWidth;x++)
+		{
+			for(int y = imageHeight-1;y >= 0;y--)                               
+			{
+				yuv[i] = data[y*imageWidth+x];
+				i++;
+			}
+		}
+		// Rotate the U and V color components 
+		i = imageWidth*imageHeight*3/2-1;
+		for(int x = imageWidth-1;x > 0;x=x-2)
+		{
+			for(int y = 0;y < imageHeight/2;y++)                                
+			{
+				yuv[i] = data[(imageWidth*imageHeight)+(y*imageWidth)+x];
+				i--;
+				yuv[i] = data[(imageWidth*imageHeight)+(y*imageWidth)+(x-1)];
+				i--;
+			}
+		}
+		return yuv;
 	}
 
 }
