@@ -514,7 +514,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		locationManager.requestLocationUpdates(provider, 0, 1000, sensorSource); // Register sensorSource to listen to location events
 		mSensorManager.registerListener(sensorSource, mAcc, SensorManager.SENSOR_DELAY_NORMAL); 
 		// TODO: [URGENT]Alok, find out why mAcc is only being registered.
-		// mSensorManager.registerListener(overlay, mMag, SensorManager.SENSOR_DELAY_NORMAL);
+		mSensorManager.registerListener(sensorSource, mMag, SensorManager.SENSOR_DELAY_NORMAL);
 
 		/* Registering a listener for SensorEvent and LocationEvent broadcast */
 		LocalBroadcastManager.getInstance(this).registerReceiver(sensorBroadcastReceiver,

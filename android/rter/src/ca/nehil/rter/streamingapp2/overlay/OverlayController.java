@@ -160,9 +160,9 @@ public class OverlayController {
 		
 		//Registering sensorSource to the sensorManager. Now sensorSource will receive sensor data.
 		//TODO: Move this to onCreate of Streamingactivity, where sensorSource is being registered for location updates.
-		SensorManager sensorManager = (SensorManager) context.getSystemService(context.SENSOR_SERVICE);
-		Sensor accSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-		sensorManager.registerListener(sensorSource, accSensor, SensorManager.SENSOR_DELAY_NORMAL);
+//		SensorManager sensorManager = (SensorManager) context.getSystemService(context.SENSOR_SERVICE);
+//		Sensor accSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+//		sensorManager.registerListener(sensorSource, accSensor, SensorManager.SENSOR_DELAY_NORMAL);
 		
 		LocalBroadcastManager.getInstance(context).registerReceiver(locationBroadcastReceiver, 
 				new IntentFilter(context.getString(R.string.LocationEvent)));
