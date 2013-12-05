@@ -206,12 +206,10 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		Criteria criteria = new Criteria();
 		provider = locationManager.getBestProvider(criteria, true);
 		if (provider != null) {
-			Log.d("alok", "provider not null");
 			Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
 			if (location != null) {
 				// onLocationChanged(location);
-				Log.d("alok", "location not null");
 				lati = (float) (location.getLatitude());
 				longi = (float) (location.getLongitude());
 			} else {
@@ -221,7 +219,6 @@ public class StreamingActivity extends Activity implements OnClickListener {
 				toast.show();
 				lati = (float) (45.505958f); // Hard coded location for testing purposes.
 				longi = (float) (-73.576254f);
-				Log.d("alok", "location null");
 			}
 		}
 

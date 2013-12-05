@@ -62,9 +62,7 @@ public class OverlayController {
 			currentOrientation = sensorSource.getCurrentOrientation();
 			
 			if (freeRoam) {
-				Log.d("alok", "free roaming");
 				mGLRenderer.indicateTurn(Indicate.FREE, 0.0f);
-
 				return;
 			}
 
