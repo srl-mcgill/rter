@@ -1,8 +1,5 @@
 package ca.nehil.rter.streamingapp2;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-
 import ca.nehil.rter.streamingapp2.util.MovingAverageCompass;
 
 import android.content.Context;
@@ -14,10 +11,8 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 
 public class SensorSource implements SensorEventListener, LocationListener{
 
@@ -61,13 +56,13 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	public float getDeclination(){
 		return declination;
 	}
+	
 
 	@Override
 	public void onSensorChanged(SensorEvent event) {
 
 		this.sensorEvent = event;
 		doMath();
-		sendSensorBroadcast();
 	}
 
 	@Override
@@ -83,18 +78,18 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	/* Send broadcast for sensor changed */ 
 	private void sendSensorBroadcast() {
 		Intent sensorIntent = new Intent (mcontext.getString(R.string.SensorEvent));
-		// add data
-		sensorIntent.putExtra("message", "data");
 		LocalBroadcastManager.getInstance(mcontext).sendBroadcast(sensorIntent);
 	} 
 
 	/* Send broadcast for location changed */
 	private void sendLocationBroadcast(){
 		Intent locationIntent = new Intent (mcontext.getString(R.string.LocationEvent));
+		LocalBroadcastManager.getInstance(mcontext).sendBroadcast(locationIntent);
 	}
 	
 	/*
-	 *  Calculations
+	 *  Checks if sensor values present, calculates orientations and then
+	 *  sends broadcast for sensor data
 	 */
 	private void doMath(){
 		
@@ -107,6 +102,9 @@ public class SensorSource implements SensorEventListener, LocationListener{
 			break;
 		}
 		
+		if (aValues == null || mValues == null)
+			return;
+		
 		if (!SensorManager.getRotationMatrix(rotationMatrix, null, aValues, mValues))
 			return;
 		SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_Z,
@@ -116,6 +114,8 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		orientationFilter.pushValue((float) Math.toDegrees(orientationValues[0]));
 		currentOrientation = orientationFilter.getValue() + this.getDeclination();
 		deviceOrientation = (float) Math.toDegrees(orientationValues[2]);
+		
+		sendSensorBroadcast();
 	}
 
 	@Override

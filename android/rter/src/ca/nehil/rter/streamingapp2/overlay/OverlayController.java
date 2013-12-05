@@ -3,17 +3,11 @@ package ca.nehil.rter.streamingapp2.overlay;
 import ca.nehil.rter.streamingapp2.R;
 import ca.nehil.rter.streamingapp2.SensorSource;
 import ca.nehil.rter.streamingapp2.overlay.CameraGLRenderer.Indicate;
-import ca.nehil.rter.streamingapp2.util.*;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.hardware.GeomagneticField;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorManager;
-import android.location.Location;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -37,133 +31,19 @@ public class OverlayController {
 	protected CameraGLRenderer mGLRenderer;
 	protected Context context;
 	private SensorSource sensorSource;
-	private static final String TAG = "OpenGL Overlay Controller";
 
-	float[] aValues = new float[3];
-	float[] mValues = new float[3];
 	float declination = 0;	//geo magnetic declinationf from true North
 
-	// max orientation tolerance in degrees
-	public float orientationTolerance = 10.0f;
+	public float orientationTolerance = 10.0f; // Max orientation tolerance in degrees
 	
-	private MovingAverageCompass orientationFilter;
-
 	public OverlayController(Context context) {
 		this.context = context;
 		this.mGLView = new CameraGLSurfaceView(context);
 		this.mGLRenderer = this.mGLView.getGLRenderer();
 		
-		orientationFilter = new MovingAverageCompass(30);
-		
-		// Register listener and implement interface
 		sensorSource = SensorSource.getInstance(context);
-//		sensorSource.subscribeListener(new SensorSourceListener() {
-//			
-//			@Override
-//			public void onSensorSourceEvent(SensorEvent event) {
-//
-//				switch (event.sensor.getType()) {
-//				case Sensor.TYPE_ACCELEROMETER:
-//					System.arraycopy(event.values, 0, aValues, 0, 3);
-//					break;
-//				case Sensor.TYPE_MAGNETIC_FIELD:
-//					System.arraycopy(event.values, 0, mValues, 0, 3);
-//					break;
-//				}
-//				
-//				//TODO: Alok, take all the following math out of here and put it in SensorSource
-//				float[] R = new float[16];
-//				float[] orientationValues = new float[3];
-//
-//				if (aValues == null || mValues == null)
-//					return;
-//
-//				if (!SensorManager.getRotationMatrix(R, null, aValues, mValues))
-//					return;
-//
-//				float[] outR = new float[16];
-//				SensorManager.remapCoordinateSystem(R, SensorManager.AXIS_Z,
-//						SensorManager.AXIS_MINUS_X, outR);
-//
-//				SensorManager.getOrientation(outR, orientationValues);
-//
-//				// this angle tells us the orientation
-//				orientationFilter.pushValue((float) Math.toDegrees(orientationValues[0]));
-//				currentOrientation = orientationFilter.getValue() + declination;
-//
-//				// this is not used currently, 90 when phone facing the sky, -90 when
-//				// facing the ground
-//				// orientationValues[1] = (float) Math.toDegrees(orientationValues[1]);
-//
-//				// this angle tells us the device orientation
-//				// between 90 and -90 is right side up (landscape); otherwise upside
-//				// down
-////				deviceOrientation = (float) Math.toDegrees(orientationValues[2]); //alok
-//
-////				Log.d("orientation", "x: " + String.format("%.1f", Math.toDegrees(orientationValues[0]))
-////						+ ", y: " + String.format("%.1f", Math.toDegrees(orientationValues[1]))
-////						+ ", z: " + String.format("%.1f", Math.toDegrees(orientationValues[2])));
-////				Log.d("reald orientation", "x: " + String.format("%.1f", this.currentOrientation));
-//
-//				if (freeRoam) {
-//					mGLRenderer.indicateTurn(Indicate.FREE, 0.0f);
-//
-//					return;
-//				}
-//
-//				// check orientation of device
-//				if (deviceOrientation <= 90.0f && deviceOrientation >= -90.0f) {
-//					rightSideUp = true;
-//				} else
-//					rightSideUp = false;
-//
-//				// graphics logic
-//				boolean rightArrow = true;
-//				float difference = fixAngle(desiredOrientation - currentOrientation);
-//				if (Math.abs(difference) > orientationTolerance) {
-//					
-//					if (difference > 0) {
-//						// turn right
-//						rightArrow = true;
-//					} else {
-//						// turn left
-//						rightArrow = false;
-//					}
-//
-//					// flip arrow incase device is flipped
-//					if (!rightSideUp) {
-//						rightArrow = !rightArrow;
-//					}
-//
-//					if (rightArrow) {
-//						mGLRenderer.indicateTurn(Indicate.RIGHT,
-//								Math.abs(difference) / 180.0f);
-//					} else {
-//						mGLRenderer.indicateTurn(Indicate.LEFT,
-//								Math.abs(difference) / 180.0f);
-//					}
-//
-//				} else {
-//					mGLRenderer.indicateTurn(Indicate.NONE, 0.0f);
-//				}
-//			}
-//
-//			@Override
-//			public void onLocationSourceEvent(Location loc) {
-//				//calculate and store declination for compass offsetting to true north
-//		        GeomagneticField gmf = new GeomagneticField(
-//		            (float)loc.getLatitude(), (float)loc.getLongitude(), (float)loc.getAltitude(), System.currentTimeMillis());
-//		        declination = gmf.getDeclination();
-//			}
-//
-//		});
 		
-		//Registering sensorSource to the sensorManager. Now sensorSource will receive sensor data.
-		//TODO: Move this to onCreate of Streamingactivity, where sensorSource is being registered for location updates.
-//		SensorManager sensorManager = (SensorManager) context.getSystemService(context.SENSOR_SERVICE);
-//		Sensor accSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-//		sensorManager.registerListener(sensorSource, accSensor, SensorManager.SENSOR_DELAY_NORMAL);
-		
+		/* Register for location and sensor broadcasts */
 		LocalBroadcastManager.getInstance(context).registerReceiver(locationBroadcastReceiver, 
 				new IntentFilter(context.getString(R.string.LocationEvent)));
 		LocalBroadcastManager.getInstance(context).registerReceiver(sensorBroadcastReceiver, 
@@ -177,22 +57,9 @@ public class OverlayController {
 		
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			// TODO Auto-generated method stub
-			SensorEvent event = sensorSource.getSensorEvent();
-			switch(event.sensor.getType()) {
-			case Sensor.TYPE_ACCELEROMETER:
-				System.arraycopy(event.values, 0, aValues, 0, 3);
-				break;
-			case Sensor.TYPE_GYROSCOPE:
-				System.arraycopy(event.values, 0, mValues, 0, 3);
-				break;
-			}
 			
 			deviceOrientation = sensorSource.getDeviceOrientation();
 			currentOrientation = sensorSource.getCurrentOrientation();
-			
-			if (aValues == null || mValues == null)
-				return;
 			
 			if (freeRoam) {
 				Log.d("alok", "free roaming");
@@ -246,7 +113,7 @@ public class OverlayController {
 		
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			// TODO Auto-generated method stub
+
 			declination = sensorSource.getDeclination();
 		}
 	};
@@ -309,103 +176,4 @@ public class OverlayController {
 		this.setDesiredOrientation(currentOrientation + offset);
 	}
 
-//	@Override
-//	public void onSensorChanged(SensorEvent event) {
-//		/**
-//		 * code adapted from here:
-//		 * http://stackoverflow.com/questions/8989103/sensormanager
-//		 * -getorientation-gives-very-unstable-results
-//		 */
-//		switch (event.sensor.getType()) {
-//		case Sensor.TYPE_ACCELEROMETER:
-//			System.arraycopy(event.values, 0, aValues, 0, 3);
-//			break;
-//		case Sensor.TYPE_MAGNETIC_FIELD:
-//			System.arraycopy(event.values, 0, mValues, 0, 3);
-//			break;
-//		}
-//		float[] R = new float[16];
-//		float[] orientationValues = new float[3];
-//
-//		if (aValues == null || mValues == null)
-//			return;
-//
-//		if (!SensorManager.getRotationMatrix(R, null, aValues, mValues))
-//			return;
-//
-//		float[] outR = new float[16];
-//		SensorManager.remapCoordinateSystem(R, SensorManager.AXIS_Z,
-//				SensorManager.AXIS_MINUS_X, outR);
-//
-//		SensorManager.getOrientation(outR, orientationValues);
-//
-//		// this angle tells us the orientation
-//		this.orientationFilter.pushValue((float) Math.toDegrees(orientationValues[0]));
-//		this.currentOrientation = this.orientationFilter.getValue() +this.declination;
-//
-//		// this is not used currently, 90 when phone facing the sky, -90 when
-//		// facing the ground
-//		// orientationValues[1] = (float) Math.toDegrees(orientationValues[1]);
-//
-//		// this angle tells us the device orientation
-//		// between 90 and -90 is right side up (landscape); otherwise upside
-//		// down
-//		this.deviceOrientation = (float) Math.toDegrees(orientationValues[2]);
-//
-////		Log.d("orientation", "x: " + String.format("%.1f", Math.toDegrees(orientationValues[0]))
-////				+ ", y: " + String.format("%.1f", Math.toDegrees(orientationValues[1]))
-////				+ ", z: " + String.format("%.1f", Math.toDegrees(orientationValues[2])));
-////		Log.d("reald orientation", "x: " + String.format("%.1f", this.currentOrientation));
-//
-//		if (this.freeRoam) {
-//			this.mGLRenderer.indicateTurn(Indicate.FREE, 0.0f);
-//
-//			return;
-//		}
-//
-//		// check orientation of device
-//		if (deviceOrientation <= 90.0f && deviceOrientation >= -90.0f) {
-//			this.rightSideUp = true;
-//		} else
-//			this.rightSideUp = false;
-//
-//		// graphics logic
-//		boolean rightArrow = true;
-//		float difference = fixAngle(desiredOrientation - currentOrientation);
-//		if (Math.abs(difference) > orientationTolerance) {
-//			
-//			if (difference > 0) {
-//				// turn right
-//				rightArrow = true;
-//			} else {
-//				// turn left
-//				rightArrow = false;
-//			}
-//
-//			// flip arrow incase device is flipped
-//			if (!this.rightSideUp) {
-//				rightArrow = !rightArrow;
-//			}
-//
-//			if (rightArrow) {
-//				this.mGLRenderer.indicateTurn(Indicate.RIGHT,
-//						Math.abs(difference) / 180.0f);
-//			} else {
-//				this.mGLRenderer.indicateTurn(Indicate.LEFT,
-//						Math.abs(difference) / 180.0f);
-//			}
-//
-//		} else {
-//			this.mGLRenderer.indicateTurn(Indicate.NONE, 0.0f);
-//		}
-//
-//	}
-
-//	@Override
-//	public void onLocationChanged(Location loc) {
-//		//calculate and store declination for compass offsetting to true north
-//        GeomagneticField gmf = new GeomagneticField(
-//            (float)loc.getLatitude(), (float)loc.getLongitude(), (float)loc.getAltitude(), System.currentTimeMillis());
-//        this.declination = gmf.getDeclination();
-//	}
 }

@@ -43,7 +43,6 @@ import android.content.SharedPreferences;
 import android.hardware.Camera;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.Sensor;
-import android.hardware.SensorEvent;
 import android.hardware.SensorManager;
 import android.location.Criteria;
 import android.location.Location;
@@ -52,7 +51,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
-import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.Display;
@@ -106,7 +104,6 @@ public class StreamingActivity extends Activity implements OnClickListener {
 	private float longi;
 	private LocationManager locationManager;
 	private String provider;
-	private FrameInfo frameInfo;
 
 	/*************
 	 * Mikes variables for JAVACV testing
@@ -118,7 +115,6 @@ public class StreamingActivity extends Activity implements OnClickListener {
 	private boolean recording = false;
 	private volatile FFmpegFrameSender recorder;
 	private boolean isPreviewOn = false;
-	private int sampleAudioRateInHz = 44100;
 	private int imageWidth = 320;
 	private int imageHeight = 240;
 	private int frameRate = 30;
@@ -180,8 +176,6 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		myOrientationEventListener.enable();
 
 		Log.e(TAG, "onCreate");
-
-		frameInfo = new FrameInfo();
 
 		overlay = new OverlayController(this); // OpenGL overlay 
 		sensorSource = SensorSource.getInstance(this);
@@ -512,11 +506,12 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		}
 
 		locationManager.requestLocationUpdates(provider, 0, 1000, sensorSource); // Register sensorSource to listen to location events
+		
+		/* Register SensorSource to listen to accelerometer and magnetic field sensors */
 		mSensorManager.registerListener(sensorSource, mAcc, SensorManager.SENSOR_DELAY_NORMAL); 
-		// TODO: [URGENT]Alok, find out why mAcc is only being registered.
 		mSensorManager.registerListener(sensorSource, mMag, SensorManager.SENSOR_DELAY_NORMAL);
 
-		/* Registering a listener for SensorEvent and LocationEvent broadcast */
+		/* Registering a listener for the SensorEvent and LocationEvent broadcasts sent by SensorSource */
 		LocalBroadcastManager.getInstance(this).registerReceiver(sensorBroadcastReceiver,
 				new IntentFilter(getString(R.string.SensorEvent)));
 		LocalBroadcastManager.getInstance(this).registerReceiver(locationBroadcastReceiver, 
@@ -564,7 +559,6 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			// Extract data included in the Intent
-			String message = intent.getStringExtra("message");
 		}
 	};
 
@@ -573,7 +567,6 @@ public class StreamingActivity extends Activity implements OnClickListener {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			// TODO Auto-generated method stub
 			Location location;
 			location = sensorSource.getLocation();
 			lati = (float) (location.getLatitude());
@@ -591,17 +584,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		super.onSaveInstanceState(outState);
 	}
 
-	//	@Override
-	//	public void onLocationChanged(Location location) {
-	//		// TODO Auto-generated method stub
-	//
-	//		lati = (float) (location.getLatitude());
-	//		longi = (float) (location.getLongitude());
-	//		Log.d(TAG, "Location Changed with lat" + lati + " and lng" + longi);
-	//		// frameInfo.lat = convertfloatToByteArray(lati);
-	//		// frameInfo.lon = convertStringToByteArray(longi);
-	//	}
-
+	
 	class CloseFeed extends Thread {
 		private Handler handler = null;
 		private NotificationRunnable runnable = null;
