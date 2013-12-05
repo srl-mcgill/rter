@@ -565,7 +565,6 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		public void onReceive(Context context, Intent intent) {
 			// Extract data included in the Intent
 			String message = intent.getStringExtra("message");
-			Log.d("alok", "Got message: " + message);
 		}
 	};
 
@@ -579,7 +578,6 @@ public class StreamingActivity extends Activity implements OnClickListener {
 			location = sensorSource.getLocation();
 			lati = (float) (location.getLatitude());
 			longi = (float) (location.getLongitude());
-			Log.d("alok", "Location Changed with lat" + lati + " and lng" + longi);
 		}
 	};
 

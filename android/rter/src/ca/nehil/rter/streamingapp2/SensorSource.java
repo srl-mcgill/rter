@@ -24,8 +24,14 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	private static SensorSource singleton = null;
 	static Context mcontext; 	// Need context for broadcast manager
 	private Location location;
-	private float declination, currentOrientation, deviceOrientation;
+	private float declination = 0;
+	private float currentOrientation, deviceOrientation;
 	private SensorEvent sensorEvent;
+	private float[] rotationMatrix = new float[16];
+	private float[] orientationValues = new float[3];
+	private float[] outRotationMatrix = new float[16];
+	private float[] aValues = new float[3];
+	private float[] mValues = new float[3];
 
 	public static SensorSource getInstance(Context context){
 		if (singleton == null)
@@ -53,19 +59,12 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	}
 
 	public float getDeclination(){
-
-		GeomagneticField gmf = new GeomagneticField(
-				(float)location.getLatitude(), (float)location.getLongitude(), (float)location.getAltitude(), System.currentTimeMillis());
-		declination = gmf.getDeclination();
 		return declination;
 	}
 
 	@Override
 	public void onSensorChanged(SensorEvent event) {
 
-		//		for (SensorSourceListener sensorListener : sensorListeners) {
-		//			sensorListener.onSensorSourceEvent(event);
-		//		}
 		this.sensorEvent = event;
 		doMath();
 		sendSensorBroadcast();
@@ -73,9 +72,10 @@ public class SensorSource implements SensorEventListener, LocationListener{
 
 	@Override
 	public void onLocationChanged(Location location) {
-		//for (SensorSourceListener locationListener : sensorListeners) {
-		//locationListener.onLocationSourceEvent(location);
-		//}
+
+		GeomagneticField gmf = new GeomagneticField(
+				(float)location.getLatitude(), (float)location.getLongitude(), (float)location.getAltitude(), System.currentTimeMillis());
+		declination = gmf.getDeclination();
 		this.location = location;
 		sendLocationBroadcast();
 	}
@@ -97,11 +97,6 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	 *  Calculations
 	 */
 	private void doMath(){
-		float[] R = new float[16];
-		float[] orientationValues = new float[3];
-		float[] outR = new float[16];
-		float[] aValues = new float[3];
-		float[] mValues = new float[3];
 		
 		switch (sensorEvent.sensor.getType()) {
 		case Sensor.TYPE_ACCELEROMETER:
@@ -112,11 +107,11 @@ public class SensorSource implements SensorEventListener, LocationListener{
 			break;
 		}
 		
-		if (!SensorManager.getRotationMatrix(R, null, aValues, mValues))
+		if (!SensorManager.getRotationMatrix(rotationMatrix, null, aValues, mValues))
 			return;
-		SensorManager.remapCoordinateSystem(R, SensorManager.AXIS_Z,
-				SensorManager.AXIS_MINUS_X, outR);
-		SensorManager.getOrientation(outR, orientationValues);
+		SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_Z,
+				SensorManager.AXIS_MINUS_X, outRotationMatrix);
+		SensorManager.getOrientation(outRotationMatrix, orientationValues);
 		MovingAverageCompass orientationFilter = new MovingAverageCompass(30);
 		orientationFilter.pushValue((float) Math.toDegrees(orientationValues[0]));
 		currentOrientation = orientationFilter.getValue() + this.getDeclination();
