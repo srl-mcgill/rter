@@ -209,7 +209,6 @@ public class StreamingActivity extends Activity implements OnClickListener {
 			Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
 			if (location != null) {
-				// onLocationChanged(location);
 				lati = (float) (location.getLatitude());
 				longi = (float) (location.getLongitude());
 			} else {
@@ -230,7 +229,81 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		overlay.letFreeRoam(false);
 		overlay.setDesiredOrientation(0.0f);
 	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		if (mWakeLock == null) {
+			PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+			mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK,
+					CLASS_LABEL);
+			mWakeLock.acquire();
+		}
 
+		locationManager.requestLocationUpdates(provider, 0, 1000, sensorSource); // Register sensorSource to listen to location events
+		
+		/* Register SensorSource to listen to accelerometer and magnetic field sensors */
+		mSensorManager.registerListener(sensorSource, mAcc, SensorManager.SENSOR_DELAY_NORMAL); 
+		mSensorManager.registerListener(sensorSource, mMag, SensorManager.SENSOR_DELAY_NORMAL);
+
+		/* Registering a listener for the SensorEvent and LocationEvent broadcasts sent by SensorSource */
+		LocalBroadcastManager.getInstance(this).registerReceiver(sensorBroadcastReceiver,
+				new IntentFilter(getString(R.string.SensorEvent)));
+		LocalBroadcastManager.getInstance(this).registerReceiver(locationBroadcastReceiver, 
+				new IntentFilter(getString(R.string.LocationEvent)));
+
+		initLayout();
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		Log.d(TAG, "onPause");
+		locationManager.removeUpdates(sensorSource);
+		LocalBroadcastManager.getInstance(this).unregisterReceiver(sensorBroadcastReceiver);	// Stop listening for broadcast from SensorSource
+		topLayout.removeAllViews(); // Removes the camera view from the layout, as it is re-added in initlayout from onResume.
+
+		if (putHeadingfeed != null) {
+			if (putHeadingfeed.isAlive()) {
+				putHeadingfeed.interrupt();
+			}
+		}
+
+		// @Nehil should this be removed?
+		// Because the Camera object is a shared resource, it's very
+		// important to release it when the activity is paused.
+		if (mCamera != null) {
+			mCamera.release();
+			mCamera = null;
+
+		}
+
+		if (mSensorManager != null) {
+			mSensorManager.unregisterListener(sensorSource);
+		}
+
+		if (mWakeLock != null) {
+			mWakeLock.release();
+			mWakeLock = null;
+		}
+	}
+	
+	@Override
+	public void onStop() {
+		super.onStop();
+		if (putHeadingfeed != null) {
+			if (putHeadingfeed.isAlive()) {
+				putHeadingfeed.interrupt();
+			}
+		}
+
+		if (mCamera != null) {
+			mCamera.release();
+			mCamera = null;
+
+		}
+	}
+	
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
@@ -255,7 +328,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		topLayout = new FrameLayout(this);
 		setContentView(topLayout);
 
-		mGLView = overlay.getGLView(); //	OpenGLview
+		mGLView = overlay.getGLView(); // OpenGLview
 
 		int display_width_d = (int) (1.0 * screenWidth);
 		int display_height_d = (int) (1.0 * screenHeight);
@@ -474,80 +547,6 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		handshakeTask = new HandShakeTask();
 		handshakeTask.execute();
 
-	}
-
-	@Override
-	public void onStop() {
-		super.onStop();
-		if (putHeadingfeed != null) {
-			if (putHeadingfeed.isAlive()) {
-				putHeadingfeed.interrupt();
-			}
-		}
-
-		if (mCamera != null) {
-			mCamera.release();
-			mCamera = null;
-
-		}
-	}
-
-	@Override
-	protected void onResume() {
-		super.onResume();
-		if (mWakeLock == null) {
-			PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-			mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK,
-					CLASS_LABEL);
-			mWakeLock.acquire();
-		}
-
-		locationManager.requestLocationUpdates(provider, 0, 1000, sensorSource); // Register sensorSource to listen to location events
-		
-		/* Register SensorSource to listen to accelerometer and magnetic field sensors */
-		mSensorManager.registerListener(sensorSource, mAcc, SensorManager.SENSOR_DELAY_NORMAL); 
-		mSensorManager.registerListener(sensorSource, mMag, SensorManager.SENSOR_DELAY_NORMAL);
-
-		/* Registering a listener for the SensorEvent and LocationEvent broadcasts sent by SensorSource */
-		LocalBroadcastManager.getInstance(this).registerReceiver(sensorBroadcastReceiver,
-				new IntentFilter(getString(R.string.SensorEvent)));
-		LocalBroadcastManager.getInstance(this).registerReceiver(locationBroadcastReceiver, 
-				new IntentFilter(getString(R.string.LocationEvent)));
-
-		initLayout();
-	}
-
-	@Override
-	protected void onPause() {
-		super.onPause();
-		Log.d(TAG, "onPause");
-		locationManager.removeUpdates(sensorSource);
-		LocalBroadcastManager.getInstance(this).unregisterReceiver(sensorBroadcastReceiver);	// Stop listening for broadcast from SensorSource
-		topLayout.removeAllViews(); // Removes the camera view from the layout, as it is re-added in initlayout from onResume.
-
-		if (putHeadingfeed != null) {
-			if (putHeadingfeed.isAlive()) {
-				putHeadingfeed.interrupt();
-			}
-		}
-
-		// @Nehil should this be removed?
-		// Because the Camera object is a shared resource, it's very
-		// important to release it when the activity is paused.
-		if (mCamera != null) {
-			mCamera.release();
-			mCamera = null;
-
-		}
-
-		if (mSensorManager != null) {
-			mSensorManager.unregisterListener(sensorSource);
-		}
-
-		if (mWakeLock != null) {
-			mWakeLock.release();
-			mWakeLock = null;
-		}
 	}
 
 	/* Receiver for Sensor broadcast events */ 

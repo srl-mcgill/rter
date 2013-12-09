@@ -21,7 +21,6 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	private Location location;
 	private float declination = 0;
 	private float currentOrientation, deviceOrientation;
-	private SensorEvent sensorEvent;
 	private float[] rotationMatrix = new float[16];
 	private float[] orientationValues = new float[3];
 	private float[] outRotationMatrix = new float[16];
@@ -41,10 +40,6 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		return this.location;
 	}
 	
-	public SensorEvent getSensorEvent(){
-		return this.sensorEvent;
-	}
-	
 	public float getCurrentOrientation(){
 		return this.currentOrientation;
 	}
@@ -59,10 +54,30 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	
 
 	@Override
-	public void onSensorChanged(SensorEvent event) {
-
-		this.sensorEvent = event;
-		doMath();
+	public void onSensorChanged(SensorEvent sensorEvent) {
+		switch (sensorEvent.sensor.getType()) {
+		case Sensor.TYPE_ACCELEROMETER:
+			System.arraycopy(sensorEvent.values, 0, aValues, 0, 3);
+			break;
+		case Sensor.TYPE_MAGNETIC_FIELD:
+			System.arraycopy(sensorEvent.values, 0, mValues, 0, 3);
+			break;
+		}
+		
+		if (aValues == null || mValues == null)
+			return;
+		
+		if (!SensorManager.getRotationMatrix(rotationMatrix, null, aValues, mValues))
+			return;
+		SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_Z,
+				SensorManager.AXIS_MINUS_X, outRotationMatrix);
+		SensorManager.getOrientation(outRotationMatrix, orientationValues);
+		MovingAverageCompass orientationFilter = new MovingAverageCompass(30);
+		orientationFilter.pushValue((float) Math.toDegrees(orientationValues[0]));
+		currentOrientation = orientationFilter.getValue() + this.getDeclination();
+		deviceOrientation = (float) Math.toDegrees(orientationValues[2]);
+		
+		sendSensorBroadcast(); 
 	}
 
 	@Override
@@ -87,37 +102,6 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		LocalBroadcastManager.getInstance(mcontext).sendBroadcast(locationIntent);
 	}
 	
-	/*
-	 *  Checks if sensor values present, calculates orientations and then
-	 *  sends broadcast for sensor data
-	 */
-	private void doMath(){
-		
-		switch (sensorEvent.sensor.getType()) {
-		case Sensor.TYPE_ACCELEROMETER:
-			System.arraycopy(sensorEvent.values, 0, aValues, 0, 3);
-			break;
-		case Sensor.TYPE_MAGNETIC_FIELD:
-			System.arraycopy(sensorEvent.values, 0, mValues, 0, 3);
-			break;
-		}
-		
-		if (aValues == null || mValues == null)
-			return;
-		
-		if (!SensorManager.getRotationMatrix(rotationMatrix, null, aValues, mValues))
-			return;
-		SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_Z,
-				SensorManager.AXIS_MINUS_X, outRotationMatrix);
-		SensorManager.getOrientation(outRotationMatrix, orientationValues);
-		MovingAverageCompass orientationFilter = new MovingAverageCompass(30);
-		orientationFilter.pushValue((float) Math.toDegrees(orientationValues[0]));
-		currentOrientation = orientationFilter.getValue() + this.getDeclination();
-		deviceOrientation = (float) Math.toDegrees(orientationValues[2]);
-		
-		sendSensorBroadcast();
-	}
-
 	@Override
 	public void onAccuracyChanged(Sensor arg0, int arg1) {
 		// TODO Auto-generated method stub
