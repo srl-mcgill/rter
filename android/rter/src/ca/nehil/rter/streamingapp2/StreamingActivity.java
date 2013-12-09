@@ -358,33 +358,8 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		cameraDevice = openCamera();
 		cameraView = new CameraView(this, cameraDevice);
 
-		/*	Adding webview for hackathon. To be replaced by OpenGL */
-		WebView mWebView = new WebView(this);
-		mWebView.setWebChromeClient(new WebChromeClient());
-		mWebView.getSettings().setJavaScriptEnabled(true);
-		mWebView.addJavascriptInterface(new JSInterface(this), "Android");
-
-		/*	Get html data */
-		InputStream inStream;
-		byte[] buffer;
-		String htmlString = null;
-		try {
-			inStream = getAssets().open("WebContent.html");
-			int size = inStream.available();
-			buffer = new byte[size];
-			inStream.read(buffer);
-			inStream.close();
-			htmlString = new String(buffer);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		mWebView.loadData(htmlString, "text/html", "UTF-8");
-		mWebView.setBackgroundColor(0x00000000); //  Set invisible webview
-
 		topLayout.addView(cameraView, layoutParam);
 		topLayout.addView(mGLView, layoutParam);
-		topLayout.addView(mWebView, layoutParam);
 
 		FrameLayout preViewLayout = (FrameLayout) myInflate.inflate(R.layout.activity_streaming, null);
 		layoutParam = new FrameLayout.LayoutParams(screenWidth, screenHeight);
