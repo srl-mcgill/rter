@@ -133,10 +133,6 @@ public class OverlayController {
 		this.freeRoam = freeRoam;
 	}
 	
-	public float getCurrentOrientation() {
-		return this.currentOrientation;
-	}
-	
 	/**
 	 * Set the desired absolute bearing Should be between +180 and -180, but
 	 * will work otherwise

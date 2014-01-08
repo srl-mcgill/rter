@@ -19,20 +19,36 @@
 package ca.nehil.rter.streamingapp2;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TimeZone;
+import java.util.Timer;
+import java.util.TimerTask;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -104,6 +120,8 @@ public class StreamingActivity extends Activity implements OnClickListener {
 	private float longi;
 	private LocationManager locationManager;
 	private String provider;
+	private POI[] pois;
+	private String[] colors = new String[] {"#ff0000", "#0000ff", "#ffff00", "#00ffff", "#ffffff"};
 
 	/*************
 	 * Mikes variables for JAVACV testing
@@ -158,6 +176,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_streaming);
 
+		pois = new POI[0];
 		storedValues = getSharedPreferences("CommonValues", MODE_PRIVATE);
 		server_url = storedValues.getString("server_url", "not-set");
 		/* Orientation listenever implementation to orient video */
@@ -228,8 +247,17 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		/* Test, set desired orienation to north */
 		overlay.letFreeRoam(false);
 		overlay.setDesiredOrientation(0.0f);
+
+		/* Fetch Point of interests (POI) every second from the server */
+		Timer timer = new Timer();
+		timer.scheduleAtFixedRate(new TimerTask() {
+			@Override
+			public void run() {
+				updateItems();
+			}
+		}, 1*1000, 1*1000);
 	}
-	
+
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -241,7 +269,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		}
 
 		locationManager.requestLocationUpdates(provider, 0, 1000, sensorSource); // Register sensorSource to listen to location events
-		
+
 		/* Register SensorSource to listen to accelerometer and magnetic field sensors */
 		mSensorManager.registerListener(sensorSource, mAcc, SensorManager.SENSOR_DELAY_NORMAL); 
 		mSensorManager.registerListener(sensorSource, mMag, SensorManager.SENSOR_DELAY_NORMAL);
@@ -287,7 +315,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 			mWakeLock = null;
 		}
 	}
-	
+
 	@Override
 	public void onStop() {
 		super.onStop();
@@ -303,7 +331,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 
 		}
 	}
-	
+
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
@@ -315,6 +343,76 @@ public class StreamingActivity extends Activity implements OnClickListener {
 			cameraDevice = null;
 		}
 	}
+
+	public void updateItems(){
+		String response = request("items");
+		JSONTokener tokener = new JSONTokener(response);
+		try {
+			JSONArray items = new JSONArray(tokener);
+			ArrayList<POI> poilist = new ArrayList<POI>();
+			for(int i = 0; i < items.length(); i++) {
+				JSONObject item = items.getJSONObject(i);
+				try {
+					POI poi = new POI(item.getInt("ID"), item.getDouble("Heading"), item.getDouble("Lat"), item.getDouble("Lat"), colors[poilist.size()%colors.length], item.getString("ThumbnailURI"), item.getString("Type"));
+					poilist.add(poi);
+				}
+				catch (JSONException e) {
+					//skip item
+				}
+			}
+			//POI[] oldpois = new POI[pois.length];
+			Map<Integer, POI> oldpois = new HashMap<Integer, POI>();
+			for (int i = 0; i < pois.length; i++) {
+				oldpois.put(pois[i].poiId, pois[i]);
+			}
+			
+			pois = poilist.toArray(pois);
+			for(int i = 0; i < pois.length; i++) {
+				if(oldpois.get(pois[i].poiId) == null || !pois[i].curThumbnailURL.equals(oldpois.get(pois[i].poiId).curThumbnailURL)) { // If its not an old poi, or if the thumbnail is not old
+							String url = "javascript:refreshImage("+ String.valueOf(pois[i].poiId) + ", \"" + pois[i].curThumbnailURL + "\");";
+//							mWebView.loadUrl(url);
+				}
+			}
+		} catch(JSONException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public String request(String resource){
+        try {
+                return request(new URI(server_url + "/1.0/" + resource));
+        } catch (URISyntaxException e) {
+                e.printStackTrace();
+        }
+        return "";
+}
+
+public String request(URI resource){
+        Log.d("MSC", "Request: " + resource.toString());
+        HttpClient httpclient = new DefaultHttpClient();
+    HttpResponse response;
+        try {
+                HttpGet request = new HttpGet(resource);
+                response = httpclient.execute(request);
+                StatusLine statusLine = response.getStatusLine();
+            if(statusLine.getStatusCode() == HttpStatus.SC_OK){
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                response.getEntity().writeTo(out);
+                out.close();
+                String responseString = out.toString();
+                return responseString;
+            } else{
+                //Closes the connection.
+                response.getEntity().getContent().close();
+                throw new IOException(statusLine.getReasonPhrase());
+            }
+        } catch (ClientProtocolException e) {
+                e.printStackTrace();
+        } catch (IOException e) {
+                e.printStackTrace();
+        }
+        return "";
+}
 
 	private void initLayout() {
 		/* get size of screen */
@@ -555,7 +653,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		super.onSaveInstanceState(outState);
 	}
 
-	
+
 	class CloseFeed extends Thread {
 		private Handler handler = null;
 		private NotificationRunnable runnable = null;
@@ -665,7 +763,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 
 				float lat = lati;
 				float lng = longi;
-				float heading = overlay.getCurrentOrientation();
+				float heading = sensorSource.getCurrentOrientation();
 				jsonObjSend.put("Lat", lat);
 				jsonObjSend.put("Lng", lng);
 				jsonObjSend.put("Heading", heading);
@@ -1074,8 +1172,9 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		}
 		return yuv;
 	}
-
+	
 }
+
 
 class FrameInfo {
 	public byte[] uid;

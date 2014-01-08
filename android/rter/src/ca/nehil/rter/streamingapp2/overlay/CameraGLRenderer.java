@@ -20,6 +20,7 @@ public class CameraGLRenderer implements Renderer {
 	Arrow arrowLeft;
 	Arrow arrowRight;
 	IndicatorFrame indicatorFrame;
+	IndicatorFrame poiFrame;
 
 	Context context; // Application's context
 
@@ -48,6 +49,7 @@ public class CameraGLRenderer implements Renderer {
 		arrowLeft = new Arrow();
 		arrowRight = new Arrow();
 		indicatorFrame = new IndicatorFrame();
+		poiFrame = new IndicatorFrame();
 		
 		this.lock = new Object();
 	}
