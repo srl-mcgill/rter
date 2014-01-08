@@ -341,6 +341,12 @@ func Select(val interface{}) error {
 		if err == ErrZeroAffected {
 			err = nil
 		}
+
+		err = SelectWhere(&v.Geolocations, ", Items WHERE Geolocations.ItemID = Items.ID AND Items.ID=?", v.ID)
+
+		if err == ErrZeroAffected {
+			err = nil
+		}
 	case *data.ItemComment:
 		err = scanItemComment(v, rows)
 	case *data.Term:
