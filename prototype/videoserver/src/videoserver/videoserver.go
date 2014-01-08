@@ -271,7 +271,7 @@ const (
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
 	<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
 	<script src="http://code.angularjs.org/1.1.4/angular.js"></script>
-		<script src="http://rter.cim.mcgill.ca/vendor/tsunami-tpls-0.1.1.min.js"></script>
+		<script src="http://rter.cim.mcgill.ca/vendor/tsunami-tpls-0.1.2.min.js"></script>
 	<script type="text/javascript">angular.module('playerApp', ['tsunami']);</script>
 </head>`
 	PLAY_TMPL_BEGIN string = `
