@@ -136,7 +136,7 @@ public class CameraGLRenderer implements Renderer {
 		// Clear color and depth buffers using clear-value set earlier
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
 
-		// You OpenGL|ES rendering code here
+		// Your OpenGL|ES rendering code here
 		// ......
 
 		// pulsate arrows
@@ -167,6 +167,9 @@ public class CameraGLRenderer implements Renderer {
 			gl.glLoadIdentity();
 			indicatorFrame.draw(gl);
 
+			//poi render here. POI class maintains list of POIS, iterates through them and renders each.
+	        //poi class will need sensor data.
+			
 			// RIGHT ARROW
 			if(displayRight) {
 				gl.glLoadIdentity(); // Reset model-view matrix ( NEW )

@@ -353,7 +353,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 			for(int i = 0; i < items.length(); i++) {
 				JSONObject item = items.getJSONObject(i);
 				try {
-					POI poi = new POI(item.getInt("ID"), item.getDouble("Heading"), item.getDouble("Lat"), item.getDouble("Lat"), colors[poilist.size()%colors.length], item.getString("ThumbnailURI"), item.getString("Type"));
+					POI poi = new POI(this, item.getInt("ID"), item.getDouble("Heading"), item.getDouble("Lat"), item.getDouble("Lat"), colors[poilist.size()%colors.length], item.getString("ThumbnailURI"), item.getString("Type"));
 					poilist.add(poi);
 				}
 				catch (JSONException e) {
@@ -365,8 +365,9 @@ public class StreamingActivity extends Activity implements OnClickListener {
 			for (int i = 0; i < pois.length; i++) {
 				oldpois.put(pois[i].poiId, pois[i]);
 			}
-			
+//			
 			pois = poilist.toArray(pois);
+			mGLView.updatePOIList(poilist);
 			for(int i = 0; i < pois.length; i++) {
 				if(oldpois.get(pois[i].poiId) == null || !pois[i].curThumbnailURL.equals(oldpois.get(pois[i].poiId).curThumbnailURL)) { // If its not an old poi, or if the thumbnail is not old
 							String url = "javascript:refreshImage("+ String.valueOf(pois[i].poiId) + ", \"" + pois[i].curThumbnailURL + "\");";
