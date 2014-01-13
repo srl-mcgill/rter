@@ -240,6 +240,51 @@ angular.module('termview', [
 		$scope.map.setCenter(latlng);
 		$scope.mapCenter = latlng;
 	};
+
+	var map_dropdown = $("body #map_dropdown");
+
+	$scope.showMapMenu = function($event, $params) {
+		console.log($event);
+		map_dropdown.css({
+			display: "block",
+			left: $event.pixel.x,
+			top: $event.pixel.y
+		});
+		$scope.LatLng = $event.latLng;
+		$(document).one("click", function() {
+			$scope.LatLng = {};
+			map_dropdown.hide();
+			return false;
+		});
+		return false;
+	}
+
+	$scope.createBeacon = function() {
+		console.log("termview:createBeacon()");
+		var date = new Date();
+		var item = {
+			Type: "beacon",
+			HasGeo: true,
+			Lat: $scope.LatLng.b,
+			Lng: $scope.LatLng.d,
+			StartTime: date,
+			StopTime: date
+		};
+		console.log(item);
+
+		$scope.inProgress = true;
+
+		ItemCache.create(
+			item,
+			function() {
+				$scope.inProgress = false;
+			},
+			function() {
+				$scope.inProgress = false;
+			}
+		);
+	};
+
 })
 
 .directive('termview', function() {

@@ -57,10 +57,28 @@
 						</div>
 					</header>
 
-					<div ng-repeat="bundle in markerBundles" ui-map-marker="bundle.marker"
-					  ui-event="{'map-click': 'closeupItemDialog(bundle.item)'}">
+					<style>
+							#map_dropdown {
+								position: absolute;
+								display: none;
+							}
+							#map_container {
+								position: relative;
+							}
+						</style>
+					<div id="map_container">
+						<div ng-repeat="bundle in markerBundles" ui-map-marker="bundle.marker"
+						  ui-event="{'map-click': 'closeupItemDialog(bundle.item)'}">
+						</div>
+						<div id="map_canvas" class="map" ui-map="map" ui-options="mapOptions" ui-event="{'map-dragend': 'boundsChanged()', 'map-zoom_changed': 'boundsChanged()', 'map-rightclick': 'showMapMenu($event, $params)'}"></div>
+						
+						
+						<div id="map_dropdown" class="dropdown">
+						  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1" style="display:block; position:static; margin-bottom:5px;">
+						    <li role="presentation"><a role="menuitem" tabindex="-1" ng-click="createBeacon()">Add Beacon</a></li>
+						  </ul>
+						</div>
 					</div>
-					<div id="map_canvas" class="map" ui-map="map" ui-options="mapOptions" ui-event="{'map-dragend': 'boundsChanged()', 'map-zoom_changed': 'boundsChanged()'}"></div>
 	
 					<!-- 'bounds_changed center_changed click dblclick drag dragend dragstart heading_changed idle maptypeid_changed mousemove mouseout mouseover projection_changed resize rightclick tilesloaded tilt_changed zoom_changed' -->	
 				</div>
