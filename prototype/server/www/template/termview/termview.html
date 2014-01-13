@@ -58,7 +58,7 @@
 					</header>
 
 					<style>
-							#map_dropdown {
+							.context-dropdown {
 								position: absolute;
 								display: none;
 							}
@@ -68,14 +68,22 @@
 						</style>
 					<div id="map_container">
 						<div ng-repeat="bundle in markerBundles" ui-map-marker="bundle.marker"
-						  ui-event="{'map-click': 'closeupItemDialog(bundle.item)'}">
+						  ui-event="{'map-click': 'closeupItemDialog(bundle.item)', 'map-rightclick': 'showMarkerMenu($event, $params, bundle)'}">
 						</div>
 						<div id="map_canvas" class="map" ui-map="map" ui-options="mapOptions" ui-event="{'map-dragend': 'boundsChanged()', 'map-zoom_changed': 'boundsChanged()', 'map-rightclick': 'showMapMenu($event, $params)'}"></div>
 						
 						
-						<div id="map_dropdown" class="dropdown">
+						<div id="map_dropdown" class="dropdown context-dropdown">
 						  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1" style="display:block; position:static; margin-bottom:5px;">
 						    <li role="presentation"><a role="menuitem" tabindex="-1" ng-click="createBeacon()">Add Beacon</a></li>
+						  </ul>
+						</div>
+
+						<div id="marker_dropdown" class="dropdown context-dropdown">
+						  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1" style="display:block; position:static; margin-bottom:5px;">
+						    <li role="presentation"><a role="menuitem" tabindex="-1" ng-click="moveBeacon()">Move Beacon</a></li>
+						    <li role="presentation" class="divider"></li>
+						    <li role="presentation"><a role="menuitem" tabindex="-1" ng-click="deleteBeacon()">Delete Beacon</a></li>
 						  </ul>
 						</div>
 					</div>

@@ -244,38 +244,37 @@ angular.module('termview', [
 	var map_dropdown = $("body #map_dropdown");
 
 	$scope.showMapMenu = function($event, $params) {
-		console.log($event);
+		$(".context-dropdown").hide();
 		map_dropdown.css({
 			display: "block",
 			left: $event.pixel.x,
 			top: $event.pixel.y
 		});
-		$scope.LatLng = $event.latLng;
+
+		$scope.beacon = {
+			Lat: $event.latLng.b,
+			Lng: $event.latLng.d
+		};
+
 		$(document).one("click", function() {
-			$scope.LatLng = {};
+			$scope.beacon = {};
 			map_dropdown.hide();
 			return false;
 		});
+
 		return false;
-	}
+	};
 
 	$scope.createBeacon = function() {
-		console.log("termview:createBeacon()");
-		var date = new Date();
-		var item = {
-			Type: "beacon",
-			HasGeo: true,
-			Lat: $scope.LatLng.b,
-			Lng: $scope.LatLng.d,
-			StartTime: date,
-			StopTime: date
-		};
-		console.log(item);
+		$scope.beacon.Type = "beacon";
+		$scope.beacon.HasGeo = true;
+		$scope.beacon.StartTime = new Date();
+		$scope.beacon.StopTime = $scope.beacon.StartTime;
 
 		$scope.inProgress = true;
 
 		ItemCache.create(
-			item,
+			$scope.beacon,
 			function() {
 				$scope.inProgress = false;
 			},
@@ -283,7 +282,56 @@ angular.module('termview', [
 				$scope.inProgress = false;
 			}
 		);
+		$scope.beacon = {};
 	};
+
+	var marker_dropdown = $("body #marker_dropdown");
+
+	function geoToOffset(latLng) {
+		var topRight = $scope.map.getProjection().fromLatLngToPoint($scope.map.getBounds().getNorthEast()); 
+		var bottomLeft = $scope.map.getProjection().fromLatLngToPoint($scope.map.getBounds().getSouthWest()); 
+		var scale = Math.pow(2, $scope.map.getZoom()); 
+		var worldPoint = $scope.map.getProjection().fromLatLngToPoint(latLng); 
+		return new google.maps.Point((worldPoint.x - bottomLeft.x) * scale,(worldPoint.y - topRight.y) * scale); 
+	} 
+
+	$scope.showMarkerMenu = function($event, $params, bundle) {
+		$(".context-dropdown").hide();
+		console.log($event);
+		console.log(bundle);
+		var offset = geoToOffset(bundle.marker.getPosition());
+
+		marker_dropdown.css({
+			display: "block",
+			left: offset.x,
+			top: offset.y - 20
+		});
+
+		$scope.beacon = bundle.item;
+
+		$(document).one("click", function() {
+			$scope.beacon = {};
+			marker_dropdown.hide();
+			return false;
+		});
+		return false;
+	};
+
+	$scope.deleteBeacon = function() {
+		$scope.inProgress = true;
+
+		ItemCache.remove(
+			$scope.beacon,
+			function() {
+				$scope.inProgress = false;
+			},
+			function() {
+				$scope.inProgress = false;
+			}
+		);
+
+		$scope.beacon = {};
+	}
 
 })
 
