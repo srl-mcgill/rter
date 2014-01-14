@@ -198,7 +198,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 
 		overlay = new OverlayController(this); // OpenGL overlay 
 		sensorSource = SensorSource.getInstance(this);
-
+		Log.d("alok", "got sensorsource instance");
 		/* Orientation */
 		mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 		mAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -268,7 +268,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 			mWakeLock.acquire();
 		}
 
-		locationManager.requestLocationUpdates(provider, 0, 1000, sensorSource); // Register sensorSource to listen to location events
+//		locationManager.requestLocationUpdates(provider, 0, 1000, sensorSource); // Register sensorSource to listen to location events
 
 		/* Register SensorSource to listen to accelerometer and magnetic field sensors */
 		mSensorManager.registerListener(sensorSource, mAcc, SensorManager.SENSOR_DELAY_NORMAL); 
@@ -287,7 +287,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 	protected void onPause() {
 		super.onPause();
 		Log.d(TAG, "onPause");
-		locationManager.removeUpdates(sensorSource);
+//		locationManager.removeUpdates(sensorSource);
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(sensorBroadcastReceiver);	// Stop listening for broadcast from SensorSource
 		topLayout.removeAllViews(); // Removes the camera view from the layout, as it is re-added in initlayout from onResume.
 
@@ -365,9 +365,9 @@ public class StreamingActivity extends Activity implements OnClickListener {
 			for (int i = 0; i < pois.length; i++) {
 				oldpois.put(pois[i].poiId, pois[i]);
 			}
-//			
+			
 			pois = poilist.toArray(pois);
-			mGLView.updatePOIList(poilist);
+//			POI.updatePOIList(poilist);
 			for(int i = 0; i < pois.length; i++) {
 				if(oldpois.get(pois[i].poiId) == null || !pois[i].curThumbnailURL.equals(oldpois.get(pois[i].poiId).curThumbnailURL)) { // If its not an old poi, or if the thumbnail is not old
 							String url = "javascript:refreshImage("+ String.valueOf(pois[i].poiId) + ", \"" + pois[i].curThumbnailURL + "\");";
@@ -428,7 +428,6 @@ public String request(URI resource){
 		setContentView(topLayout);
 
 		mGLView = overlay.getGLView(); // OpenGLview
-
 		int display_width_d = (int) (1.0 * screenWidth);
 		int display_height_d = (int) (1.0 * screenHeight);
 		int button_width = 0;
@@ -639,6 +638,7 @@ public String request(URI resource){
 		public void onReceive(Context context, Intent intent) {
 			Location location;
 			location = sensorSource.getLocation();
+			Log.d("alok", "streaming activity location:"+location);
 			lati = (float) (location.getLatitude());
 			longi = (float) (location.getLongitude());
 		}
@@ -905,7 +905,7 @@ public String request(URI resource){
 
 		private SurfaceHolder mHolder;
 		private Camera mCamera;
-
+		
 		public CameraView(Context context, Camera camera) {
 			super(context);
 			Log.w("camera", "camera view");

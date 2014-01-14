@@ -1,14 +1,29 @@
 package ca.nehil.rter.streamingapp2.overlay;
 
+import java.util.ArrayList;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import ca.nehil.rter.streamingapp2.POI;
+import ca.nehil.rter.streamingapp2.R;
+import ca.nehil.rter.streamingapp2.SensorSource;
 import ca.nehil.rter.streamingapp2.overlay.IndicatorFrame.Colour;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.graphics.Point;
+import android.location.Location;
+import android.location.LocationManager;
 import android.opengl.GLU;
 
 import android.opengl.GLSurfaceView.Renderer;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
+import android.view.Display;
+import android.view.WindowManager;
 
 public class CameraGLRenderer implements Renderer {
 	public static enum Indicate {
@@ -20,6 +35,7 @@ public class CameraGLRenderer implements Renderer {
 	Arrow arrowLeft;
 	Arrow arrowRight;
 	IndicatorFrame indicatorFrame;
+	IndicatorFrame mFrame;
 	IndicatorFrame poiFrame;
 
 	Context context; // Application's context
@@ -41,17 +57,40 @@ public class CameraGLRenderer implements Renderer {
 
 	boolean displayLeft = false;
 	boolean displayRight = false;
+	ArrayList<POI> dummyPoiList = new ArrayList<POI>();
+	
+	float lati, longi;
+	Location userLocation;
+	LocationManager locationMan;
+	private SensorSource sensorSource;
+	Point screenSize;
 
 	// Constructor with global application context
 	public CameraGLRenderer(Context context) {
 		this.context = context;
-
+		locationMan = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+		
 		arrowLeft = new Arrow();
 		arrowRight = new Arrow();
 		indicatorFrame = new IndicatorFrame();
+		mFrame = new IndicatorFrame();
 		poiFrame = new IndicatorFrame();
 		
 		this.lock = new Object();
+		
+		POI poi1 = new POI(context , 1, 1.5, 1.5, 1.5, "", "http://rter.zapto.org:8080/v1/videos/385/thumb/000000001.jpg", "streaming-video-v1");
+		POI poi2 = new POI(context, 2, 2.5, 2.5, 2.5, "","","");
+		POI poi3 = new POI(context, 3, 3.5, 3.5, 3.5, "", "", "");
+		dummyPoiList.add(poi1);dummyPoiList.add(poi2);dummyPoiList.add(poi3);
+		
+		sensorSource = SensorSource.getInstance(context);
+		LocalBroadcastManager.getInstance(context).registerReceiver(locationBroadcastReceiver, 
+				new IntentFilter(context.getString(R.string.LocationEvent)));
+		
+		WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+		Display display = wm.getDefaultDisplay();
+		screenSize = new Point();
+//		display.getSize(screenSize);
 	}
 
 	public void indicateTurn(Indicate direction, float percentage) {
@@ -105,15 +144,17 @@ public class CameraGLRenderer implements Renderer {
 		if (height == 0)
 			height = 1; // To prevent divide by zero
 		aspect = (float) width / height;
-
+		
 		// get the total x and y at distance
 		distance = 6.0f;
 		xTotal = (float) (aspect * Math.tan(Math.toRadians(45.0 / 2))
 				* distance * 2);
 		yTotal = (float) (Math.tan(Math.toRadians(45.0 / 2)) * distance * 2);
 
+		screenSize.x = (int) xTotal;
+		screenSize.y = (int) yTotal;
 		indicatorFrame.resize(xTotal, yTotal, distance);
-
+		mFrame.resize(xTotal/2, yTotal/2, height);
 		// Set the viewport (display area) to cover the entire window
 		gl.glViewport(0, 0, width, height);
 
@@ -169,7 +210,16 @@ public class CameraGLRenderer implements Renderer {
 
 			//poi render here. POI class maintains list of POIS, iterates through them and renders each.
 	        //poi class will need sensor data.
-			
+			for(int i= 0; i < dummyPoiList.size(); i++){
+				if(userLocation == null){
+					userLocation = locationMan.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+				}
+				dummyPoiList.get(i).render(gl, userLocation, screenSize);
+//				gl.glLoadIdentity();
+//				gl.glTranslatef(3f, 2.5f, -distance);
+//		        arrowRight.draw(gl);
+			}
+
 			// RIGHT ARROW
 			if(displayRight) {
 				gl.glLoadIdentity(); // Reset model-view matrix ( NEW )
@@ -177,7 +227,6 @@ public class CameraGLRenderer implements Renderer {
 				gl.glScalef(arrowScale_tmp, arrowScale_tmp, 1.0f);
 				arrowRight.draw(gl); // Draw triangle ( NEW )
 			}
-
 			// LEFT
 			if(displayLeft) {
 				gl.glLoadIdentity();
@@ -188,5 +237,17 @@ public class CameraGLRenderer implements Renderer {
 			}
 		}
 	}
+	
+	/* Receiver for Location broadcast events  */
+	private BroadcastReceiver locationBroadcastReceiver = new BroadcastReceiver() {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			userLocation = sensorSource.getLocation();
+			Log.d("alok", "renderer received broadcast: "+userLocation);
+			lati = (float) (userLocation.getLatitude());
+			longi = (float) (userLocation.getLongitude());
+		}
+	};
 
 }

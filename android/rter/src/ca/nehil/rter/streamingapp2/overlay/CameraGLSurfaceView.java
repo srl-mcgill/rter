@@ -15,7 +15,6 @@ import android.support.v4.content.LocalBroadcastManager;
 
 public class CameraGLSurfaceView extends GLSurfaceView {
 	protected CameraGLRenderer camGLRenderer;
-	protected ArrayList<POI> oldPoi;
 	
 	public CameraGLSurfaceView(Context context) {
 		super(context);
@@ -34,25 +33,10 @@ public class CameraGLSurfaceView extends GLSurfaceView {
            
         // Render the view only when there is a change in the drawing data
         this.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-        LocalBroadcastManager.getInstance(this.getContext()).registerReceiver(sensorBroadcastReceiver,
-    			new IntentFilter(getResources().getString(R.string.SensorEvent)));
 	}
 
-	/* Receiver for Sensor broadcast events */ 
-	BroadcastReceiver sensorBroadcastReceiver = new BroadcastReceiver() {
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			// Extract data included in the Intent
-		}
-	};
-    
 	public CameraGLRenderer getGLRenderer() {
 		return this.camGLRenderer;
 	}
 	
-	public void updatePOIList(ArrayList<POI> newPoi){
-		oldPoi = new ArrayList<POI>(newPoi);
-	}
-
 }
