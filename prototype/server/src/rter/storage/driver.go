@@ -427,6 +427,12 @@ func SelectQuery(slicePtr interface{}, query string, args ...interface{}) error 
 				return err
 			}
 
+			err = SelectWhere(&item.Geolocations, ", Items WHERE Geolocations.ItemID=Items.ID AND Items.ID=?", item.ID)
+
+			if err != ErrZeroAffected && err != nil {
+				return err
+			}
+
 			*s = append(*s, item)
 		case *[]*data.ItemComment:
 			comment := new(data.ItemComment)
