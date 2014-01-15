@@ -38,9 +38,8 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	private float[] outRotationMatrix = new float[16];
 	private float[] mValues = new float[3];
 	private static LocationManager locationManager;
-	private static String provider;
 	private static SensorManager mSensorManager;
-
+	private static String provider;
 	//SensorFusion Variables
 	// angular speeds from gyro
 	private float[] gyro = new float[3];
@@ -81,18 +80,23 @@ public class SensorSource implements SensorEventListener, LocationListener{
 
 	// The following members are only for displaying the sensor output.
 	public Handler mHandler;
-	private RadioGroup mRadioGroup;
 	private TextView mAzimuthView;
 	private TextView mPitchView;
 	private TextView mRollView;
-	private int radioSelection;
 	DecimalFormat d = new DecimalFormat("#.##");
+	private static Sensor mAcc;
+	private static Sensor mMag;
+	
+	public SensorSource(){
+		
+	}
 
 	public static SensorSource getInstance(Context context){
 		locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-		mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
 		Criteria criteria = new Criteria();
+		criteria.setAccuracy(Criteria.ACCURACY_FINE);
 		provider = locationManager.getBestProvider(criteria, true);
+
 
 		// wait for one second until gyroscope and magnetometer/accelerometer
 		// data is initialised then scedule the complementary filter task
@@ -101,7 +105,6 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		{
 			singleton = new SensorSource();
 		}
-		locationManager.requestLocationUpdates(provider, 0, 1000, singleton); //register singleton with locationmanager
 		
 		fuseTimer.scheduleAtFixedRate(new calculateFusedOrientationTask(),
 				1000, TIME_CONSTANT);
@@ -118,7 +121,25 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		//			e.printStackTrace();
 		//		}
 		//		locationManager.setTestProviderLocation(provider, loc);
-		Log.d("alok", "registered for location updates");
+		locationManager.requestLocationUpdates(provider, 1000, 0, singleton); //register singleton with locationmanager
+		
+		mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+		mAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		mMag = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+		mSensorManager.registerListener(singleton, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
+		mSensorManager.registerListener(singleton, mMag, SensorManager.SENSOR_DELAY_NORMAL);
+//		Location loc = new Location(provider);
+//		loc.setLatitude(15.0000);
+//		loc.setLongitude(15.0000);
+//		loc.setAccuracy(3.0f);
+//		loc.setTime(System.currentTimeMillis());
+//		try {
+//			Location.class.getMethod("makeComplete").invoke(loc);
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		locationManager.setTestProviderLocation(provider, loc);
 		mcontext = context;
 		return singleton;
 	}
@@ -158,7 +179,13 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	}
 
 	public Location getLocation(){
-		return this.location;
+		if(this.location != null){
+			Log.d("Location: ", this.location+"");
+			return this.location;
+		}else{
+			Log.d("LocationDebug", "Provider: "+provider+" location: "+locationManager.getLastKnownLocation(provider));
+			return locationManager.getLastKnownLocation(provider);
+		}
 	}
 
 	public float getCurrentOrientation(){
@@ -199,7 +226,7 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		currentOrientation = orientationFilter.getValue() + this.getDeclination();
 		deviceOrientation = (float) Math.toDegrees(orientationValues[2]);
 
-		Log.d("alok", "sensor source sensors broadcast"+currentOrientation+" "+deviceOrientation);
+		Log.d("SensorDebug", "sensor source sensors broadcast"+currentOrientation+" "+deviceOrientation);
 		sendSensorBroadcast(); 
 	}
 
@@ -210,7 +237,7 @@ public class SensorSource implements SensorEventListener, LocationListener{
 				(float)location.getLatitude(), (float)location.getLongitude(), (float)location.getAltitude(), System.currentTimeMillis());
 		declination = gmf.getDeclination();
 		this.location = location;
-		Log.d("alok", "sensor source location broadcast: "+location);
+		Log.d("LocationDebug", "location broadcast: "+location);
 		sendLocationBroadcast();
 	}
 
@@ -218,6 +245,7 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	private void sendSensorBroadcast() {
 		Intent sensorIntent = new Intent (mcontext.getString(R.string.SensorEvent));
 		LocalBroadcastManager.getInstance(mcontext).sendBroadcast(sensorIntent);
+		Log.d("SensorDebug", "Sensor broadcast sent.");
 	} 
 
 	/* Send broadcast for location changed */

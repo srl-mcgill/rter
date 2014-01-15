@@ -60,7 +60,7 @@ public class OverlayController {
 			
 			deviceOrientation = sensorSource.getDeviceOrientation();
 			currentOrientation = sensorSource.getCurrentOrientation();
-			
+			Log.d("SensorDebug", "Received sensor broadcast. Freeroam:"+ freeRoam);
 			if (freeRoam) {
 				mGLRenderer.indicateTurn(Indicate.FREE, 0.0f);
 				return;
