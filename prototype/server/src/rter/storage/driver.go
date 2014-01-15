@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"rter/data"
 	"time"
+	"fmt"
 )
 
 func Insert(val interface{}) error {
@@ -144,6 +145,13 @@ func Insert(val interface{}) error {
 		v.UpdateTime = now
 	case *data.Geolocation:
 		v.Timestamp = &now
+		item := new(data.Item)
+		item.ID = v.ItemID
+		err = Select(item)
+		if err != nil {
+			return err
+		}
+		listeners.NotifyUpdate(item)
 	case *data.Term:
 		v.UpdateTime = now
 
@@ -174,6 +182,8 @@ func Update(val interface{}) error {
 		res sql.Result
 		err error
 	)
+
+	fmt.Printf("%v\n", val)
 
 	now := time.Now().UTC()
 
