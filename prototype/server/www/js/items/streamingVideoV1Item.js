@@ -4,32 +4,6 @@ angular.module('streamingVideoV1Item', [
 	'disp-map'                 //maps
 ])
 
-.filter('convertDatesToTimes', function() {
-	return function(input) {
-		for(var i = 0; i < input.length; i++) {
-			if(input[i].Timestamp !== undefined) {
-				input[i].Timestamp = (new Date(input[i].Timestamp)).getTime();
-			}
-		}
-		return input;
-	};
-})
-
-.filter('findCurrentGeolocation', function() {
-	// TODO: make non-naive - we can assume playback is constant in most cases
-	return function(geolocations, currentTime) {
-		for(var i = 0; i < geolocations.length; i++) {
-			if(geolocations[i].Timestamp !== undefined) {
-				//console.log(currentTime + " < " + geolocations[i].Timestamp + " = " + (currentTime < geolocations[i].Timestamp ? "true" : "false"));
-				if(currentTime < geolocations[i].Timestamp) {
-					return i == 0 ? geolocations[i] : geolocations[i - 1];
-				}
-			}
-		}
-		return geolocations[geolocations.length - 1]
-	}
-})
-
 .controller('TileStreamingVideoV1ItemCtrl', function($scope) {
 	$scope.video = {};
 
@@ -82,27 +56,26 @@ angular.module('streamingVideoV1Item', [
 	};
 
 	$scope.$on("playing", function(e, video) {
-		console.log("playing video " + $scope.item.ID);
+		//console.log("playing video " + $scope.item.ID);
 		// This is a hacky workaround to fix a bug in tsunami that sometimes resizes the video
 		var videoNode = $(".closeup-streamingVideoV1-item video").first();
-		console.log(videoNode);
 		if(videoNode.attr("width") != $scope.videoConfig.width) {
-			console.log("fixed dimensions for video " + $scope.item.ID);
+			//console.log("fixed dimensions for video " + $scope.item.ID);
 			videoNode.attr("width", $scope.videoConfig.width)
 			videoNode.attr("height", $scope.videoConfig.height)
 		}
 	});
 
 	$scope.$on("paused", function(e, video) {
-		console.log("paused video " + $scope.item.ID);
+		//console.log("paused video " + $scope.item.ID);
 	});
 
 	$scope.$on("live", function(e, video) {
-		console.log("live video " + $scope.item.ID);
+		//console.log("live video " + $scope.item.ID);
 	});
 
 	$scope.$on("play", function(e, video) {
-		console.log("play video " + $scope.item.ID);
+		//console.log("play video " + $scope.item.ID);
 	});
 
 	$scope.toggleLive = function() {
@@ -111,28 +84,6 @@ angular.module('streamingVideoV1Item', [
 			$scope.item.Liveseek = true;
 		}, 100);
 	};
-
-	/*
-	console.log("CloseupStreamingVideoV1ItemCtrl");
-
-	$("body").on("play", ".closeup-streamingVideoV1-item video", function(e) {
-		console.log("Event: play", e);
-	});
-
-	$scope.$watch('item', function() {
-		console.log("CloseupStreamingVideoV1ItemCtrl: item changed", $scope.item);
-
-	});
-
-	var videoNode = $(".closeup-streamingVideoV1-item video").first();
-	videoNode.on("play", function(e) {
-		console.log("Event: play", e);
-	});
-	
-	$(".closeup-streamingVideoV1-item").delegate("video", "play", function(e) {
-		console.log("Event: play", e);
-	});
-	*/
 })
 
 .directive('closeupStreamingVideoV1Item', function() {
@@ -178,20 +129,47 @@ angular.module('streamingVideoV1Item', [
 	};
 })
 
-.directive('reportPosition', function($filter) {
-	return function($scope, $element) {
-		var startTime = new Date($scope.item.StartTime);
-		// TODO: make filter non-destructive
-		$filter('convertDatesToTimes')($scope.item.Geolocations);
-		$scope.item.Geolocations = $filter('orderBy')($scope.item.Geolocations, 'Timestamp');
-		$element.bind("timeupdate", function(event) {
-			var currentTime = startTime.getTime() + $element[0].currentTime * 1000;
-			var currentGeolocation = $filter('findCurrentGeolocation')($scope.item.Geolocations, currentTime);
-			$scope.$apply(function() {
-				$scope.item.Lat = currentGeolocation.Lat;
-				$scope.item.Lng = currentGeolocation.Lng;
-				$scope.item.Heading = currentGeolocation.Heading;
+.directive('updateGeolocation', function($filter) {
+	return {
+		restrict: "A",
+		link: function(scope, element, attr) {
+			var startTime = new Date(scope.item.StartTime).getTime();
+			var currentGeolocationIndex = 0;
+			element.bind("timeupdate", function(event) {
+				var currentDateTime = new Date(startTime + element[0].currentTime * 1000);
+				//console.log(scope.item.Geolocations);
+				currentGeolocationIndex = $filter('findGeolocationIndexAtTime')(scope.item.Geolocations, currentDateTime, currentGeolocationIndex);
+				scope.$apply(function() {
+					scope.item.Lat = scope.item.Geolocations[currentGeolocationIndex].Lat;
+					scope.item.Lng = scope.item.Geolocations[currentGeolocationIndex].Lng;
+					scope.item.Heading = scope.item.Geolocations[currentGeolocationIndex].Heading;
+				});
 			});
-		});
+		}
 	};
+})
+
+.filter('findGeolocationIndexAtTime', function() {
+	return function(geolocations, currentDateTime, lastIndex) {
+		// Run basic checks for standard playback case
+		if(currentDateTime > geolocations[lastIndex].Timestamp
+			|| lastIndex == 0) {
+			if(lastIndex + 1 >= geolocations.length  // at last geolocation
+				|| currentDateTime < geolocations[lastIndex + 1].Timestamp) {  // geolocation not changed
+				return lastIndex;
+			}
+			else if(lastIndex + 2 >= geolocations.length  // next geolocation is last
+				|| currentDateTime < geolocations[lastIndex + 2].Timestamp) {  // geolocation index incremented
+				return lastIndex + 1;
+			}
+		}
+
+		// Do linear search for index (not optimized!)
+		for(var i = 0; i < geolocations.length; i++) {
+			if(currentDateTime < geolocations[i].Timestamp) {
+				return i == 0 ? i : i - 1;
+			}
+		}
+		return geolocations.length - 1;
+	}
 });
