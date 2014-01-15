@@ -33,19 +33,26 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	private float[] aValues = new float[3];
 	private float[] mValues = new float[3];
 	private static LocationManager locationManager;
+	private static SensorManager mSensorManager;
 	private static String provider;
+	private static Sensor mAcc;
+	private static Sensor mMag;
 	
 	public static SensorSource getInstance(Context context){
 		locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		Criteria criteria = new Criteria();
+		criteria.setAccuracy(Criteria.ACCURACY_FINE);
 		provider = locationManager.getBestProvider(criteria, true);
-//		provider = "flp";
 		if (singleton == null)
 		{
 			singleton = new SensorSource();
 		}
-		locationManager.requestLocationUpdates(provider, 0, 1000, singleton); //register singleton with locationmanager
-//		LocationClient loca;
+		locationManager.requestLocationUpdates(provider, 1000, 0, singleton); //register singleton with locationmanager
+		
+		mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+		mAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		mMag = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+		mSensorManager.registerListener(singleton, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
 //		Location loc = new Location(provider);
 //		loc.setLatitude(15.0000);
 //		loc.setLongitude(15.0000);
@@ -58,13 +65,16 @@ public class SensorSource implements SensorEventListener, LocationListener{
 //			e.printStackTrace();
 //		}
 //		locationManager.setTestProviderLocation(provider, loc);
-		Log.d("alok", "registered for location updates");
 		mcontext = context;
 		return singleton;
 	}
 
 	public Location getLocation(){
-		return this.location;
+		if(this.location != null){
+			return this.location;
+		}else{
+			return locationManager.getLastKnownLocation(provider);
+		}
 	}
 	
 	public float getCurrentOrientation(){
@@ -115,7 +125,7 @@ public class SensorSource implements SensorEventListener, LocationListener{
 				(float)location.getLatitude(), (float)location.getLongitude(), (float)location.getAltitude(), System.currentTimeMillis());
 		declination = gmf.getDeclination();
 		this.location = location;
-		Log.d("alok", "sensor source location broadcast: "+location);
+		Log.d("LocationDebug", "location broadcast: "+location);
 		sendLocationBroadcast();
 	}
 

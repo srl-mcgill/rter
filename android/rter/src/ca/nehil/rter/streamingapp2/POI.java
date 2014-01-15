@@ -115,7 +115,7 @@ public class POI {
 			bearingToPoi = this.relativeBearingTo(userLocation);
 			distance = this.distanceTo(userLocation);
 		}else{
-			Log.d("alok", "userLocation was null- POI");
+//			Log.d("alok", "userLocation was null- POI");
 			bearingToPoi = 0f;
 			distance = 3.5f;
 		}
@@ -127,7 +127,7 @@ public class POI {
 		}
 		double height = screenHeight*0.3;
 		
-		Log.d("alok", "rec coords: "+ left+" "+screenHeight+" "+width+" "+height);
+//		Log.d("alok", "rec coords: "+ left+" "+screenHeight+" "+width+" "+height);
 
 		gl.glLoadIdentity();
 		gl.glTranslatef((float)left, (float)height, -6.0f);

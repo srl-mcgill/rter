@@ -212,7 +212,7 @@ public class CameraGLRenderer implements Renderer {
 	        //poi class will need sensor data.
 			for(int i= 0; i < dummyPoiList.size(); i++){
 				if(userLocation == null){
-					userLocation = locationMan.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+//					userLocation = locationMan.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 				}
 				dummyPoiList.get(i).render(gl, userLocation, screenSize);
 //				gl.glLoadIdentity();
@@ -244,7 +244,7 @@ public class CameraGLRenderer implements Renderer {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			userLocation = sensorSource.getLocation();
-			Log.d("alok", "renderer received broadcast: "+userLocation);
+			Log.d("LocationDebug", "renderer received broadcast: "+userLocation);
 			lati = (float) (userLocation.getLatitude());
 			longi = (float) (userLocation.getLongitude());
 		}

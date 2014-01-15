@@ -118,7 +118,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 	private int numberOfCameras;
 	private float lati;
 	private float longi;
-	private LocationManager locationManager;
+//	private LocationManager locationManager;
 	private String provider;
 	private POI[] pois;
 	private String[] colors = new String[] {"#ff0000", "#0000ff", "#ffff00", "#00ffff", "#ffffff"};
@@ -215,29 +215,18 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		}
 		Log.d("PREFS", "Prefs ==> rter_Creds:" + setRterCredentials);
 
-		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-		if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-			Log.e(TAG, "GPS not available");
-		}
-
-
-		/* Get last known location if possible and initialize location variables */
-		Criteria criteria = new Criteria();
-		provider = locationManager.getBestProvider(criteria, true);
-		if (provider != null) {
-			Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-
-			if (location != null) {
-				lati = (float) (location.getLatitude());
-				longi = (float) (location.getLongitude());
-			} else {
-				Toast toast = Toast.makeText(this, "Location not available",
-						Toast.LENGTH_LONG);
-				toast.setGravity(Gravity.TOP, 0, 0);
-				toast.show();
-				lati = (float) (45.505958f); // Hard coded location for testing purposes.
-				longi = (float) (-73.576254f);
-			}
+		Location location = sensorSource.getLocation();
+		
+		if (location != null) {
+			lati = (float) (location.getLatitude());
+			longi = (float) (location.getLongitude());
+		} else {
+			Toast toast = Toast.makeText(this, "Location not available",
+					Toast.LENGTH_LONG);
+			toast.setGravity(Gravity.TOP, 0, 0);
+			toast.show();
+			lati = (float) (45.505958f); // Hard coded location for testing purposes.
+			longi = (float) (-73.576254f);
 		}
 
 		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
@@ -268,11 +257,11 @@ public class StreamingActivity extends Activity implements OnClickListener {
 			mWakeLock.acquire();
 		}
 
-//		locationManager.requestLocationUpdates(provider, 0, 1000, sensorSource); // Register sensorSource to listen to location events
+//		locationManager.requestLocationUpdates(provider, 1000, 0, sensorSource); // Register sensorSource to listen to location events
 
 		/* Register SensorSource to listen to accelerometer and magnetic field sensors */
-		mSensorManager.registerListener(sensorSource, mAcc, SensorManager.SENSOR_DELAY_NORMAL); 
-		mSensorManager.registerListener(sensorSource, mMag, SensorManager.SENSOR_DELAY_NORMAL);
+//		mSensorManager.registerListener(sensorSource, mAcc, SensorManager.SENSOR_DELAY_NORMAL); 
+//		mSensorManager.registerListener(sensorSource, mMag, SensorManager.SENSOR_DELAY_NORMAL);
 
 		/* Registering a listener for the SensorEvent and LocationEvent broadcasts sent by SensorSource */
 		LocalBroadcastManager.getInstance(this).registerReceiver(sensorBroadcastReceiver,
