@@ -342,7 +342,7 @@ func Select(val interface{}) error {
 			err = nil
 		}
 
-		err = SelectWhere(&v.Geolocations, ", Items WHERE Geolocations.ItemID = Items.ID AND Items.ID=?", v.ID)
+		err = SelectWhere(&v.Geolocations, ", Items WHERE Geolocations.ItemID = Items.ID AND Items.ID=? ORDER BY Geolocations.Timestamp ASC", v.ID)
 
 		if err == ErrZeroAffected {
 			err = nil
@@ -427,7 +427,7 @@ func SelectQuery(slicePtr interface{}, query string, args ...interface{}) error 
 				return err
 			}
 
-			err = SelectWhere(&item.Geolocations, ", Items WHERE Geolocations.ItemID=Items.ID AND Items.ID=?", item.ID)
+			err = SelectWhere(&item.Geolocations, ", Items WHERE Geolocations.ItemID=Items.ID AND Items.ID=? ORDER BY Geolocations.Timestamp ASC", item.ID)
 
 			if err != ErrZeroAffected && err != nil {
 				return err
