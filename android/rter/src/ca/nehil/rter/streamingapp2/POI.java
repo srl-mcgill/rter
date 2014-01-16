@@ -23,6 +23,7 @@ public class POI {
 //	double camAngle = 54.8; //glass
 	double camAngle = 30; //nexus 5
 	IndicatorFrame mFrame;
+	boolean showLog;
 	
 	public POI(Context context, int _poiId, double _remoteBearing, double _lat, double _lng, String _color, String _curThumbnailURL, String _type) {
 		poiId = _poiId;
@@ -34,19 +35,9 @@ public class POI {
 		curThumbnailURL = _curThumbnailURL;
 		type = _type;
 		mFrame = new IndicatorFrame();
-		LocalBroadcastManager.getInstance(context).registerReceiver(sensorBroadcastReceiver,
-    			new IntentFilter(context.getString(R.string.SensorEvent)));
 		sensorSource = SensorSource.getInstance(context);
+		showLog = true;
 	}
-	
-	/* Receiver for Sensor broadcast events */ 
-	BroadcastReceiver sensorBroadcastReceiver = new BroadcastReceiver() {
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			
-		}
-	};
 	
 	public void updatePOIList(ArrayList<POI> newPoi){
 		poiList = new ArrayList<POI>(newPoi);
@@ -62,7 +53,6 @@ public class POI {
 		return fromLoc.bearingTo(loc);
 	}
 	public float relativeBearingTo(Location fromLoc) { //bearing relative to user position
-		Log.d("alok", "in relative bearing" + fromLoc+" current or: "+ sensorSource.getCurrentOrientation());
 		return minDegreeDelta(fromLoc.bearingTo(loc), sensorSource.getCurrentOrientation());
 	}
 	public float distanceTo(Location fromLoc) {
@@ -106,26 +96,33 @@ public class POI {
 	 */
 	public void render(GL10 gl, Location userLocation, Point screenSize){
 		gl.glLoadIdentity();
-		int screenWidth = screenSize.x;
-		int screenHeight = screenSize.y;
+		int screenWidth = screenSize.y;
+		int screenHeight = screenSize.x;
 		float bearingToPoi;
 		float distance;
+		userLocation = null;
 		if(userLocation != null){
-			Log.d("LocationDebug", "POI received userLocation");
+			if(showLog){
+				Log.d("LocationDebug", "POI received userLocation");
+				showLog = false;
+			}
 			bearingToPoi = this.relativeBearingTo(userLocation);
 			distance = this.distanceTo(userLocation);
 		}else{
-//			Log.d("alok", "userLocation was null- POI");
+			if(showLog){
+				Log.d("alok", "userLocation was null- POI");
+				showLog = false;
+			}
 			bearingToPoi = 0f;
-			distance = 3.5f;
+			distance = 1.0f;
 		}
 		double remoteBearing = this.getRemoteBearing();
-		double left = (screenWidth/2)+(bearingToPoi/camAngle)*screenWidth;
+		double left = (screenWidth/2)+((bearingToPoi/camAngle)*screenWidth);
 		float width = (screenWidth - (distance*screenWidth));
 		if(width < 30){
 			width = 30;
 		}
-		double height = screenHeight*0.3;
+		double height = screenHeight/2;
 		
 //		Log.d("alok", "rec coords: "+ left+" "+screenHeight+" "+width+" "+height);
 

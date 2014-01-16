@@ -2,6 +2,7 @@ package ca.nehil.rter.streamingapp2;
 
 import java.lang.reflect.InvocationTargetException;
 import java.text.DecimalFormat;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -87,27 +88,44 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	private static Sensor mAcc;
 	private static Sensor mMag;
 	
-	public SensorSource(){
-		
-	}
-
-	public static SensorSource getInstance(Context context){
+	private Intent locationIntent;
+	private Intent sensorIntent;
+	private LocalBroadcastManager localBroadcastManager;
+	private MovingAverageCompass orientationFilter;
+	
+	public SensorSource(Context context){
 		locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		Criteria criteria = new Criteria();
 		criteria.setAccuracy(Criteria.ACCURACY_FINE);
 		provider = locationManager.getBestProvider(criteria, true);
+		
+		locationManager.requestLocationUpdates(provider, 1000, 0, this); //register singleton with locationmanager
+		Log.d("LocationDebug", "Registered listener");
+		mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+		mAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		mMag = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+		mSensorManager.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
+		mSensorManager.registerListener(this, mMag, SensorManager.SENSOR_DELAY_NORMAL);
+		
+		locationIntent = new Intent (context.getString(R.string.LocationEvent));
+		sensorIntent = new Intent (context.getString(R.string.SensorEvent));
+		localBroadcastManager = LocalBroadcastManager.getInstance(context);
+		
+		orientationFilter = new MovingAverageCompass(30);
+	}
 
-
+	public static SensorSource getInstance(Context context){
+		
 		// wait for one second until gyroscope and magnetometer/accelerometer
 		// data is initialised then scedule the complementary filter task
 
 		if (singleton == null)
 		{
-			singleton = new SensorSource();
+			singleton = new SensorSource(context);
 		}
 		
-		fuseTimer.scheduleAtFixedRate(new calculateFusedOrientationTask(),
-				1000, TIME_CONSTANT);
+//		fuseTimer.scheduleAtFixedRate(new calculateFusedOrientationTask(),
+//				1000, TIME_CONSTANT);
 		//		LocationClient loca;
 		//		Location loc = new Location(provider);
 		//		loc.setLatitude(15.0000);
@@ -121,13 +139,7 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		//			e.printStackTrace();
 		//		}
 		//		locationManager.setTestProviderLocation(provider, loc);
-		locationManager.requestLocationUpdates(provider, 1000, 0, singleton); //register singleton with locationmanager
 		
-		mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-		mAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-		mMag = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-		mSensorManager.registerListener(singleton, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
-		mSensorManager.registerListener(singleton, mMag, SensorManager.SENSOR_DELAY_NORMAL);
 //		Location loc = new Location(provider);
 //		loc.setLatitude(15.0000);
 //		loc.setLongitude(15.0000);
@@ -221,18 +233,15 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_Z,
 				SensorManager.AXIS_MINUS_X, outRotationMatrix);
 		SensorManager.getOrientation(outRotationMatrix, orientationValues);
-		MovingAverageCompass orientationFilter = new MovingAverageCompass(30);
 		orientationFilter.pushValue((float) Math.toDegrees(orientationValues[0]));
 		currentOrientation = orientationFilter.getValue() + this.getDeclination();
 		deviceOrientation = (float) Math.toDegrees(orientationValues[2]);
 
-		Log.d("SensorDebug", "sensor source sensors broadcast"+currentOrientation+" "+deviceOrientation);
 		sendSensorBroadcast(); 
 	}
 
 	@Override
 	public void onLocationChanged(Location location) {
-
 		GeomagneticField gmf = new GeomagneticField(
 				(float)location.getLatitude(), (float)location.getLongitude(), (float)location.getAltitude(), System.currentTimeMillis());
 		declination = gmf.getDeclination();
@@ -243,15 +252,12 @@ public class SensorSource implements SensorEventListener, LocationListener{
 
 	/* Send broadcast for sensor changed */ 
 	private void sendSensorBroadcast() {
-		Intent sensorIntent = new Intent (mcontext.getString(R.string.SensorEvent));
-		LocalBroadcastManager.getInstance(mcontext).sendBroadcast(sensorIntent);
-		Log.d("SensorDebug", "Sensor broadcast sent.");
+		localBroadcastManager.sendBroadcast(sensorIntent);
 	} 
 
 	/* Send broadcast for location changed */
 	private void sendLocationBroadcast(){
-		Intent locationIntent = new Intent (mcontext.getString(R.string.LocationEvent));
-		LocalBroadcastManager.getInstance(mcontext).sendBroadcast(locationIntent);
+		localBroadcastManager.sendBroadcast(locationIntent);
 	}
 
 	@Override

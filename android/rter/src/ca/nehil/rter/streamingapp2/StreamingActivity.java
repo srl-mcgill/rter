@@ -33,6 +33,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.Timer;
@@ -58,6 +59,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.hardware.Camera;
 import android.hardware.Camera.PreviewCallback;
+import android.hardware.Camera.Size;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.location.Criteria;
@@ -118,7 +120,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 	private int numberOfCameras;
 	private float lati;
 	private float longi;
-//	private LocationManager locationManager;
+	//	private LocationManager locationManager;
 	private String provider;
 	private POI[] pois;
 	private String[] colors = new String[] {"#ff0000", "#0000ff", "#ffff00", "#00ffff", "#ffffff"};
@@ -147,6 +149,9 @@ public class StreamingActivity extends Activity implements OnClickListener {
 	private final int live_height = 480;
 	private int screenWidth, screenHeight;
 	/* mikes variables ends */
+
+	ArrayList<POI> poilist;
+	Map<Integer, POI> oldpois;
 
 	private static final String TAG = "Streaming Activity";
 	private FrameLayout topLayout;
@@ -177,6 +182,9 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		setContentView(R.layout.activity_streaming);
 
 		pois = new POI[0];
+		poilist = new ArrayList<POI>();
+		oldpois = new HashMap<Integer, POI>();
+
 		storedValues = getSharedPreferences("CommonValues", MODE_PRIVATE);
 		server_url = storedValues.getString("server_url", "not-set");
 		/* Orientation listenever implementation to orient video */
@@ -199,7 +207,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		overlay = new OverlayController(this); // OpenGL overlay 
 		sensorSource = SensorSource.getInstance(this);
 		Log.d("alok", "got sensorsource instance");
-		
+
 		//TODO: Remove sensormanager
 		/* Orientation */
 		mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -218,7 +226,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		Log.d("PREFS", "Prefs ==> rter_Creds:" + setRterCredentials);
 
 		Location location = sensorSource.getLocation();
-		
+
 		if (location != null) {
 			lati = (float) (location.getLatitude());
 			longi = (float) (location.getLongitude());
@@ -259,11 +267,11 @@ public class StreamingActivity extends Activity implements OnClickListener {
 			mWakeLock.acquire();
 		}
 
-//		locationManager.requestLocationUpdates(provider, 1000, 0, sensorSource); // Register sensorSource to listen to location events
+		//		locationManager.requestLocationUpdates(provider, 1000, 0, sensorSource); // Register sensorSource to listen to location events
 
 		/* Register SensorSource to listen to accelerometer and magnetic field sensors */
-//		mSensorManager.registerListener(sensorSource, mAcc, SensorManager.SENSOR_DELAY_NORMAL); 
-//		mSensorManager.registerListener(sensorSource, mMag, SensorManager.SENSOR_DELAY_NORMAL);
+		//		mSensorManager.registerListener(sensorSource, mAcc, SensorManager.SENSOR_DELAY_NORMAL); 
+		//		mSensorManager.registerListener(sensorSource, mMag, SensorManager.SENSOR_DELAY_NORMAL);
 
 		/* Registering a listener for the SensorEvent and LocationEvent broadcasts sent by SensorSource */
 		LocalBroadcastManager.getInstance(this).registerReceiver(sensorBroadcastReceiver,
@@ -278,8 +286,9 @@ public class StreamingActivity extends Activity implements OnClickListener {
 	protected void onPause() {
 		super.onPause();
 		Log.d(TAG, "onPause");
-//		locationManager.removeUpdates(sensorSource);
-		LocalBroadcastManager.getInstance(this).unregisterReceiver(sensorBroadcastReceiver);	// Stop listening for broadcast from SensorSource
+		//		locationManager.removeUpdates(sensorSource);
+		LocalBroadcastManager.getInstance(this).unregisterReceiver(sensorBroadcastReceiver);
+		LocalBroadcastManager.getInstance(this).unregisterReceiver(locationBroadcastReceiver); 
 		topLayout.removeAllViews(); // Removes the camera view from the layout, as it is re-added in initlayout from onResume.
 
 		if (putHeadingfeed != null) {
@@ -340,7 +349,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		JSONTokener tokener = new JSONTokener(response);
 		try {
 			JSONArray items = new JSONArray(tokener);
-			ArrayList<POI> poilist = new ArrayList<POI>();
+			poilist.clear();
 			for(int i = 0; i < items.length(); i++) {
 				JSONObject item = items.getJSONObject(i);
 				try {
@@ -351,60 +360,59 @@ public class StreamingActivity extends Activity implements OnClickListener {
 					//skip item
 				}
 			}
-			//POI[] oldpois = new POI[pois.length];
-			Map<Integer, POI> oldpois = new HashMap<Integer, POI>();
+			oldpois.clear();
 			for (int i = 0; i < pois.length; i++) {
 				oldpois.put(pois[i].poiId, pois[i]);
 			}
-			
+
 			pois = poilist.toArray(pois);
-//			POI.updatePOIList(poilist);
+			//			POI.updatePOIList(poilist);
 			for(int i = 0; i < pois.length; i++) {
 				if(oldpois.get(pois[i].poiId) == null || !pois[i].curThumbnailURL.equals(oldpois.get(pois[i].poiId).curThumbnailURL)) { // If its not an old poi, or if the thumbnail is not old
-							String url = "javascript:refreshImage("+ String.valueOf(pois[i].poiId) + ", \"" + pois[i].curThumbnailURL + "\");";
-//							mWebView.loadUrl(url);
+					String url = "javascript:refreshImage("+ String.valueOf(pois[i].poiId) + ", \"" + pois[i].curThumbnailURL + "\");";
+					//							mWebView.loadUrl(url);
 				}
 			}
 		} catch(JSONException e) {
 			e.printStackTrace();
 		}
 	}
-	
-	public String request(String resource){
-        try {
-                return request(new URI(server_url + "/1.0/" + resource));
-        } catch (URISyntaxException e) {
-                e.printStackTrace();
-        }
-        return "";
-}
 
-public String request(URI resource){
-        Log.d("MSC", "Request: " + resource.toString());
-        HttpClient httpclient = new DefaultHttpClient();
-    HttpResponse response;
-        try {
-                HttpGet request = new HttpGet(resource);
-                response = httpclient.execute(request);
-                StatusLine statusLine = response.getStatusLine();
-            if(statusLine.getStatusCode() == HttpStatus.SC_OK){
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                response.getEntity().writeTo(out);
-                out.close();
-                String responseString = out.toString();
-                return responseString;
-            } else{
-                //Closes the connection.
-                response.getEntity().getContent().close();
-                throw new IOException(statusLine.getReasonPhrase());
-            }
-        } catch (ClientProtocolException e) {
-                e.printStackTrace();
-        } catch (IOException e) {
-                e.printStackTrace();
-        }
-        return "";
-}
+	public String request(String resource){
+		try {
+			return request(new URI(server_url + "/1.0/" + resource));
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
+
+	public String request(URI resource){
+		Log.d("MSC", "Request: " + resource.toString());
+		HttpClient httpclient = new DefaultHttpClient();
+		HttpResponse response;
+		try {
+			HttpGet request = new HttpGet(resource);
+			response = httpclient.execute(request);
+			StatusLine statusLine = response.getStatusLine();
+			if(statusLine.getStatusCode() == HttpStatus.SC_OK){
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				response.getEntity().writeTo(out);
+				out.close();
+				String responseString = out.toString();
+				return responseString;
+			} else{
+				//Closes the connection.
+				response.getEntity().getContent().close();
+				throw new IOException(statusLine.getReasonPhrase());
+			}
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
 
 	private void initLayout() {
 		/* get size of screen */
@@ -896,7 +904,7 @@ public String request(URI resource){
 
 		private SurfaceHolder mHolder;
 		private Camera mCamera;
-		
+
 		public CameraView(Context context, Camera camera) {
 			super(context);
 			Log.w("camera", "camera view");
@@ -909,13 +917,13 @@ public String request(URI resource){
 
 		@Override
 		public void surfaceCreated(SurfaceHolder holder) {
-			try {
-				stopPreview();
-				mCamera.setPreviewDisplay(holder);
-			} catch (IOException exception) {
-				mCamera.release();
-				mCamera = null;
-			}
+			//			try {
+			//				stopPreview();
+			//				mCamera.setPreviewDisplay(holder);
+			//			} catch (IOException exception) {
+			//				mCamera.release();
+			//				mCamera = null;
+			//			}
 		}
 
 		public void surfaceChanged(SurfaceHolder holder, int format, int width,
@@ -924,6 +932,10 @@ public String request(URI resource){
 					+ " imageHeight: " + imageHeight + " frameRate: "
 					+ frameRate);
 			Camera.Parameters camParams = mCamera.getParameters();
+			List<Size> list = camParams.getSupportedPreviewSizes();
+			for(int j = 0; j < list.size(); j++){
+				Log.d("CameraDebug", "heigh "+j+": "+list.get(j).height+" width: "+list.get(j).width);
+			}
 			camParams.setPreviewSize(imageWidth, imageHeight);
 
 			Log.v(LOG_TAG,
@@ -931,6 +943,13 @@ public String request(URI resource){
 
 			camParams.setPreviewFrameRate(frameRate);
 			mCamera.setParameters(camParams);
+			try {
+				stopPreview();
+				mCamera.setPreviewDisplay(holder);
+			} catch (IOException exception) {
+				mCamera.release();
+				mCamera = null;
+			}
 			startPreview();
 		}
 
@@ -1164,7 +1183,7 @@ public String request(URI resource){
 		}
 		return yuv;
 	}
-	
+
 }
 
 
