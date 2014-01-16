@@ -137,7 +137,6 @@ angular.module('streamingVideoV1Item', [
 			var currentGeolocationIndex = 0;
 			element.bind("timeupdate", function(event) {
 				var currentDateTime = new Date(startTime + element[0].currentTime * 1000);
-				//console.log(scope.item.Geolocations);
 				currentGeolocationIndex = $filter('findGeolocationIndexAtTime')(scope.item.Geolocations, currentDateTime, currentGeolocationIndex);
 				scope.$apply(function() {
 					scope.item.Lat = scope.item.Geolocations[currentGeolocationIndex].Lat;
@@ -164,7 +163,7 @@ angular.module('streamingVideoV1Item', [
 			}
 		}
 
-		// Do linear search for index (not optimized!)
+		// Otherwise do linear search for index (not optimized!)
 		for(var i = 0; i < geolocations.length; i++) {
 			if(currentDateTime < geolocations[i].Timestamp) {
 				return i == 0 ? i : i - 1;
