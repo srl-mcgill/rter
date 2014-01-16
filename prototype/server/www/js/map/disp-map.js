@@ -19,7 +19,6 @@ angular.module('disp-map', [
 
 	$scope.setCenter = function(latLng) {
 		if($scope.item.Lat === undefined || $scope.item.Lng === undefined) return;
-		console.log($scope.item.Lat, $scope.item.Lng, $scope.item.Heading, $scope.enableFov, $scope.enableDir, $scope.enableMarker);
 		$timeout(function() {
 			$scope.map.setCenter(latLng);
 		}, 0);
