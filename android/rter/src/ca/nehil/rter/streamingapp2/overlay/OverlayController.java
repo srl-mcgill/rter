@@ -43,9 +43,7 @@ public class OverlayController {
 		
 		sensorSource = SensorSource.getInstance(context);
 		
-		/* Register for location and sensor broadcasts */
-		LocalBroadcastManager.getInstance(context).registerReceiver(locationBroadcastReceiver, 
-				new IntentFilter(context.getString(R.string.LocationEvent)));
+		/* Register for sensor broadcasts */
 		LocalBroadcastManager.getInstance(context).registerReceiver(sensorBroadcastReceiver, 
 				new IntentFilter(context.getString(R.string.SensorEvent)));
 	}
@@ -60,6 +58,7 @@ public class OverlayController {
 			
 			deviceOrientation = sensorSource.getDeviceOrientation();
 			currentOrientation = sensorSource.getCurrentOrientation();
+//			currentOrientation = (float)sensorSource.getHeading();
 			if (freeRoam) {
 				mGLRenderer.indicateTurn(Indicate.FREE, 0.0f);
 				return;
@@ -103,17 +102,6 @@ public class OverlayController {
 		}
 	};
 	
-	/*
-	 * Receiver for location broadcasts
-	 */
-	private BroadcastReceiver locationBroadcastReceiver = new BroadcastReceiver() {
-		
-		@Override
-		public void onReceive(Context context, Intent intent) {
-
-			declination = sensorSource.getDeclination();
-		}
-	};
 
 	/**
 	 * @return the camera GLView

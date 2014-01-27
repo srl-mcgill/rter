@@ -1,8 +1,6 @@
 package ca.nehil.rter.streamingapp2;
 
-import java.lang.reflect.InvocationTargetException;
 import java.text.DecimalFormat;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -20,12 +18,8 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.SystemClock;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.widget.RadioGroup;
-import android.widget.TextView;
 
 public class SensorSource implements SensorEventListener, LocationListener{
 
@@ -33,99 +27,89 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	static Context mcontext; 	// Need context for broadcast manager
 	private Location location;
 	private float declination = 0;
-	private float currentOrientation, deviceOrientation;
-	private float[] rotationMatrix = new float[16];
+	private float currentOrientation; 
+	private float deviceOrientation;
+	private float[] rotationMatrix = new float[16]; //Change to 9 if using sensorSource, 16 otherwise
 	private float[] orientationValues = new float[3];
 	private float[] outRotationMatrix = new float[16];
-	private float[] mValues = new float[3];
 	private static LocationManager locationManager;
 	private static SensorManager mSensorManager;
 	private static String provider;
 	//SensorFusion Variables
 	// angular speeds from gyro
-	private float[] gyro = new float[3];
+    private float[] gyro = new float[3];
+ 
+    // rotation matrix from gyro data
+    private static float[] gyroMatrix = new float[9];
+ 
+    // orientation angles from gyro matrix
+    private static float[] gyroOrientation = new float[3];
+ 
+    // magnetic field vector
+    private float[] magnet = new float[3];
+ 
+    // accelerometer vector
+    private float[] accel = new float[3];
+ 
+    // orientation angles from accel and magnet
+    private static float[] accMagOrientation = new float[3];
+ 
+    // final orientation angles from sensor fusion
+    private static float[] fusedOrientation = new float[3];
+ 
+    // accelerometer and magnetometer based rotation matrix
+    private float[] rotationMatrixFusion = new float[9];
+    
+    // accelerometer and magnetometer based initial rotation matrix
+    private float[] initMatrix = new float[9];
+    private float[] initMatrixTranspose = new float[9];
 
-	// rotation matrix from gyro data
-	private static float[] gyroMatrix = new float[9];
+    public static final float EPSILON = 0.000000001f;
+    private static final float NS2S = 1.0f / 1000000000.0f;
+    private float timestamp;
+    private boolean initState = true;
 
-	// orientation angles from gyro matrix
-	private static float[] gyroOrientation = new float[3];
+    public static final int TIME_CONSTANT = 20;
+    public static final float FILTER_COEFFICIENT = 0.98f;
+    private Timer fuseTimer = new Timer();
 
-	// magnetic field vector
-	private float[] magnet = new float[3];
+    DecimalFormat d = new DecimalFormat("#.##");
 
-	// accelerometer vector
-	private float[] accel = new float[3];
-
-	// orientation angles from accel and magnet
-	private static float[] accMagOrientation = new float[3];
-
-	// final orientation angles from sensor fusion
-	private static float[] fusedOrientation = new float[3];
-
-	// accelerometer and magnetometer based rotation matrix
-	private float[] rotationMatrixFusion = new float[9];
-
-	// accelerometer and magnetometer based initial rotation matrix
-	private float[] initMatrix = new float[9];
-	private float[] initMatrixTranspose = new float[9];
-
-	public static final float EPSILON = 0.000000001f;
-	private static final float NS2S = 1.0f / 1000000000.0f;
-	private float timestamp;
-	private boolean initState = true;
-
-	public static final int TIME_CONSTANT = 30;
-	public static final float FILTER_COEFFICIENT = 0.98f;
-	private static Timer fuseTimer = new Timer();
-
-	// The following members are only for displaying the sensor output.
-	public Handler mHandler;
-	private TextView mAzimuthView;
-	private TextView mPitchView;
-	private TextView mRollView;
-	DecimalFormat d = new DecimalFormat("#.##");
-	private static Sensor mAcc;
-	private static Sensor mMag;
-	
-	private Intent locationIntent;
-	private Intent sensorIntent;
-	private LocalBroadcastManager localBroadcastManager;
-	private MovingAverageCompass orientationFilter;
+    private Intent locationIntent;
+    private Intent sensorIntent;
+    private LocalBroadcastManager localBroadcastManager;
+    private MovingAverageCompass orientationFilter;
 	
 	public SensorSource(Context context){
 		locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		Criteria criteria = new Criteria();
 		criteria.setAccuracy(Criteria.ACCURACY_FINE);
-		provider = locationManager.getBestProvider(criteria, true);
+		orientationFilter = new MovingAverageCompass(30);
 		
-		locationManager.requestLocationUpdates(provider, 1000, 0, this); //register singleton with locationmanager
-		Log.d("LocationDebug", "Registered listener");
+		provider = locationManager.getBestProvider(criteria, true);
 		mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-		mAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-		mMag = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-		mSensorManager.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
-		mSensorManager.registerListener(this, mMag, SensorManager.SENSOR_DELAY_NORMAL);
 		
 		locationIntent = new Intent (context.getString(R.string.LocationEvent));
 		sensorIntent = new Intent (context.getString(R.string.SensorEvent));
 		localBroadcastManager = LocalBroadcastManager.getInstance(context);
 		
-		orientationFilter = new MovingAverageCompass(30);
+		//SensorFusion initiliazations
+		initValues();
+		initListeners();
+		// wait for one second until gyroscope and magnetometer/accelerometer
+		// data is initialised then scedule the complementary filter task
+		fuseTimer.scheduleAtFixedRate(new calculateFusedOrientationTask(),
+				500, TIME_CONSTANT);
 	}
 
 	public static SensorSource getInstance(Context context){
 		
-		// wait for one second until gyroscope and magnetometer/accelerometer
-		// data is initialised then scedule the complementary filter task
-
 		if (singleton == null)
 		{
 			singleton = new SensorSource(context);
 		}
 		
-//		fuseTimer.scheduleAtFixedRate(new calculateFusedOrientationTask(),
-//				1000, TIME_CONSTANT);
+		locationManager.requestLocationUpdates(provider, 1000, 0, singleton); //register singleton with locationmanager
 		//		LocationClient loca;
 		//		Location loc = new Location(provider);
 		//		loc.setLatitude(15.0000);
@@ -156,7 +140,7 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		return singleton;
 	}
 
-	public void init() {
+	public void initValues() {
 		gyroOrientation[0] = 0.0f;
 		gyroOrientation[1] = 0.0f;
 		gyroOrientation[2] = 0.0f;
@@ -166,12 +150,11 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		gyroMatrix[3] = 0.0f; gyroMatrix[4] = 1.0f; gyroMatrix[5] = 0.0f;
 		gyroMatrix[6] = 0.0f; gyroMatrix[7] = 0.0f; gyroMatrix[8] = 1.0f;
 
-		// initialise initMatrix with identity matrix
-		initMatrix[0] = 1.0f; initMatrix[1] = 0.0f; initMatrix[2] = 0.0f;
-		initMatrix[3] = 0.0f; initMatrix[4] = 1.0f; initMatrix[5] = 0.0f;
-		initMatrix[6] = 0.0f; initMatrix[7] = 0.0f; initMatrix[8] = 1.0f;
-
-		initListeners();
+	}
+	
+	public void resetHeading(){
+		initState = true;
+		initValues();
 	}
 
 	public void initListeners(){
@@ -189,13 +172,18 @@ public class SensorSource implements SensorEventListener, LocationListener{
 				mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
 				SensorManager.SENSOR_DELAY_FASTEST);
 	}
+	
+	public void stopListeners(){
+		mSensorManager.unregisterListener(this);
+		initState = true;
+		initValues();
+	}
 
 	public Location getLocation(){
 		if(this.location != null){
 			Log.d("Location: ", this.location+"");
 			return this.location;
 		}else{
-			Log.d("LocationDebug", "Provider: "+provider+" location: "+locationManager.getLastKnownLocation(provider));
 			return locationManager.getLastKnownLocation(provider);
 		}
 	}
@@ -211,30 +199,55 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	public float getDeclination(){
 		return declination;
 	}
+	
+	public double getHeading(){
+		return getGyroHeading();
+	}
+	
+	public double getGyroHeading(){
+		return gyroOrientation[0] * 180/Math.PI;
+	}
+	
+	public double getFusedHeading(){
+		return fusedOrientation[0] * 180/Math.PI;
+	}
+	
+	public double getMagHeading(){
+		return accMagOrientation[0] * 180/Math.PI;
+	}
 
 
 	@Override
 	public void onSensorChanged(SensorEvent sensorEvent) {
 		switch (sensorEvent.sensor.getType()) {
 		case Sensor.TYPE_ACCELEROMETER:
+			// copy new acceleroeter data into accel array and calculate orientation
 			System.arraycopy(sensorEvent.values, 0, accel, 0, 3);
             calculateAccMagOrientation();
 			break;
+			
 		case Sensor.TYPE_MAGNETIC_FIELD:
-			System.arraycopy(sensorEvent.values, 0, mValues, 0, 3);
+			// copy new magnetometer data into magnet array
+			System.arraycopy(sensorEvent.values, 0, magnet, 0, 3);
+			break;
+			
+		case Sensor.TYPE_GYROSCOPE:
+			//process gyro data
+			gyroFunction(sensorEvent);
 			break;
 		}
 
-		if (accel == null || mValues == null)
+		if (accel == null || magnet == null)
 			return;
 
-		if (!SensorManager.getRotationMatrix(rotationMatrix, null, accel, mValues))
+		if (!SensorManager.getRotationMatrix(rotationMatrix, null, accel, magnet))
 			return;
 		SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_Z,
 				SensorManager.AXIS_MINUS_X, outRotationMatrix);
 		SensorManager.getOrientation(outRotationMatrix, orientationValues);
 		orientationFilter.pushValue((float) Math.toDegrees(orientationValues[0]));
-		currentOrientation = orientationFilter.getValue() + this.getDeclination();
+//		currentOrientation = orientationFilter.getValue() + this.getDeclination();
+		currentOrientation = (float) (Math.toDegrees(orientationValues[0]) + this.getDeclination());
 		deviceOrientation = (float) Math.toDegrees(orientationValues[2]);
 
 		sendSensorBroadcast(); 
@@ -283,23 +296,85 @@ public class SensorSource implements SensorEventListener, LocationListener{
 
 	}
 	
+	// This function performs the integration of the gyroscope data.
+	// It writes the gyroscope based orientation into gyroOrientation.
+	public void gyroFunction(SensorEvent event) {
+		// copy the new gyro values into the gyro array
+		// convert the raw gyro data into a rotation vector
+		float[] deltaVector = new float[4];
+		if(timestamp != 0) {
+			final float dT = (event.timestamp - timestamp) * NS2S;
+			System.arraycopy(event.values, 0, gyro, 0, 3);
+			getRotationVectorFromGyro(gyro, deltaVector, dT / 2.0f);
+		}
+
+		// measurement done, save current time for next interval
+		timestamp = event.timestamp;
+
+		// convert rotation vector into rotation matrix
+		float[] deltaMatrix = new float[9];
+		SensorManager.getRotationMatrixFromVector(deltaMatrix, deltaVector);
+
+		// apply the new rotation interval on the gyroscope based rotation matrix
+		gyroMatrix = matrixMultiplication(gyroMatrix, deltaMatrix);
+
+		// get the gyroscope based orientation from the rotation matrix
+		SensorManager.getOrientation(gyroMatrix, gyroOrientation);
+	}
+	
+	
+	// This function is borrowed from the Android reference
+	// at http://developer.android.com/reference/android/hardware/SensorEvent.html#values
+	// It calculates a rotation vector from the gyroscope angular speed values.
+	private void getRotationVectorFromGyro(float[] gyroValues,
+			float[] deltaRotationVector,
+			float timeFactor)
+	{
+		float[] normValues = new float[3];
+
+		// Calculate the angular speed of the sample
+		float omegaMagnitude =
+				(float)Math.sqrt(gyroValues[0] * gyroValues[0] +
+						gyroValues[1] * gyroValues[1] +
+						gyroValues[2] * gyroValues[2]);
+
+		// Normalize the rotation vector if it's big enough to get the axis
+		if(omegaMagnitude > EPSILON) {
+			normValues[0] = gyroValues[0] / omegaMagnitude;
+			normValues[1] = gyroValues[1] / omegaMagnitude;
+			normValues[2] = gyroValues[2] / omegaMagnitude;
+		}
+
+		// Integrate around this axis with the angular speed by the timestep
+		// in order to get a delta rotation from this sample over the timestep
+		// We will convert this axis-angle representation of the delta rotation
+		// into a quaternion before turning it into the rotation matrix.
+		float thetaOverTwo = omegaMagnitude * timeFactor;
+		float sinThetaOverTwo = (float)Math.sin(thetaOverTwo);
+		float cosThetaOverTwo = (float)Math.cos(thetaOverTwo);
+		deltaRotationVector[0] = sinThetaOverTwo * normValues[0];
+		deltaRotationVector[1] = sinThetaOverTwo * normValues[1];
+		deltaRotationVector[2] = sinThetaOverTwo * normValues[2];
+		deltaRotationVector[3] = cosThetaOverTwo;
+	}
+	
 	// calculates orientation angles from accelerometer and magnetometer output
 	public void calculateAccMagOrientation() {
-		if(SensorManager.getRotationMatrix(rotationMatrix, null, accel, magnet)) {
+		if(SensorManager.getRotationMatrix(rotationMatrixFusion, null, accel, magnet)) {
 			if(initState) {
-				SensorManager.getOrientation(rotationMatrix, accMagOrientation);
+				SensorManager.getOrientation(rotationMatrixFusion, accMagOrientation);
 				initMatrix = getRotationMatrixFromOrientation(accMagOrientation);
 				initMatrixTranspose = transposeMatrix(initMatrix);
 				//Log.d("MSC", matrixToString(initMatrix));
 				//Log.d("MSC", "init: " + orientationToString(accMagOrientation));
-				float[] test = new float[3];
-				SensorManager.getOrientation(initMatrix, test);
+//				float[] test = new float[3];
+//				SensorManager.getOrientation(initMatrix, test);
 				//gyroMatrix = matrixMultiplication(gyroMatrix, initMatrix);
 				initState = false;
 				initGyroListener();
 			}
 			else {
-				SensorManager.getOrientation(matrixMultiplication(rotationMatrix, initMatrixTranspose), accMagOrientation);
+				SensorManager.getOrientation(matrixMultiplication(rotationMatrixFusion, initMatrixTranspose), accMagOrientation);
 			}
 		}
 	}

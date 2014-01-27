@@ -6,7 +6,11 @@ import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
 
-public class IndicatorFrame {
+// Important: This is the same code for indicator frame that has been re-purposed to draw a triangle.
+// I believe there are better ways to draw a triangular frame, but this was the quickest way to achieve the same shape.
+// Should be considered for improvement.
+
+public class Triangle {
 	private FloatBuffer vertexBuffer; // Buffer for vertex-array
 	
 	public static enum Colour {
@@ -36,10 +40,10 @@ public class IndicatorFrame {
 			1.0f, 0.9f, 0.0f // 3. right-top-left
 	};
 	
-	private Colour currentColour = Colour.BLUE;
+	private Colour currentColour = Colour.GREEN;
 
 	// Constructor - Setup the vertex buffer
-	public IndicatorFrame() {		
+	public Triangle() {		
 		// Setup vertex array buffer. Vertices in float. A float has 4 bytes
 		ByteBuffer vbb = ByteBuffer.allocateDirect(vertices.length * 4);
 		vbb.order(ByteOrder.nativeOrder()); // Use native byte order
@@ -64,27 +68,30 @@ public class IndicatorFrame {
 		
 		
 		float[] vertices_tmp =
-			{ // Vertices for the arrow
+			{ // Vertices for the triangle
 				// TOP
-				left, top-frameWidth, distance, // 0. left-bottom-top
-				right, top-frameWidth, distance, // 1. right-bottom-top
-				left, top, distance, // 2. left-top-top
-				right, top, distance, // 3. right-top-top
+//				left, top-frameWidth, distance, // 0. left-bottom-top
+//				right, top-frameWidth, distance, // 1. right-bottom-top
+//				left, top, distance, // 2. left-top-top
+//				right, top, distance, // 3. right-top-top
+				
 				// LEFT
 				left, bottom+frameWidth, distance, // 0. left-bottom-left
 				left+frameWidth, bottom+frameWidth, distance, // 1. right-bottom-left
-				left, top-frameWidth, distance, // 2. left-top-left
-				left+frameWidth, top-frameWidth, distance, // 3. right-top-left
+				0, top-frameWidth, distance, // 2. left-top-left
+				0+frameWidth, top-frameWidth, distance, // 3. right-top-left
+				
 				// BOTTOM
 				left, bottom, distance, // 0. left-bottom-bottom
 				right, bottom, distance, // 1. right-bottom-bottom
 				left, bottom+frameWidth, distance, // 2. left-top-bottom
 				right, bottom+frameWidth, distance, // 3. right-top-bottom
+				
 				// RIGHT
 				right-frameWidth, bottom+frameWidth, distance, // 0. left-bottom-left
 				right, bottom+frameWidth, distance, // 1. right-bottom-left
-				right-frameWidth, top-frameWidth, distance, // 2. left-top-left
-				right, top-frameWidth, distance // 3. right-top-left
+				0-frameWidth, top-frameWidth, distance, // 2. left-top-left
+				0, top-frameWidth, distance // 3. right-top-left
 		};
 		
 		vertices = vertices_tmp;

@@ -50,4 +50,7 @@
     <!-- SensorSource broadcast event names -->
 	<string name="SensorEvent">SensorEvent</string>
 	<string name="LocationEvent">LocationEvent</string>
+	
+	<!-- Google Glass voice trigger "OK -->
+	<string name="glass_voice_trigger">I\'m a Fireman</string>
 </resources>

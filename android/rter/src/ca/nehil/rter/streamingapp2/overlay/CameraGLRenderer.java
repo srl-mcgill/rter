@@ -78,10 +78,10 @@ public class CameraGLRenderer implements Renderer {
 		
 		this.lock = new Object();
 		
-		POI poi1 = new POI(context , 1, 1.5, 1.5, 1.5, "", "http://rter.zapto.org:8080/v1/videos/385/thumb/000000001.jpg", "streaming-video-v1");
-		POI poi2 = new POI(context, 2, 2.5, 2.5, 2.5, "","","");
-		POI poi3 = new POI(context, 3, 3.5, 3.5, 3.5, "", "", "");
-		dummyPoiList.add(poi1);dummyPoiList.add(poi2);dummyPoiList.add(poi3);
+		POI poi1 = new POI(context , 1, 1.5, 45.5064, -73.5762, "", "http://rter.zapto.org:8080/v1/videos/385/thumb/000000001.jpg", "type1");
+		POI poi2 = new POI(context, 2, 2.5, 45.5060, -73.5777, "","","type2");
+//		POI poi3 = new POI(context, 3, 3.5, 45.5047, -73.5762, "", "", "");
+		dummyPoiList.add(poi1);dummyPoiList.add(poi2);
 		
 		sensorSource = SensorSource.getInstance(context);
 		LocalBroadcastManager.getInstance(context).registerReceiver(locationBroadcastReceiver, 
@@ -206,15 +206,15 @@ public class CameraGLRenderer implements Renderer {
 		synchronized(lock) {
 			// FRAME
 			gl.glLoadIdentity();
-			indicatorFrame.draw(gl);
 
 			//poi render here. POI class maintains list of POIS, iterates through them and renders each.
 	        //poi class will need sensor data.
 			for(int i= 0; i < dummyPoiList.size(); i++){
 				if(userLocation == null){
-					userLocation = sensorSource.getLocation();
+//					userLocation = sensorSource.getLocation();
 				}
 				dummyPoiList.get(i).render(gl, userLocation, screenSize);
+				Log.d("LocationDebug", "Sending location to POI: " + userLocation);
 //				gl.glLoadIdentity();
 //				gl.glTranslatef(3f, 2.5f, -distance);
 //		        arrowRight.draw(gl);

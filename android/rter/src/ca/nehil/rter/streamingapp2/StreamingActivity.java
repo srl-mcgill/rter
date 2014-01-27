@@ -147,6 +147,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 	private IplImage yuvIplimage = null;
 	private final int live_width = 640;
 	private final int live_height = 480;
+	//TODO: Change resolution to fit entire width of Glass
 	private int screenWidth, screenHeight;
 	/* mikes variables ends */
 
@@ -255,6 +256,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 				updateItems();
 			}
 		}, 1*1000, 1*1000);
+		
 	}
 
 	@Override
@@ -280,6 +282,8 @@ public class StreamingActivity extends Activity implements OnClickListener {
 				new IntentFilter(getString(R.string.LocationEvent)));
 
 		initLayout();
+		sensorSource.resetHeading(); // Initialize and start the sensors
+		sensorSource.initListeners();
 	}
 
 	@Override
@@ -289,6 +293,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		//		locationManager.removeUpdates(sensorSource);
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(sensorBroadcastReceiver);
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(locationBroadcastReceiver); 
+		sensorSource.stopListeners();
 		topLayout.removeAllViews(); // Removes the camera view from the layout, as it is re-added in initlayout from onResume.
 
 		if (putHeadingfeed != null) {
@@ -314,6 +319,8 @@ public class StreamingActivity extends Activity implements OnClickListener {
 			mWakeLock.release();
 			mWakeLock = null;
 		}
+		
+		sensorSource.stopListeners();
 	}
 
 	@Override
@@ -330,6 +337,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 			mCamera = null;
 
 		}
+		sensorSource.stopListeners();
 	}
 
 	@Override
@@ -583,6 +591,10 @@ public class StreamingActivity extends Activity implements OnClickListener {
 			}
 			finish();
 			return true;
+		} else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER){
+			// Glass touchpad tapped. Drop a beacon.
+		} else if (keyCode == KeyEvent.KEYCODE_CAMERA){
+			// Camera button clicked.
 		}
 
 		return super.onKeyDown(keyCode, event);
@@ -764,6 +776,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 				float lat = lati;
 				float lng = longi;
 				float heading = sensorSource.getCurrentOrientation();
+//				float heading = (float)sensorSource.getHeading();
 				jsonObjSend.put("Lat", lat);
 				jsonObjSend.put("Lng", lng);
 				jsonObjSend.put("Heading", heading);
@@ -933,8 +946,9 @@ public class StreamingActivity extends Activity implements OnClickListener {
 					+ frameRate);
 			Camera.Parameters camParams = mCamera.getParameters();
 			List<Size> list = camParams.getSupportedPreviewSizes();
+			Log.d("CameraDebug", "cam angle: "+camParams.getHorizontalViewAngle());
 			for(int j = 0; j < list.size(); j++){
-				Log.d("CameraDebug", "heigh "+j+": "+list.get(j).height+" width: "+list.get(j).width);
+				Log.d("CameraDebug", "height "+j+": "+list.get(j).height+" width: "+list.get(j).width);
 			}
 			camParams.setPreviewSize(imageWidth, imageHeight);
 
