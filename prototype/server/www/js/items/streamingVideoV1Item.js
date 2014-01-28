@@ -59,9 +59,8 @@ angular.module('streamingVideoV1Item', [
 		//console.log("playing video " + $scope.item.ID);
 		// This is a hacky workaround to fix a bug in tsunami that sometimes resizes the video
 		var videoNode = $(".closeup-streamingVideoV1-item video").first();
-		console.log(videoNode);
 		if(videoNode.attr("width") != $scope.videoConfig.width) {
-			console.log("fixed dimensions for video " + $scope.item.ID);
+			//console.log("fixed dimensions for video " + $scope.item.ID);
 			videoNode.attr("width", $scope.videoConfig.width)
 			videoNode.attr("height", $scope.videoConfig.height)
 		}
@@ -73,6 +72,10 @@ angular.module('streamingVideoV1Item', [
 
 	$scope.$on("live", function(e, video) {
 		//console.log("live video " + $scope.item.ID);
+	});
+
+	$scope.$on("play", function(e, video) {
+		//console.log("play video " + $scope.item.ID);
 	});
 
 	$scope.toggleLive = function() {
@@ -124,4 +127,48 @@ angular.module('streamingVideoV1Item', [
 			});
 		}
 	};
+})
+
+.directive('updateGeolocation', function($filter) {
+	return {
+		restrict: "A",
+		link: function(scope, element, attr) {
+			var startTime = new Date(scope.item.StartTime).getTime();
+			var currentGeolocationIndex = 0;
+			element.bind("timeupdate", function(event) {
+				var currentDateTime = new Date(startTime + element[0].currentTime * 1000);
+				currentGeolocationIndex = $filter('findGeolocationIndexAtTime')(scope.item.Geolocations, currentDateTime, currentGeolocationIndex);
+				scope.$apply(function() {
+					scope.item.Lat = scope.item.Geolocations[currentGeolocationIndex].Lat;
+					scope.item.Lng = scope.item.Geolocations[currentGeolocationIndex].Lng;
+					scope.item.Heading = scope.item.Geolocations[currentGeolocationIndex].Heading;
+				});
+			});
+		}
+	};
+})
+
+.filter('findGeolocationIndexAtTime', function() {
+	return function(geolocations, currentDateTime, lastIndex) {
+		// Run basic checks for standard playback case
+		if(currentDateTime > geolocations[lastIndex].Timestamp
+			|| lastIndex == 0) {
+			if(lastIndex + 1 >= geolocations.length  // at last geolocation
+				|| currentDateTime < geolocations[lastIndex + 1].Timestamp) {  // geolocation not changed
+				return lastIndex;
+			}
+			else if(lastIndex + 2 >= geolocations.length  // next geolocation is last
+				|| currentDateTime < geolocations[lastIndex + 2].Timestamp) {  // geolocation index incremented
+				return lastIndex + 1;
+			}
+		}
+
+		// Otherwise do linear search for index (not optimized!)
+		for(var i = 0; i < geolocations.length; i++) {
+			if(currentDateTime < geolocations[i].Timestamp) {
+				return i == 0 ? i : i - 1;
+			}
+		}
+		return geolocations.length - 1;
+	}
 });

@@ -3,7 +3,6 @@
 *.a
 *.log
 nohup.out
-.classpath
 *.class
 
 # Folders

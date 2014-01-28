@@ -18,6 +18,7 @@ angular.module('disp-map', [
 	});
 
 	$scope.setCenter = function(latLng) {
+		if($scope.item.Lat === undefined || $scope.item.Lng === undefined) return;
 		$timeout(function() {
 			$scope.map.setCenter(latLng);
 		}, 0);
@@ -45,6 +46,8 @@ angular.module('disp-map', [
 			$scope.item.Heading = 0;
 		}
 		if($scope.item.Lat === undefined || $scope.item.Lng === undefined) return;
+
+		//console.log($scope.item.Lat, $scope.item.Lng, $scope.item.Heading, $scope.enableFov, $scope.enableDir, $scope.enableMarker);
 
 		var vshape = {
 			path: google.maps.SymbolPath.BACKWARD_OPEN_ARROW,

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"rter/data"
 	"time"
+	"fmt"
 )
 
 func Insert(val interface{}) error {
@@ -144,6 +145,13 @@ func Insert(val interface{}) error {
 		v.UpdateTime = now
 	case *data.Geolocation:
 		v.Timestamp = &now
+		item := new(data.Item)
+		item.ID = v.ItemID
+		err = Select(item)
+		if err != nil {
+			return err
+		}
+		listeners.NotifyUpdate(item)
 	case *data.Term:
 		v.UpdateTime = now
 
@@ -174,6 +182,8 @@ func Update(val interface{}) error {
 		res sql.Result
 		err error
 	)
+
+	fmt.Printf("%v\n", val)
 
 	now := time.Now().UTC()
 
@@ -341,6 +351,12 @@ func Select(val interface{}) error {
 		if err == ErrZeroAffected {
 			err = nil
 		}
+
+		err = SelectWhere(&v.Geolocations, ", Items WHERE Geolocations.ItemID = Items.ID AND Items.ID=? ORDER BY Geolocations.Timestamp ASC", v.ID)
+
+		if err == ErrZeroAffected {
+			err = nil
+		}
 	case *data.ItemComment:
 		err = scanItemComment(v, rows)
 	case *data.Term:
@@ -416,6 +432,12 @@ func SelectQuery(slicePtr interface{}, query string, args ...interface{}) error 
 			}
 
 			err = SelectWhere(&item.Terms, ", TermRelationships, Items WHERE Terms.Term=TermRelationships.Term AND TermRelationships.ItemID=Items.ID AND Items.ID=?", item.ID)
+
+			if err != ErrZeroAffected && err != nil {
+				return err
+			}
+
+			err = SelectWhere(&item.Geolocations, ", Items WHERE Geolocations.ItemID=Items.ID AND Items.ID=? ORDER BY Geolocations.Timestamp ASC", item.ID)
 
 			if err != ErrZeroAffected && err != nil {
 				return err

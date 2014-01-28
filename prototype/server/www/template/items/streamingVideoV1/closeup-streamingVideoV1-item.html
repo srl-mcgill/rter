@@ -2,7 +2,7 @@
 	<div ng-switch-when="true">
 		<div class="span6 left" ng-switch on="item.Live">
 			<div ng-switch-when="true">
-				<video hls-video live="{{item.Liveseek}}" controls ng-poster="{{item.ContentURI}}/poster/000000001.jpg" x-webkit-airplay="allow" width="480" height="360" autoplay="{{item.Liveseek}}">
+				<video hls-video live="{{item.Liveseek}}" controls update-geolocation ng-poster="{{item.ContentURI}}/poster/000000001.jpg" x-webkit-airplay="allow" width="480" height="360" autoplay="{{item.Liveseek}}">
 					<source ng-src="{{item.ContentURI}}/index.m3u8" type="application/x-mpegURL;profile='video/mp2t'">
 					<source ng-src="{{item.ContentURI}}/webm_index.m3u8" type="application/x-mpegURL;profile='video/webm; codecs=vp8'">
 					<source ng-src="{{item.ContentURI}}/video.webm" type="video/webm; codecs=vp8,vorbis">
@@ -10,7 +10,7 @@
 				<button style="float: right;" class="btn btn-primary" ng-click="toggleLive($event)">Seek to Live</button>
 			</div>
 			<div ng-switch-default>
-				<video live controls ng-poster="{{item.ContentURI}}/poster/000000001.jpg" x-webkit-airplay="allow" width="480" height="360">
+				<video live controls update-geolocation ng-poster="{{item.ContentURI}}/poster/000000001.jpg" x-webkit-airplay="allow" width="480" height="360">
 					<source ng-src="{{item.ContentURI}}/index.m3u8" type="application/x-mpegURL;profile='video/mp2t'">
 					<source ng-src="{{item.ContentURI}}/webm_index.m3u8" type="application/x-mpegURL;profile='video/webm; codecs=vp8'">
 					<source ng-src="{{item.ContentURI}}/video.webm" type="video/webm; codecs=vp8,vorbis">

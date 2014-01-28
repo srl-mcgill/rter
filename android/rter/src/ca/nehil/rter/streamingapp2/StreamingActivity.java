@@ -788,12 +788,12 @@ public class StreamingActivity extends Activity implements OnClickListener {
 				int TIMEOUT_MILLISEC = 1000; // = 1 seconds
 				Log.i(TAG, "postHeading()Put Request being sent" + server_url
 						+ "/1.0/items/" + recievedItemID);
-				URL url = new URL(server_url + "/1.0/items/" + recievedItemID);
+				URL url = new URL(server_url + "/1.0/items/" + recievedItemID + "/geolocations");
 				HttpURLConnection httpcon = (HttpURLConnection) url
 						.openConnection();
 				httpcon.setRequestProperty("Cookie", setRterCredentials);
 				httpcon.setRequestProperty("Content-Type", "application/json");
-				httpcon.setRequestMethod("PUT");
+				httpcon.setRequestMethod("POST");
 				httpcon.setConnectTimeout(TIMEOUT_MILLISEC);
 				httpcon.setReadTimeout(TIMEOUT_MILLISEC);
 				httpcon.connect();
