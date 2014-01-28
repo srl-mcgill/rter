@@ -6,6 +6,7 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import ca.nehil.rter.streamingapp2.POI;
+import ca.nehil.rter.streamingapp2.POIList;
 import ca.nehil.rter.streamingapp2.R;
 import ca.nehil.rter.streamingapp2.SensorSource;
 import ca.nehil.rter.streamingapp2.overlay.IndicatorFrame.Colour;
@@ -57,7 +58,8 @@ public class CameraGLRenderer implements Renderer {
 
 	boolean displayLeft = false;
 	boolean displayRight = false;
-	ArrayList<POI> dummyPoiList = new ArrayList<POI>();
+	
+	private POIList POIs;
 	
 	float lati, longi;
 	Location userLocation;
@@ -66,8 +68,9 @@ public class CameraGLRenderer implements Renderer {
 	Point screenSize;
 
 	// Constructor with global application context
-	public CameraGLRenderer(Context context) {
+	public CameraGLRenderer(Context context, POIList POIs) {
 		this.context = context;
+		this.POIs = POIs;
 		locationMan = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		
 		arrowLeft = new Arrow();
@@ -77,11 +80,6 @@ public class CameraGLRenderer implements Renderer {
 		poiFrame = new IndicatorFrame();
 		
 		this.lock = new Object();
-		
-		POI poi1 = new POI(context , 1, 1.5, 45.5064, -73.5762, "", "http://rter.zapto.org:8080/v1/videos/385/thumb/000000001.jpg", "type1");
-		POI poi2 = new POI(context, 2, 2.5, 45.5060, -73.5777, "","","type2");
-//		POI poi3 = new POI(context, 3, 3.5, 45.5047, -73.5762, "", "", "");
-		dummyPoiList.add(poi1);dummyPoiList.add(poi2);
 		
 		sensorSource = SensorSource.getInstance(context);
 		LocalBroadcastManager.getInstance(context).registerReceiver(locationBroadcastReceiver, 
@@ -206,19 +204,8 @@ public class CameraGLRenderer implements Renderer {
 		synchronized(lock) {
 			// FRAME
 			gl.glLoadIdentity();
-
-			//poi render here. POI class maintains list of POIS, iterates through them and renders each.
-	        //poi class will need sensor data.
-			for(int i= 0; i < dummyPoiList.size(); i++){
-				if(userLocation == null){
-//					userLocation = sensorSource.getLocation();
-				}
-				dummyPoiList.get(i).render(gl, userLocation, screenSize);
-				Log.d("LocationDebug", "Sending location to POI: " + userLocation);
-//				gl.glLoadIdentity();
-//				gl.glTranslatef(3f, 2.5f, -distance);
-//		        arrowRight.draw(gl);
-			}
+			
+			POIs.render(gl, userLocation, screenSize);
 
 			// RIGHT ARROW
 			if(displayRight) {

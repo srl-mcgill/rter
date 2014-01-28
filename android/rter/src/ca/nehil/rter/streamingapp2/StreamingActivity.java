@@ -26,6 +26,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -123,6 +124,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 	//	private LocationManager locationManager;
 	private String provider;
 	private POI[] pois;
+	
 	private String[] colors = new String[] {"#ff0000", "#0000ff", "#ffff00", "#00ffff", "#ffffff"};
 
 	/*************
@@ -153,6 +155,8 @@ public class StreamingActivity extends Activity implements OnClickListener {
 
 	ArrayList<POI> poilist;
 	Map<Integer, POI> oldpois;
+	
+	POIList POIs;
 
 	private static final String TAG = "Streaming Activity";
 	private FrameLayout topLayout;
@@ -205,16 +209,6 @@ public class StreamingActivity extends Activity implements OnClickListener {
 
 		Log.e(TAG, "onCreate");
 
-		overlay = new OverlayController(this); // OpenGL overlay 
-		sensorSource = SensorSource.getInstance(this);
-		Log.d("alok", "got sensorsource instance");
-
-		//TODO: Remove sensormanager
-		/* Orientation */
-		mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-		mAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-		mMag = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-
 		/* Retrieve user auth data from cookie */
 		cookies = getSharedPreferences("RterUserCreds", MODE_PRIVATE);
 		prefEditor = cookies.edit();
@@ -226,6 +220,25 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		}
 		Log.d("PREFS", "Prefs ==> rter_Creds:" + setRterCredentials);
 
+		URL serverURL;
+		try {
+			serverURL = new URL(server_url);
+			POIs = new POIList(this, serverURL, setRterCredentials);
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		overlay = new OverlayController(this, POIs); // OpenGL overlay 
+		sensorSource = SensorSource.getInstance(this);
+		Log.d("alok", "got sensorsource instance");
+
+		//TODO: Remove sensormanager
+		/* Orientation */
+		mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+		mAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		mMag = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+		
 		Location location = sensorSource.getLocation();
 
 		if (location != null) {

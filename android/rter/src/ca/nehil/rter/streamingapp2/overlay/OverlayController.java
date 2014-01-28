@@ -1,5 +1,6 @@
 package ca.nehil.rter.streamingapp2.overlay;
 
+import ca.nehil.rter.streamingapp2.POIList;
 import ca.nehil.rter.streamingapp2.R;
 import ca.nehil.rter.streamingapp2.SensorSource;
 import ca.nehil.rter.streamingapp2.overlay.CameraGLRenderer.Indicate;
@@ -36,9 +37,9 @@ public class OverlayController {
 
 	public float orientationTolerance = 10.0f; // Max orientation tolerance in degrees
 	
-	public OverlayController(Context context) {
+	public OverlayController(Context context, POIList POIs) {
 		this.context = context;
-		this.mGLView = new CameraGLSurfaceView(context);
+		this.mGLView = new CameraGLSurfaceView(context, POIs);
 		this.mGLRenderer = this.mGLView.getGLRenderer();
 		
 		sensorSource = SensorSource.getInstance(context);

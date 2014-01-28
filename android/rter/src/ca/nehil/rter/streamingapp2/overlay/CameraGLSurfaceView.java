@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import ca.nehil.rter.streamingapp2.POI;
+import ca.nehil.rter.streamingapp2.POIList;
 import ca.nehil.rter.streamingapp2.R;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -16,7 +17,7 @@ import android.support.v4.content.LocalBroadcastManager;
 public class CameraGLSurfaceView extends GLSurfaceView {
 	protected CameraGLRenderer camGLRenderer;
 	
-	public CameraGLSurfaceView(Context context) {
+	public CameraGLSurfaceView(Context context, POIList POIs) {
 		super(context);
 		
 		//needed to overlay gl view over camera preview
@@ -28,7 +29,7 @@ public class CameraGLSurfaceView extends GLSurfaceView {
         this.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         
         // Set the Renderer for drawing on the GLSurfaceView
-        this.camGLRenderer = new CameraGLRenderer(context);
+        this.camGLRenderer = new CameraGLRenderer(context, POIs);
         this.setRenderer(camGLRenderer);
            
         // Render the view only when there is a change in the drawing data
