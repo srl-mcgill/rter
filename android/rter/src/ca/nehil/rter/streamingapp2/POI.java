@@ -124,8 +124,8 @@ public class POI {
 		}
 		double left = (bearingToPoi/(camAngle/2.0)) * (screenWidth/2.0);
 		
-		if(fooCount++ % 50 == 0) Log.d("LocationDebug", "left: "+left+" bearing: "+bearingToPoi+"camAngle: "+camAngle+" screenWidth: "+screenWidth);
-//		if(fooCount++ % 40 == 0) Log.d("LocationDebug", "Heading: " + (float)sensorSource.getHeading());
+//		if(fooCount++ % 50 == 0) Log.d("LocationDebug", "left: "+left+" bearing: "+bearingToPoi+"camAngle: "+camAngle+" screenWidth: "+screenWidth);
+		if(fooCount++ % 40 == 0) Log.d("LocationDebug", "Heading: " + (float)sensorSource.getHeading());
 		
 		float width = (screenWidth - (distance*screenWidth));
 		if(width < 30){
