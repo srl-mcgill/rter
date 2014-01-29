@@ -252,8 +252,8 @@ angular.module('termview', [
 		});
 
 		$scope.beacon = {
-			Lat: $event.latLng.b,
-			Lng: $event.latLng.d
+			Lat: $event.latLng.lat(),
+			Lng: $event.latLng.lng()
 		};
 
 		$(document).one("click", function() {
