@@ -27,10 +27,9 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	static Context mcontext; 	// Need context for broadcast manager
 	private Location location;
 	private float declination = 0;
-	private float currentOrientation;
-	private float tempCurrentOrientation = 0;
+	private float currentOrientation; 
 	private float deviceOrientation;
-	private float[] rotationMatrix = new float[16]; //Change to 9 if using sensor fusion methods, 16 otherwise
+	private float[] rotationMatrix = new float[16]; //Change to 9 if using sensorSource, 16 otherwise
 	private float[] orientationValues = new float[3];
 	private float[] outRotationMatrix = new float[16];
 	private static LocationManager locationManager;
@@ -111,6 +110,32 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		}
 		
 		locationManager.requestLocationUpdates(provider, 1000, 0, singleton); //register singleton with locationmanager
+		//		LocationClient loca;
+		//		Location loc = new Location(provider);
+		//		loc.setLatitude(15.0000);
+		//		loc.setLongitude(15.0000);
+		//		loc.setAccuracy(3.0f);
+		//		loc.setTime(System.currentTimeMillis());
+		//		try {
+		//			Location.class.getMethod("makeComplete").invoke(loc);
+		//		} catch (Exception e) {
+		//			// TODO Auto-generated catch block
+		//			e.printStackTrace();
+		//		}
+		//		locationManager.setTestProviderLocation(provider, loc);
+		
+//		Location loc = new Location(provider);
+//		loc.setLatitude(15.0000);
+//		loc.setLongitude(15.0000);
+//		loc.setAccuracy(3.0f);
+//		loc.setTime(System.currentTimeMillis());
+//		try {
+//			Location.class.getMethod("makeComplete").invoke(loc);
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		locationManager.setTestProviderLocation(provider, loc);
 		mcontext = context;
 		return singleton;
 	}
@@ -197,32 +222,17 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		switch (sensorEvent.sensor.getType()) {
 		case Sensor.TYPE_ACCELEROMETER:
 			// copy new acceleroeter data into accel array and calculate orientation
-			Log.d("SensorDebug", "ACC: " + sensorEvent.values[0] + ", " + sensorEvent.values[1] + ", " + sensorEvent.values[2]);
-//			01-27 14:45:04.451: D/SensorDebug(4854): ACC: 9.760902, 0.6372249, 2.0146606
-//			sensorEvent.values[0] = 9.760902f;
-//			sensorEvent.values[1] = 0.6372249f;
-//			sensorEvent.values[2] = 2.0146606f;
 			System.arraycopy(sensorEvent.values, 0, accel, 0, 3);
             calculateAccMagOrientation();
 			break;
 			
 		case Sensor.TYPE_MAGNETIC_FIELD:
 			// copy new magnetometer data into magnet array
-			Log.d("SensorDebug", "MAG: " + sensorEvent.values[0] + ", " + sensorEvent.values[1] + ", " + sensorEvent.values[2]);
-//			01-27 14:45:04.888: D/SensorDebug(4854): MAG: -30.5, -3.4130096, -15.726303
-//			sensorEvent.values[0] = -30.5f;
-//			sensorEvent.values[1] = -3.4130096f;
-//			sensorEvent.values[2] = -15.726303f;
 			System.arraycopy(sensorEvent.values, 0, magnet, 0, 3);
 			break;
 			
 		case Sensor.TYPE_GYROSCOPE:
 			//process gyro data
-			Log.d("SensorDebug", "GYRO: " + sensorEvent.values[0] + ", " + sensorEvent.values[1] + ", " + sensorEvent.values[2]);
-//			01-27 14:45:09.005: D/SensorDebug(4854): GYRO: -0.027712587, 0.0948602, 0.001065797
-//			sensorEvent.values[0] = -0.027712587f;
-//			sensorEvent.values[1] = 0.0948602f;
-//			sensorEvent.values[2] = 0.001065797f;
 			gyroFunction(sensorEvent);
 			break;
 		}
@@ -238,15 +248,6 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		orientationFilter.pushValue((float) Math.toDegrees(orientationValues[0]));
 //		currentOrientation = orientationFilter.getValue() + this.getDeclination();
 		currentOrientation = (float) (Math.toDegrees(orientationValues[0]) + this.getDeclination());
-		Log.d("SensorDebug", "" + currentOrientation);
-		
-//		// Method 3: Ignore all differences of less than 10 degrees
-//		if(Math.abs(tempCurrentOrientation - currentOrientation) > 10){
-//			tempCurrentOrientation = currentOrientation;
-//		}
-//		currentOrientation = tempCurrentOrientation;
-//		// End of Method 3
-		
 		deviceOrientation = (float) Math.toDegrees(orientationValues[2]);
 
 		sendSensorBroadcast(); 
