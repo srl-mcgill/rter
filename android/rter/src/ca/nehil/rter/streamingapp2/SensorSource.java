@@ -27,7 +27,8 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	static Context mcontext; 	// Need context for broadcast manager
 	private Location location;
 	private float declination = 0;
-	private float currentOrientation; 
+	private float currentOrientation;
+	private float tempCurrentOrientation = 0;
 	private float deviceOrientation;
 	private float[] rotationMatrix = new float[16]; //Change to 9 if using sensorSource, 16 otherwise
 	private float[] orientationValues = new float[3];
@@ -119,7 +120,6 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		//		try {
 		//			Location.class.getMethod("makeComplete").invoke(loc);
 		//		} catch (Exception e) {
-		//			// TODO Auto-generated catch block
 		//			e.printStackTrace();
 		//		}
 		//		locationManager.setTestProviderLocation(provider, loc);
@@ -132,7 +132,6 @@ public class SensorSource implements SensorEventListener, LocationListener{
 //		try {
 //			Location.class.getMethod("makeComplete").invoke(loc);
 //		} catch (Exception e) {
-//			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
 //		locationManager.setTestProviderLocation(provider, loc);
@@ -248,6 +247,14 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		orientationFilter.pushValue((float) Math.toDegrees(orientationValues[0]));
 //		currentOrientation = orientationFilter.getValue() + this.getDeclination();
 		currentOrientation = (float) (Math.toDegrees(orientationValues[0]) + this.getDeclination());
+		
+		// Method 3: Ignore all differences of less than 10 degrees
+		if(Math.abs(tempCurrentOrientation - currentOrientation) > 10){
+			tempCurrentOrientation = currentOrientation;
+		}
+      currentOrientation = tempCurrentOrientation;
+//      // End of Method 3
+		
 		deviceOrientation = (float) Math.toDegrees(orientationValues[2]);
 
 		sendSensorBroadcast(); 

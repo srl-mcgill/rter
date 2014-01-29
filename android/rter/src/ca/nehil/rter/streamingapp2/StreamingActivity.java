@@ -21,7 +21,6 @@ package ca.nehil.rter.streamingapp2;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
@@ -61,11 +60,8 @@ import android.content.SharedPreferences;
 import android.hardware.Camera;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.Size;
-import android.hardware.Sensor;
 import android.hardware.SensorManager;
-import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -84,8 +80,6 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
-import android.webkit.WebChromeClient;
-import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.Toast;
@@ -94,7 +88,7 @@ import ca.nehil.rter.streamingapp2.overlay.OverlayController;
 import android.view.OrientationEventListener;
 import static com.googlecode.javacv.cpp.opencv_core.*;
 
-public class StreamingActivity extends Activity implements OnClickListener {
+public class StreamingActivity extends Activity {
 
 	private static String server_url;
 	private SharedPreferences storedValues;
@@ -115,14 +109,11 @@ public class StreamingActivity extends Activity implements OnClickListener {
 	private CameraGLSurfaceView mGLView;
 	private OverlayController overlay;
 	private SensorSource sensorSource;
-	private SensorManager mSensorManager;
-	private Sensor mAcc, mMag;
 	private Camera mCamera;
 	private int numberOfCameras;
 	private float lati;
 	private float longi;
 	//	private LocationManager locationManager;
-	private String provider;
 	private POI[] pois;
 	
 	private String[] colors = new String[] {"#ff0000", "#0000ff", "#ffff00", "#00ffff", "#ffffff"};
@@ -235,9 +226,6 @@ public class StreamingActivity extends Activity implements OnClickListener {
 
 		//TODO: Remove sensormanager
 		/* Orientation */
-		mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-		mAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-		mMag = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 		
 		Location location = sensorSource.getLocation();
 
@@ -297,13 +285,16 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		initLayout();
 		sensorSource.resetHeading(); // Initialize and start the sensors
 		sensorSource.initListeners();
+		attemptHandshake(); // Start recording.
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
 		Log.d(TAG, "onPause");
-		//		locationManager.removeUpdates(sensorSource);
+
+		stopRecording();
+		
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(sensorBroadcastReceiver);
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(locationBroadcastReceiver); 
 		sensorSource.stopListeners();
@@ -322,10 +313,6 @@ public class StreamingActivity extends Activity implements OnClickListener {
 			mCamera.release();
 			mCamera = null;
 
-		}
-
-		if (mSensorManager != null) {
-			mSensorManager.unregisterListener(sensorSource);
 		}
 
 		if (mWakeLock != null) {
@@ -483,23 +470,24 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		layoutParam = new FrameLayout.LayoutParams(screenWidth, screenHeight);
 		topLayout.addView(preViewLayout, layoutParam);
 		Log.i(LOG_TAG, "cameara preview start: OK");
-
-		final Button recorderButton = (Button) findViewById(R.id.recorder_control);
-		recorderButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				if (!recording) {
-					Log.d(TAG, "attemptHandshaking");
-					attemptHandshake();
-					Log.w(LOG_TAG, "Start Button Pushed");
-					recorderButton.setText("Stop");
-				} else {
-					stopRecording();
-					Log.w(LOG_TAG, "Stop Button Pushed");
-					recorderButton.setText("Start");
-				}
-			}
-		});
+		
+		// **Button commented for Glass. attemptHandshake() called above**
+//		final Button recorderButton = (Button) findViewById(R.id.recorder_control);
+//		recorderButton.setOnClickListener(new View.OnClickListener() {
+//			@Override
+//			public void onClick(View view) {
+//				if (!recording) {
+//					Log.d(TAG, "attemptHandshaking");
+//					attemptHandshake();
+//					Log.w(LOG_TAG, "Start Button Pushed");
+//					recorderButton.setText("Stop");
+//				} else {
+//					stopRecording();
+//					Log.w(LOG_TAG, "Stop Button Pushed");
+//					recorderButton.setText("Start");
+//				}
+//			}
+//		});
 	}
 
 	/*
@@ -1038,20 +1026,20 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		}
 	}
 
-	@Override
-	public void onClick(View arg0) {
-		// TODO Auto-generated method stub
-		if (!recording) {
-			attemptHandshake();
-			Log.w(LOG_TAG, "Start Button Pushed");
-		} else {
-			// This will trigger the audio recording loop to stop and then set
-			// isRecorderStart = false;
-			stopRecording();
-			Log.w(LOG_TAG, "Stop Button Pushed");
-		}
-
-	}
+//	@Override
+//	public void onClick(View arg0) {
+//		// TODO Auto-generated method stub
+//		if (!recording) {
+//			attemptHandshake();
+//			Log.w(LOG_TAG, "Start Button Pushed");
+//		} else {
+//			// This will trigger the audio recording loop to stop and then set
+//			// isRecorderStart = false;
+//			stopRecording();
+//			Log.w(LOG_TAG, "Stop Button Pushed");
+//		}
+//
+//	}
 
 	public class HandShakeTask extends AsyncTask<Void, Void, Boolean> {
 		private static final String TAG = "GetTokenActivity HandshakeTask";
