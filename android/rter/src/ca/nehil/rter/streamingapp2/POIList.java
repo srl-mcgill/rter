@@ -97,7 +97,7 @@ public class POIList {
 								int id = item.getInt("ID");
 								POI poi = new POI(context, 
 										id, 
-										item.getBoolean("HasHeading") ? item.getDouble("Heading") : null,
+										null, //item.getBoolean("HasHeading") ? item.getDouble("Heading") : null,
 										item.getDouble("Lat"),
 										item.getDouble("Lng"), "red", 
 										"", 
