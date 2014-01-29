@@ -46,12 +46,12 @@ public final class R {
         public static final int login_status=0x7f0b0001;
         public static final int login_status_message=0x7f0b0002;
         public static final int password=0x7f0b0005;
-        public static final int record_layout=0x7f0b0009;
-        public static final int recorder_control=0x7f0b0008;
+        public static final int record_layout=0x7f0b0008;
+        public static final int recorder_control=0x7f0b000a;
         public static final int server_listview=0x7f0b000b;
         public static final int sign_in_button=0x7f0b0007;
         public static final int surface_camera=0x7f0b0000;
-        public static final int textView1=0x7f0b000a;
+        public static final int textView1=0x7f0b0009;
         public static final int username=0x7f0b0004;
     }
     public static final class layout {

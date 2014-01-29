@@ -20,6 +20,8 @@ import android.opengl.GLU;
 import android.opengl.GLSurfaceView.Renderer;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.view.Display;
+import android.view.WindowManager;
 
 public class CameraGLRenderer implements Renderer {
 	public static enum Indicate {
@@ -76,6 +78,10 @@ public class CameraGLRenderer implements Renderer {
 		LocalBroadcastManager.getInstance(context).registerReceiver(locationBroadcastReceiver, 
 				new IntentFilter(context.getString(R.string.LocationEvent)));
 		
+		WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
+        screenSize = new Point();
+        display.getSize(screenSize);
 	}
 
 	public void indicateTurn(Indicate direction, float percentage) {
