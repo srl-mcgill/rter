@@ -28,7 +28,7 @@ public class POI {
 	Triangle triangleFrame;
 	boolean showLog;
 	int fooCount;
-	public POI(Context context, int _poiId, double _remoteBearing, double _lat, double _lng, String _color, String _curThumbnailURL, String _type) {
+	public POI(Context context, int _poiId, Double _remoteBearing, double _lat, double _lng, String _color, String _curThumbnailURL, String _type) {
 		poiId = _poiId;
 		remoteBearing = _remoteBearing; //orientation of device relative to N
 		loc = new Location("poi");
@@ -48,7 +48,7 @@ public class POI {
     
 	public int poiId;
 	Location loc;
-	public double remoteBearing; //angle of device relative to N
+	public Double remoteBearing; //angle of device relative to N
 	public String curThumbnailURL;
 	public String color;
 	public String type;
@@ -80,7 +80,7 @@ public class POI {
 		return loc;
 	}
 	
-	public double getRemoteBearing(){
+	public Double getRemoteBearing(){
 		return remoteBearing;
 	}
 	
@@ -138,10 +138,10 @@ public class POI {
 		gl.glLoadIdentity();
 		gl.glTranslatef((float)left, (float)height, distance);
         
-        if(this.type.equals("type1")){
+        if(this.type.equals("streaming-video-v1") || this.type.equals("type1")){
         	squareFrame = new IndicatorFrame();
         	squareFrame.draw(gl); // Using indicator frame object to draw square around POI
-        }else if (this.type.equals("type2")){
+        }else if (this.type.equals("beacon") || this.type.equals("type2")){
         	triangleFrame = new Triangle();
         	triangleFrame.draw(gl);
         }

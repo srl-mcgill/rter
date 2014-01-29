@@ -15,6 +15,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.microedition.khronos.opengles.GL10;
 
 import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.content.Context;
 import android.graphics.Point;
@@ -48,7 +50,7 @@ public class POIList {
 		this.context = context;
 		items = new ConcurrentHashMap<Integer, POI>();
 		try {
-			serverURI = new URI("ws", "", baseURL.getHost(), 80, baseURL.getPath(), "", "");
+			serverURI = new URI("ws", baseURL.getHost(), baseURL.getPath() + "/1.0/streaming/items/websocket", null);
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			Log.e(TAG, "URISyntaxException");
@@ -58,6 +60,7 @@ public class POIList {
 		sensorSource = SensorSource.getInstance(context);
 		initClient();
 		Log.d(TAG, "Connecting to " + serverURI.toString());
+		// initializeList();
 		client.connect();
 		generateTestList();
 	}
@@ -77,6 +80,39 @@ public class POIList {
 			    @Override
 			    public void onMessage(String message) {
 			        Log.d(TAG, String.format("Got string message! %s", message));
+			        // TODO: use gson library instead for object mapping
+			        try {
+			        	JSONObject event = new JSONObject(message);
+						String action = event.getString("Action");
+						JSONObject item = event.getJSONObject("Val");
+						
+						if(action.equals("create") || action.equals("update")) {
+							boolean hasGeo = item.getBoolean("HasGeo");
+							if(!hasGeo) {
+								return;
+							}
+							String type = item.getString("Type");
+							boolean live = item.getBoolean("Live");
+							if(type.equals("streaming-video-v1") && live || type.equals("beacon")) {
+								int id = item.getInt("ID");
+								POI poi = new POI(context, 
+										id, 
+										item.getBoolean("HasHeading") ? item.getDouble("Heading") : null,
+										item.getDouble("Lat"),
+										item.getDouble("Lng"), "red", 
+										"", 
+										type);
+								items.put(Integer.valueOf(id), poi);
+							} else {
+								return;
+							}
+						} else if(action.equals("delete")) {
+							items.remove(Integer.valueOf(item.getInt("ID")));
+						}				
+					} catch (JSONException e) {
+						Log.e(TAG, "Malformed JSON received on websocket: " + e.toString());
+						return;
+					}
 			        
 			    }
 
