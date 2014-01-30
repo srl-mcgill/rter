@@ -1,11 +1,8 @@
 package ca.nehil.rter.streamingapp2.overlay;
 
-import java.util.ArrayList;
-
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import ca.nehil.rter.streamingapp2.POI;
 import ca.nehil.rter.streamingapp2.POIList;
 import ca.nehil.rter.streamingapp2.R;
 import ca.nehil.rter.streamingapp2.SensorSource;
@@ -36,8 +33,6 @@ public class CameraGLRenderer implements Renderer {
 	Arrow arrowLeft;
 	Arrow arrowRight;
 	IndicatorFrame indicatorFrame;
-	IndicatorFrame mFrame;
-	IndicatorFrame poiFrame;
 
 	Context context; // Application's context
 
@@ -76,8 +71,6 @@ public class CameraGLRenderer implements Renderer {
 		arrowLeft = new Arrow();
 		arrowRight = new Arrow();
 		indicatorFrame = new IndicatorFrame();
-		mFrame = new IndicatorFrame();
-		poiFrame = new IndicatorFrame();
 		
 		this.lock = new Object();
 		
@@ -86,9 +79,9 @@ public class CameraGLRenderer implements Renderer {
 				new IntentFilter(context.getString(R.string.LocationEvent)));
 		
 		WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-		Display display = wm.getDefaultDisplay();
-		screenSize = new Point();
-//		display.getSize(screenSize);
+        Display display = wm.getDefaultDisplay();
+        screenSize = new Point();
+        display.getSize(screenSize);
 	}
 
 	public void indicateTurn(Indicate direction, float percentage) {
@@ -152,7 +145,6 @@ public class CameraGLRenderer implements Renderer {
 		screenSize.x = (int) xTotal;
 		screenSize.y = (int) yTotal;
 		indicatorFrame.resize(xTotal, yTotal, distance);
-		mFrame.resize(xTotal/2, yTotal/2, height);
 		// Set the viewport (display area) to cover the entire window
 		gl.glViewport(0, 0, width, height);
 
@@ -205,6 +197,8 @@ public class CameraGLRenderer implements Renderer {
 			// FRAME
 			gl.glLoadIdentity();
 			
+//			indicatorFrame.draw(gl);  // Uncomment to render Indicator Frame. Not rendering for Glass.
+			
 			POIs.render(gl, userLocation, screenSize);
 
 			// RIGHT ARROW
@@ -212,7 +206,7 @@ public class CameraGLRenderer implements Renderer {
 				gl.glLoadIdentity(); // Reset model-view matrix ( NEW )
 				gl.glTranslatef(xTotal / 2.0f - 0.1f*xTotal, 0.0f, -distance);
 				gl.glScalef(arrowScale_tmp, arrowScale_tmp, 1.0f);
-				arrowRight.draw(gl); // Draw triangle ( NEW )
+//				arrowRight.draw(gl); // Draw triangle ( NEW ) ; Not rendering for Glass
 			}
 			// LEFT
 			if(displayLeft) {
@@ -220,7 +214,7 @@ public class CameraGLRenderer implements Renderer {
 				gl.glTranslatef(-xTotal / 2.0f + 0.1f*xTotal, 0.0f, -distance);
 				gl.glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
 				gl.glScalef(arrowScale_tmp, arrowScale_tmp, 1.0f);
-				arrowLeft.draw(gl); // Draw quad ( NEW )
+//				arrowLeft.draw(gl); // Draw quad ( NEW ) ; Not rendering for Glass
 			}
 		}
 	}
