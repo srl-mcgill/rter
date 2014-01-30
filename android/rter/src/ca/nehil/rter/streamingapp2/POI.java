@@ -100,19 +100,12 @@ public class POI {
 		float bearingToPoi;
 		float distance;
 		if(userLocation != null){
-			//			if(showLog){
 			Log.d("LocationDebug", "POI received userLocation");
-			showLog = false;
-			//			}
 			bearingToPoi = this.relativeBearingTo(userLocation);
 			//			distance = this.distanceTo(userLocation);
 			distance = -6.0f;
 		}else{
-			//			if(showLog){
 			Log.d("alok", "userLocation was null- POI");
-			showLog = false;
-			//			}
-
 			bearingToPoi = 0f;
 			distance = -6.0f;
 		}
