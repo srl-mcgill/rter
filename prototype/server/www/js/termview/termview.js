@@ -42,8 +42,8 @@ angular.module('termview', [
 
 .controller('TermViewCtrl', function($scope, $filter, $timeout, Alerter, ItemCache, UpdateItemDialog, CloseupItemDialog, TermViewRemote, TaxonomyRankingCache) {
 
-	$scope.viewmode = "grid-view";
-	$scope.filterMode = "blur";
+	$scope.viewmode = "map-view";
+	$scope.filterMode = "remove";
 	$scope.mapFilterEnable = false;
 
 	$scope.$watch('mapFilterEnable', function() {
@@ -293,7 +293,7 @@ angular.module('termview', [
 		var scale = Math.pow(2, $scope.map.getZoom()); 
 		var worldPoint = $scope.map.getProjection().fromLatLngToPoint(latLng); 
 		return new google.maps.Point((worldPoint.x - bottomLeft.x) * scale,(worldPoint.y - topRight.y) * scale); 
-	} 
+	};
 
 	$scope.showMarkerMenu = function($event, $params, bundle) {
 		$(".context-dropdown").hide();
@@ -331,7 +331,27 @@ angular.module('termview', [
 		);
 
 		$scope.beacon = {};
-	}
+	};
+
+	$scope.sendBroadcast = function(msg) {
+		$scope.broadcast.Type = "message:" + $scope.broadcast.message;
+		$scope.broadcast.StartTime = new Date();
+		$scope.broadcast.StopTime = $scope.broadcast.StartTime;
+
+		$scope.inProgress = true;
+
+		ItemCache.create(
+			$scope.broadcast,
+			function() {
+				$scope.inProgress = false;
+			},
+			function() {
+				$scope.inProgress = false;
+			}
+		);
+		console.log($scope.broadcast);
+		$scope.broadcast = {};
+	};
 
 })
 

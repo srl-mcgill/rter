@@ -1,62 +1,9 @@
 <div class="term-view">
-	<div class="control-bar row-fluid">
-		<div class="span4">
-			<b>View:</b>
-			<div class="btn-group" data-toggle="buttons-checkbox">
-			    <button type="button" class="btn btn-primary" ng-model="viewmode" btn-radio="'grid-view'">Grid</button>
-			    <button type="button" class="btn btn-primary" ng-model="viewmode" btn-radio="'list-view'">List</button>
-			    <button type="button" class="btn btn-primary" ng-model="viewmode" btn-radio="'map-view'">Map</button>
-			</div>
-		</div>
-		<div class="span6">
-			<b>Filtering:</b>
-			<div class="btn-group" data-toggle="buttons-checkbox">
-			    <button type="button" class="btn btn-primary" ng-model="filterMode" btn-radio="'blur'">Blur</button>
-			    <button type="button" class="btn btn-primary" ng-model="filterMode" btn-radio="'remove'">Remove</button>
-			</div>
-		</div>
-		<div class="span2 right-align">
-			<button class="btn btn-danger" ng-click="close()">Close View</button>
-		</div>
-	</div>
-	
 	<div class="{{viewmode}}">
 		<div class="row-fluid">
-			<div class="left span8">
-				<div class="nodrag-warn" ng-hide="term.Term.length">You cannot drag and drop in the "Live Feed" view. Please use the "+" to open another workspace.</div>
-				<div class="nocontent" ng-show="!items.length">No Content<span ng-show="term.Term.length"> for {{term.Term}}</span></div>
-				<div ng-switch on="term.Term">
-					<div ng-switch-when="">
-						<ul class="item-list">		
-							<li ng-class="'blur' | if:isFiltered(item)" ng-repeat="item in finalFilteredItems"><a href="" ng-click="closeupItemDialog(item)"><tile-item item="item"></tile-item></a></li>
-						</ul>
-					</div>
-
-					<div ng-switch-default>
-						<ul class="item-list" ui-sortable="{stop: dragCallback, enable: false}" ng-model="rankedItems">		
-							<li ng-class="'blur' | if:isFiltered(item)" ng-repeat="item in finalFilteredItems"><a href="" ng-click="closeupItemDialog(item)"><tile-item item="item"></tile-item></a></li>
-						</ul>
-					</div>
-				</div>
-			</div>
-
-			<div class="right span4">
-				<div class="filter filter-text">	
-					<header>
-						<label for="textQuery">Text Filter</label>
-					</header>
-					<input type="text" class="search-query" name="textQuery" ng-model="textQuery" placeholder="Search">
-				</div>
-
+			
+			<div class="right span4" style="height: 520px; position: relative; width: 100%">
 				<div class="filter filter-map">
-					<header>
-						<label for="mapFitlerEnable">Map Filter</label>
-						<div class="btn-group" name="mapFilterEnable" data-toggle="buttons-checkbox">
-						    <button type="button" class="btn btn-primary" ng-model="mapFilterEnable" btn-radio="true">On</button>
-						    <button type="button" class="btn btn-primary" ng-model="mapFilterEnable" btn-radio="false">Off</button>
-						</div>
-					</header>
-
 					<style>
 							.context-dropdown {
 								position: absolute;
@@ -91,6 +38,36 @@
 					<!-- 'bounds_changed center_changed click dblclick drag dragend dragstart heading_changed idle maptypeid_changed mousemove mouseout mouseover projection_changed resize rightclick tilesloaded tilt_changed zoom_changed' -->	
 				</div>
 			</div>
+
+			<div class="row-fluid">
+				<form novalidate class="simple-form">
+					<div class="left span3" style="display: block">
+						<label style="padding-top: 4px; font-size: 1.2em" for="broadcastCommand">Broadcast Command</label>
+					</div>
+					<div class="right span9" style="padding-top: 0">
+						<input style="margin-left: -50px; width: 95%" type="text" class="search-query" name="broadcastCommand" ng-model="broadcast.message" placeholder="Enter command...">
+					</div>
+					<button ng-click="sendBroadcast()">Send</button>
+				</form>
+			</div>
+			<div class="grid-view">
+				<div class="left span12" style="display: block">
+					<div ng-switch on="term.Term">
+						<div ng-switch-when="">
+							<ul class="item-list">		
+								<li ng-class="'blur' | if:isFiltered(item)" ng-repeat="item in finalFilteredItems | filter:{Live: Live}"><a href="" ng-click="closeupItemDialog(item)"><tile-item item="item"></tile-item></a></li>
+							</ul>
+						</div>
+
+						<div ng-switch-default>
+							<ul class="item-list" ui-sortable="{stop: dragCallback, enable: false}" ng-model="rankedItems">		
+								<li ng-class="'blur' | if:isFiltered(item)" ng-repeat="item in finalFilteredItems | filter:{Live: Live}"><a href="" ng-click="closeupItemDialog(item)"><tile-item item="item"></tile-item></a></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+
 		</div>
 	</div>
 </div>
