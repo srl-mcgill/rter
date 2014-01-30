@@ -326,6 +326,8 @@ public class StreamingActivity extends Activity {
 		// important to release it when the activity is paused.
 		if (mCamera != null) {
 			mCamera.release();
+			mCamera.setPreviewCallback(null);
+			Log.d("CameraDebug", "Released cam");
 			mCamera = null;
 
 		}
@@ -349,6 +351,8 @@ public class StreamingActivity extends Activity {
 
 		if (mCamera != null) {
 			mCamera.release();
+			Log.d("CameraDebug", "Released cam in onStop");
+			mCamera.setPreviewCallback(null);
 			mCamera = null;
 
 		}
@@ -363,6 +367,7 @@ public class StreamingActivity extends Activity {
 
 		if (cameraView != null) {
 			cameraDevice.release();
+			Log.d("CameraDebug", "Released cam in onDestroy");
 			cameraDevice = null;
 		}
 	}
@@ -521,6 +526,8 @@ public class StreamingActivity extends Activity {
 			}
 		} catch (Exception e) {
 			cameraDevice.release();
+			cameraDevice.setPreviewCallback(null);
+			Log.d("CameraDebug", "Released cam in openCamera, exception occured");
 			Log.e(LOG_TAG, e.getMessage());
 			e.printStackTrace();
 		}
@@ -615,7 +622,7 @@ public class StreamingActivity extends Activity {
 		} else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER){
 			// Glass touchpad tapped. Drop a beacon.
 			Log.d("MSC", "onTap fired");
-			
+			Toast.makeText(StreamingActivity.this, "Attempting to create beacon", Toast.LENGTH_SHORT).show();
 			JSONObject jsonParams = new JSONObject();
 			Date date = new Date();
 			SimpleDateFormat dateFormatUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
@@ -1018,8 +1025,11 @@ public class StreamingActivity extends Activity {
 			try {
 				stopPreview();
 				mCamera.setPreviewDisplay(holder);
+				mCamera.setPreviewCallback(null);
 			} catch (IOException exception) {
 				mCamera.release();
+				mCamera.setPreviewCallback(null);
+				Log.d("CameraDebug", "SurfaceChanged exception occured, releasing camera");
 				mCamera = null;
 			}
 			startPreview();
@@ -1033,6 +1043,8 @@ public class StreamingActivity extends Activity {
 
 				if (mCamera != null) { 
 					mCamera.release();
+					Log.d("CameraDebug", "Camera released in surfaceDestroyed");
+					mCamera.setPreviewCallback(null);
 				}
 			} catch (RuntimeException e) {
 				// The camera has probably just been released, ignore.
@@ -1050,6 +1062,7 @@ public class StreamingActivity extends Activity {
 			if (isPreviewOn && mCamera != null) {
 				isPreviewOn = false;
 				mCamera.stopPreview();
+				mCamera.setPreviewCallback(null);
 			}
 		}
 

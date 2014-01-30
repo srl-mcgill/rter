@@ -158,8 +158,8 @@ public class POIList {
 	}
 	
 	private void generateTestList() {
-		POI poi1 = new POI(context , 1, 1.5, 45.5064, -73.5762, "", "http://rter.zapto.org:8080/v1/videos/385/thumb/000000001.jpg", "type1");
-		POI poi2 = new POI(context, 2, 2.5, 45.5060, -73.5777, "","","type2");
+		POI poi1 = new POI(context , 1, 1.5, 45.5056, -73.5769, "", "http://rter.zapto.org:8080/v1/videos/385/thumb/000000001.jpg", "type1");
+		POI poi2 = new POI(context, 2, 2.5, 45.5060, -73.5769, "","","type2");
 //		POI poi3 = new POI(context, 3, 3.5, 45.5047, -73.5762, "", "", "");
 		
 		items.put(Integer.valueOf(1), poi1);

@@ -159,17 +159,17 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	public void initListeners(){
 		mSensorManager.registerListener(this,
 				mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-				SensorManager.SENSOR_DELAY_FASTEST);
+				SensorManager.SENSOR_DELAY_NORMAL);
 
 		mSensorManager.registerListener(this,
 				mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
-				SensorManager.SENSOR_DELAY_FASTEST);
+				SensorManager.SENSOR_DELAY_NORMAL);
 	}
 
 	private void initGyroListener() {
 		mSensorManager.registerListener(this,
 				mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
-				SensorManager.SENSOR_DELAY_FASTEST);
+				SensorManager.SENSOR_DELAY_NORMAL);
 	}
 	
 	public void stopListeners(){
@@ -248,8 +248,8 @@ public class SensorSource implements SensorEventListener, LocationListener{
 //		currentOrientation = orientationFilter.getValue() + this.getDeclination();
 		currentOrientation = (float) (Math.toDegrees(orientationValues[0]) + this.getDeclination());
 		
-		// Method 3: Ignore all differences of less than 10 degrees
-		if(Math.abs(tempCurrentOrientation - currentOrientation) > 10){
+		// Method 3: Ignore all differences of less than 5 degrees
+		if(Math.abs(tempCurrentOrientation - currentOrientation) > 5){
 			tempCurrentOrientation = currentOrientation;
 		}
       currentOrientation = tempCurrentOrientation;
