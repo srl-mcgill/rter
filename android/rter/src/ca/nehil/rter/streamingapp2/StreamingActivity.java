@@ -44,13 +44,19 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.cookie.BasicClientCookie;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+
+import com.loopj.android.http.*;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -78,6 +84,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -156,7 +163,8 @@ public class StreamingActivity extends Activity implements OnClickListener {
 	ArrayList<POI> poilist;
 	Map<Integer, POI> oldpois;
 	
-	POIList POIs;
+	private POIList POIs;
+	private static AsyncHttpClient client = new AsyncHttpClient();
 
 	private static final String TAG = "Streaming Activity";
 	private FrameLayout topLayout;
@@ -219,16 +227,23 @@ public class StreamingActivity extends Activity implements OnClickListener {
 			Log.e("PREFS", "Login Not successful, please restart");
 		}
 		Log.d("PREFS", "Prefs ==> rter_Creds:" + setRterCredentials);
-
-		URL serverURL;
+		
+		URL serverURL = null;
 		try {
 			serverURL = new URL(server_url);
+			CookieStore myCookieStore = new BasicCookieStore();
+			client.setCookieStore(myCookieStore);
+			String[] credentials = setRterCredentials.split("=", 2);
+			BasicClientCookie newCookie = new BasicClientCookie(credentials[0], credentials[1]);
+			newCookie.setDomain(serverURL.getHost());
+			newCookie.setPath("/");
+			myCookieStore.addCookie(newCookie);
 			POIs = new POIList(this, serverURL, setRterCredentials);
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		
+		}		
+
 		overlay = new OverlayController(this, POIs); // OpenGL overlay 
 		sensorSource = SensorSource.getInstance(this);
 		Log.d("alok", "got sensorsource instance");
@@ -594,7 +609,12 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		}
 	}
 
-
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		
+		return true;
+	}
+	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 
@@ -606,6 +626,43 @@ public class StreamingActivity extends Activity implements OnClickListener {
 			return true;
 		} else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER){
 			// Glass touchpad tapped. Drop a beacon.
+			Log.d("MSC", "onTap fired");
+			
+			JSONObject jsonParams = new JSONObject();
+			Date date = new Date();
+			SimpleDateFormat dateFormatUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+			dateFormatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
+			String formattedDate = dateFormatUTC.format(date);
+			try {
+				jsonParams.put("Type", "beacon");
+				jsonParams.put("StartTime", formattedDate);
+				jsonParams.put("StopTime", formattedDate);
+				jsonParams.put("HasGeo", true);
+				jsonParams.put("Lat", lati);
+				jsonParams.put("Lng", longi);
+				jsonParams.put("Heading", sensorSource.getCurrentOrientation());
+				StringEntity entity = new StringEntity(jsonParams.toString());
+				client.post(this, server_url + "/1.0/items", entity, "application/json", new JsonHttpResponseHandler() {
+		            @Override
+		            public void onSuccess(JSONObject response) {
+		            	try {
+							int id = response.getInt("ID");
+							Toast.makeText(StreamingActivity.this, "Beacon Created", Toast.LENGTH_SHORT).show();
+							Log.e("MSC", "Beacon Created");
+						} catch (JSONException e) {
+							Toast.makeText(StreamingActivity.this, "Error: Beacon not created", Toast.LENGTH_SHORT).show();
+							Log.e("MSC", "Error: unexpected response from server");
+							e.printStackTrace();
+						}
+		            }
+		        });
+			} catch (JSONException e) {
+				Log.e("MSC", "Error: " + e.toString());
+				e.printStackTrace();
+			} catch (UnsupportedEncodingException e) {
+				Log.e("MSC", "Error: " + e.toString());
+				e.printStackTrace();
+			}
 		} else if (keyCode == KeyEvent.KEYCODE_CAMERA){
 			// Camera button clicked.
 		}
