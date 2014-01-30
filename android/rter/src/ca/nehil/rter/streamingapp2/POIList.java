@@ -18,10 +18,12 @@ import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Point;
 import android.location.Location;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.codebutler.android_websockets.WebSocketClient;
 
@@ -88,12 +90,23 @@ public class POIList {
 						
 						if(action.equals("create") || action.equals("update")) {
 							boolean hasGeo = item.getBoolean("HasGeo");
-							if(!hasGeo) {
-								return;
-							}
 							String type = item.getString("Type");
 							boolean live = item.getBoolean("Live");
-							if(type.equals("streaming-video-v1") && live || type.equals("beacon")) {
+							if(!hasGeo) {
+								final String[] parts = type.split(":", 2);
+								if(parts[0].equals("message")){
+									
+									((Activity)context).runOnUiThread(new Runnable(){
+									    public void run() {
+									    	Toast.makeText(context, "Message: " + parts[1], Toast.LENGTH_SHORT).show();
+									    }
+									 });
+									
+									return;
+								} else {
+									return;
+								}
+							} else if(type.equals("streaming-video-v1") && live || type.equals("beacon")) {
 								int id = item.getInt("ID");
 								POI poi = new POI(context, 
 										id, 
