@@ -21,7 +21,7 @@ public class POI {
 	IndicatorFrame squareFrame;
 	Triangle triangleFrame;
 	boolean showLog;
-	int fooCount;
+	int fooCount, debugCount;
 	public POI(Context context, int _poiId, Double _remoteBearing, double _lat, double _lng, String _color, String _curThumbnailURL, String _type) {
 		poiId = _poiId;
 		remoteBearing = _remoteBearing; //orientation of device relative to N
@@ -33,7 +33,8 @@ public class POI {
 		type = _type;
 		sensorSource = SensorSource.getInstance(context);
 		showLog = true;
-		fooCount=0;
+		fooCount= 0;
+		debugCount = 0;
 	}
 
 	public void updatePOIList(ArrayList<POI> newPoi){
@@ -98,36 +99,51 @@ public class POI {
 		int screenWidth = screenSize.x;
 		//		int screenHeight = screenSize.y; // Not moving POI frame in the vertical direction for Glass. Should be implemented later.
 		float bearingToPoi;
-		float distance;
+		float scale;
 		if(userLocation != null){
-			Log.d("LocationDebug", "POI received userLocation");
+			if(debugCount++ % 50 == 0) Log.d("LocationDebug", "POI received userLocation");
 			bearingToPoi = this.relativeBearingTo(userLocation);
-			//			distance = this.distanceTo(userLocation);
-			distance = -6.0f;
+			scale = this.distanceTo(userLocation);
+			Log.d("CameraDebug", "distanceTo: " + scale);
+			String stat = "none";
+			// Interpolate values from 0.5 meters - 20 meters to lie between 3.2 and 0.3.
+			if(scale <= 20 && scale >= 0.5){
+				scale = 0.3f - (0.148718f * ( scale - 20));
+				stat = "set";
+			} else if (scale > 20){
+				scale = 0.3f;
+				stat = "greater";
+			} else if (scale < 0.5){
+				scale  = 3.2f;
+				stat = "smaller";
+			}
+			Log.d("CameraDebug", stat + "scale: " + scale);
+			
 		}else{
-			Log.d("alok", "userLocation was null- POI");
+			if(debugCount++ % 50 == 0) Log.d("alok", "userLocation was null- POI");
 			bearingToPoi = 0f;
-			distance = -6.0f;
+			scale = 1;
 		}
 		double left = (bearingToPoi/(camAngle/2.0)) * (screenWidth/2.0);
 
 		if(fooCount++ % 50 == 0) Log.d("LocationDebug", "left: "+left+" bearing: "+bearingToPoi+"camAngle: "+camAngle+" screenWidth: "+screenWidth);
 		//		if(fooCount++ % 40 == 0) Log.d("LocationDebug", "Heading: " + (float)sensorSource.getHeading());
 
-		float width = (screenWidth - (distance*screenWidth));
-		if(width < 30){
-			width = 30;
-		}
+//		float width = (screenWidth - (scale*screenWidth));
+//		if(width < 30){
+//			width = 30;
+//		}
 		double height = 0;
 
 		//		Log.d("alok", "rec coords: "+ left+" "+screenHeight+" "+width+" "+height);
 
 		gl.glLoadIdentity();
-		gl.glTranslatef((float)left, (float)height, distance);
-
+		gl.glTranslatef((float)left, (float)height, -6.0f);
+		gl.glScalef(scale, scale, scale);
+		
 		if(this.type.equals("streaming-video-v1") || this.type.equals("type1")){
 			squareFrame = new IndicatorFrame();
-			squareFrame.draw(gl); // Using indicator frame object to draw square around POI
+			squareFrame.draw(gl);
 		}else if (this.type.equals("beacon") || this.type.equals("type2")){
 			triangleFrame = new Triangle();
 			triangleFrame.draw(gl);

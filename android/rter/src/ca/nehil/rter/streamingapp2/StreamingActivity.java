@@ -367,7 +367,6 @@ public class StreamingActivity extends Activity {
 
 		if (cameraView != null) {
 			cameraDevice.release();
-			mCamera.setPreviewCallback(null);
 			Log.d("CameraDebug", "Released cam in onDestroy");
 			cameraDevice = null;
 		}
