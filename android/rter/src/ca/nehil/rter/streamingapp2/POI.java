@@ -106,15 +106,15 @@ public class POI {
 			scale = this.distanceTo(userLocation);
 			Log.d("CameraDebug", "distanceTo: " + scale);
 			String stat = "none";
-			// Interpolate values from 0.5 meters - 20 meters to lie between 3.2 and 0.3.
+			// Interpolate values from 0.5 meters - 20 meters to lie between 4.2 and 0.5.
 			if(scale <= 20 && scale >= 0.5){
-				scale = 0.3f - (0.148718f * ( scale - 20));
+				scale = 0.5f - (0.189744f * ( scale - 20));
 				stat = "set";
 			} else if (scale > 20){
-				scale = 0.3f;
+				scale = 0.5f;
 				stat = "greater";
 			} else if (scale < 0.5){
-				scale  = 3.2f;
+				scale  = 4.2f;
 				stat = "smaller";
 			}
 			Log.d("CameraDebug", stat + "scale: " + scale);

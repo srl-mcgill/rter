@@ -622,7 +622,7 @@ public class StreamingActivity extends Activity {
 		} else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER){
 			// Glass touchpad tapped. Drop a beacon.
 			Log.d("MSC", "onTap fired");
-			
+			Toast.makeText(StreamingActivity.this, "Attempting to create beacon", Toast.LENGTH_SHORT).show();
 			JSONObject jsonParams = new JSONObject();
 			Date date = new Date();
 			SimpleDateFormat dateFormatUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
