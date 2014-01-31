@@ -73,6 +73,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.view.MotionEventCompat;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
@@ -372,6 +373,39 @@ public class StreamingActivity extends Activity {
 		}
 	}
 
+	@Override
+	public boolean onTouchEvent(MotionEvent event){ 
+	       
+		String DEBUG_TAG = "TOUCH";
+		
+	    int action = MotionEventCompat.getActionMasked(event);
+	      
+
+	    
+	    switch(action) {
+	        case (MotionEvent.ACTION_DOWN) :
+	            Log.d(DEBUG_TAG,"Action was DOWN");
+	        	sendMessage();
+	            return true;
+	        case (MotionEvent.ACTION_MOVE) :
+	            Log.d(DEBUG_TAG,"Action was MOVE");
+	            return true;
+	        case (MotionEvent.ACTION_UP) :
+	            Log.d(DEBUG_TAG,"Action was UP");
+	        	dropBeacon();
+	            return true;
+	        case (MotionEvent.ACTION_CANCEL) :
+	            Log.d(DEBUG_TAG,"Action was CANCEL");
+	            return true;
+	        case (MotionEvent.ACTION_OUTSIDE) :
+	            Log.d(DEBUG_TAG,"Movement occurred outside bounds " +
+	                    "of current screen element");
+	            return true;      
+	        default : 
+	            return super.onTouchEvent(event);
+	    }      
+	}
+	
 	public void updateItems(){
 		String response = request("items");
 		JSONTokener tokener = new JSONTokener(response);
@@ -603,11 +637,43 @@ public class StreamingActivity extends Activity {
 
 		}
 	}
-
-	@Override
-	public boolean onTouchEvent(MotionEvent event) {
-		
-		return true;
+	
+	private void dropBeacon() {
+		JSONObject jsonParams = new JSONObject();
+		Date date = new Date();
+		SimpleDateFormat dateFormatUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+		dateFormatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
+		String formattedDate = dateFormatUTC.format(date);
+		try {
+			jsonParams.put("Type", "beacon");
+			jsonParams.put("StartTime", formattedDate);
+			jsonParams.put("StopTime", formattedDate);
+			jsonParams.put("HasGeo", true);
+			jsonParams.put("Lat", lati);
+			jsonParams.put("Lng", longi);
+			jsonParams.put("Heading", sensorSource.getCurrentOrientation());
+			StringEntity entity = new StringEntity(jsonParams.toString());
+			client.post(this, server_url + "/1.0/items", entity, "application/json", new JsonHttpResponseHandler() {
+	            @Override
+	            public void onSuccess(JSONObject response) {
+	            	try {
+						int id = response.getInt("ID");
+						Toast.makeText(StreamingActivity.this, "Beacon Created", Toast.LENGTH_SHORT).show();
+						Log.e("MSC", "Beacon Created");
+					} catch (JSONException e) {
+						Toast.makeText(StreamingActivity.this, "Error: Beacon not created", Toast.LENGTH_SHORT).show();
+						Log.e("MSC", "Error: unexpected response from server");
+						e.printStackTrace();
+					}
+	            }
+	        });
+		} catch (JSONException e) {
+			Log.e("MSC", "Error: " + e.toString());
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			Log.e("MSC", "Error: " + e.toString());
+			e.printStackTrace();
+		}
 	}
 	
 	@Override
@@ -622,47 +688,52 @@ public class StreamingActivity extends Activity {
 		} else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER){
 			// Glass touchpad tapped. Drop a beacon.
 			Log.d("MSC", "onTap fired");
-			Toast.makeText(StreamingActivity.this, "Attempting to create beacon", Toast.LENGTH_SHORT).show();
-			JSONObject jsonParams = new JSONObject();
-			Date date = new Date();
-			SimpleDateFormat dateFormatUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-			dateFormatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
-			String formattedDate = dateFormatUTC.format(date);
-			try {
-				jsonParams.put("Type", "beacon");
-				jsonParams.put("StartTime", formattedDate);
-				jsonParams.put("StopTime", formattedDate);
-				jsonParams.put("HasGeo", true);
-				jsonParams.put("Lat", lati);
-				jsonParams.put("Lng", longi);
-				jsonParams.put("Heading", sensorSource.getCurrentOrientation());
-				StringEntity entity = new StringEntity(jsonParams.toString());
-				client.post(this, server_url + "/1.0/items", entity, "application/json", new JsonHttpResponseHandler() {
-		            @Override
-		            public void onSuccess(JSONObject response) {
-		            	try {
-							int id = response.getInt("ID");
-							Toast.makeText(StreamingActivity.this, "Beacon Created", Toast.LENGTH_SHORT).show();
-							Log.e("MSC", "Beacon Created");
-						} catch (JSONException e) {
-							Toast.makeText(StreamingActivity.this, "Error: Beacon not created", Toast.LENGTH_SHORT).show();
-							Log.e("MSC", "Error: unexpected response from server");
-							e.printStackTrace();
-						}
-		            }
-		        });
-			} catch (JSONException e) {
-				Log.e("MSC", "Error: " + e.toString());
-				e.printStackTrace();
-			} catch (UnsupportedEncodingException e) {
-				Log.e("MSC", "Error: " + e.toString());
-				e.printStackTrace();
-			}
+			//Toast.makeText(StreamingActivity.this, "Attempting to create beacon", Toast.LENGTH_SHORT).show();
+			dropBeacon();
+			
 		} else if (keyCode == KeyEvent.KEYCODE_CAMERA){
 			// Camera button clicked.
+			Log.d("MSC", "onCamera fired");
+			//Toast.makeText(StreamingActivity.this, "Attempting to create beacon", Toast.LENGTH_SHORT).show();
+			sendMessage();
 		}
 
 		return super.onKeyDown(keyCode, event);
+	}
+	
+	private void sendMessage() {
+		JSONObject jsonParams = new JSONObject();
+		Date date = new Date();
+		SimpleDateFormat dateFormatUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+		dateFormatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
+		String formattedDate = dateFormatUTC.format(date);
+		try {
+			jsonParams.put("Type", "message:Find unblocked entrance");
+			jsonParams.put("StartTime", formattedDate);
+			jsonParams.put("StopTime", formattedDate);
+			jsonParams.put("HasGeo", false);
+			StringEntity entity = new StringEntity(jsonParams.toString());
+			client.post(this, server_url + "/1.0/items", entity, "application/json", new JsonHttpResponseHandler() {
+	            @Override
+	            public void onSuccess(JSONObject response) {
+	            	try {
+						int id = response.getInt("ID");
+						//Toast.makeText(StreamingActivity.this, "Beacon Created", Toast.LENGTH_SHORT).show();
+						Log.e("MSC", "Beacon Created");
+					} catch (JSONException e) {
+						Toast.makeText(StreamingActivity.this, "Error: Beacon not created", Toast.LENGTH_SHORT).show();
+						//Log.e("MSC", "Error: unexpected response from server");
+						e.printStackTrace();
+					}
+	            }
+	        });
+		} catch (JSONException e) {
+			Log.e("MSC", "Error: " + e.toString());
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			Log.e("MSC", "Error: " + e.toString());
+			e.printStackTrace();
+		}
 	}
 
 	@Override
