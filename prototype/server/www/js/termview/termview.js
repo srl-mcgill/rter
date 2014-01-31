@@ -349,7 +349,6 @@ angular.module('termview', [
 				$scope.inProgress = false;
 			}
 		);
-		console.log($scope.broadcast);
 		$scope.broadcast = {};
 	};
 

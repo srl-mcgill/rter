@@ -2,17 +2,20 @@
 	<div class="{{viewmode}}">
 		<div class="row-fluid">
 			
-			<div class="right span4" style="height: 520px; position: relative; width: 100%">
+			<div class="right span4" style="height: 420px; position: relative; width: 100%">
 				<div class="filter filter-map">
 					<style>
-							.context-dropdown {
-								position: absolute;
-								display: none;
-							}
-							#map_container {
-								position: relative;
-							}
-						</style>
+						.context-dropdown {
+							position: absolute;
+							display: none;
+						}
+						#map_container {
+							position: relative;
+						}
+						body .term-view .map-view .right .map {
+							height: 400px;
+						}
+					</style>
 					<div id="map_container">
 						<div ng-repeat="bundle in markerBundles" ui-map-marker="bundle.marker"
 						  ui-event="{'map-click': 'closeupItemDialog(bundle.item)', 'map-rightclick': 'showMarkerMenu($event, $params, bundle)'}">
@@ -40,14 +43,12 @@
 			</div>
 
 			<div class="row-fluid">
-				<form novalidate class="simple-form">
-					<div class="left span3" style="display: block">
-						<label style="padding-top: 4px; font-size: 1.2em" for="broadcastCommand">Broadcast Command</label>
+				<form novalidate class="simple-form" style="margin-bottom: 0">
+					<div class="right" style="padding-top: 0">
+						<input style="margin-right: 5px; width: 85%" type="text" class="search-query" name="broadcastCommand" ng-model="broadcast.message" placeholder="Enter command...">
+						<button class="btn" ng-click="sendBroadcast()">Send</button>
 					</div>
-					<div class="right span9" style="padding-top: 0">
-						<input style="margin-left: -50px; width: 95%" type="text" class="search-query" name="broadcastCommand" ng-model="broadcast.message" placeholder="Enter command...">
-					</div>
-					<button ng-click="sendBroadcast()">Send</button>
+					
 				</form>
 			</div>
 			<div class="grid-view">
@@ -55,13 +56,13 @@
 					<div ng-switch on="term.Term">
 						<div ng-switch-when="">
 							<ul class="item-list">		
-								<li ng-class="'blur' | if:isFiltered(item)" ng-repeat="item in finalFilteredItems | filter:{Live: Live}"><a href="" ng-click="closeupItemDialog(item)"><tile-item item="item"></tile-item></a></li>
+								<li ng-class="'blur' | if:isFiltered(item)" ng-repeat="item in finalFilteredItems | filter:{Type: 'streaming-video-v1'}"><a href="" ng-click="closeupItemDialog(item)"><tile-item item="item"></tile-item></a></li>
 							</ul>
 						</div>
 
 						<div ng-switch-default>
 							<ul class="item-list" ui-sortable="{stop: dragCallback, enable: false}" ng-model="rankedItems">		
-								<li ng-class="'blur' | if:isFiltered(item)" ng-repeat="item in finalFilteredItems | filter:{Live: Live}"><a href="" ng-click="closeupItemDialog(item)"><tile-item item="item"></tile-item></a></li>
+								<li ng-class="'blur' | if:isFiltered(item)" ng-repeat="item in finalFilteredItems | filter:{Type: 'streaming-video-v1'}"><a href="" ng-click="closeupItemDialog(item)"><tile-item item="item"></tile-item></a></li>
 							</ul>
 						</div>
 					</div>
