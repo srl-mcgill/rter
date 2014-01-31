@@ -62,7 +62,7 @@ public class POI {
 		float delta = deg1-deg2;
 		if(delta > 180) delta -= 360;
 		if(delta < -180) delta += 360;
-		Log.d("DegreeDelta", "Delta: "+ delta + " deg1: " + deg1 + " deg2: " + deg2);
+		//Log.d("DegreeDelta", "Delta: "+ delta + " deg1: " + deg1 + " deg2: " + deg2);
 
 		return delta;
 	}
@@ -104,7 +104,7 @@ public class POI {
 			if(debugCount++ % 50 == 0) Log.d("LocationDebug", "POI received userLocation");
 			bearingToPoi = this.relativeBearingTo(userLocation);
 			scale = this.distanceTo(userLocation);
-			Log.d("CameraDebug", "distanceTo: " + scale);
+			//Log.d("CameraDebug", "distanceTo: " + scale);
 			String stat = "none";
 			// Interpolate values from 0.5 meters - 20 meters to lie between 4.2 and 0.5.
 			if(scale <= 20 && scale >= 0.5){
@@ -117,7 +117,7 @@ public class POI {
 				scale  = 4.2f;
 				stat = "smaller";
 			}
-			Log.d("CameraDebug", stat + "scale: " + scale);
+			//Log.d("CameraDebug", stat + "scale: " + scale);
 			
 		}else{
 			if(debugCount++ % 50 == 0) Log.d("alok", "userLocation was null- POI");
