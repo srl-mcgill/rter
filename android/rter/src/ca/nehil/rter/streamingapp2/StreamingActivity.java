@@ -876,6 +876,31 @@ public class StreamingActivity extends Activity {
 					Log.i(TAG, "PUTHEADNG sensor Feed response = successful");
 
 				}
+				
+				// also PUT to item endpoint
+				url = new URL(server_url + "/1.0/items/" + recievedItemID);
+				httpcon = (HttpURLConnection) url
+						.openConnection();
+				httpcon.setRequestProperty("Cookie", setRterCredentials);
+				httpcon.setRequestProperty("Content-Type", "application/json");
+				httpcon.setRequestMethod("PUT");
+				httpcon.setConnectTimeout(TIMEOUT_MILLISEC);
+				httpcon.setReadTimeout(TIMEOUT_MILLISEC);
+				httpcon.connect();
+				outputBytes = jsonObjSend.toString().getBytes("UTF-8");
+				os = httpcon.getOutputStream();
+				os.write(outputBytes);
+
+				os.close();
+
+				status = httpcon.getResponseCode();
+				Log.i(TAG, "PUTHEADNG Status of response " + status);
+				switch (status) {
+				case 200:
+				case 304:
+					Log.i(TAG, "PUTHEADNG sensor Feed response = successful");
+
+				}
 
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
