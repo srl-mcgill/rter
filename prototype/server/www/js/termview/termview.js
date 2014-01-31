@@ -227,9 +227,17 @@ angular.module('termview', [
 				position: new google.maps.LatLng(v.Lat, v.Lng)
 			});
 
+			//m.setIcon(new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_xpin_icon&chld=pin_sleft|glyphish_runner", null, null, null, new google.maps.Size(40, 40)));
+
+			if(v.Type == "streaming-video-v1" && v.Live === true) {
+				m.setIcon("http://maps.google.com/mapfiles/ms/icons/yellow-dot.png");
+			}
+
+			/*
 			if(v.ThumbnailURI !== undefined && v.ThumbnailURI !== "") {
 				m.setIcon(new google.maps.MarkerImage(v.ThumbnailURI, null, null, null, new google.maps.Size(40, 40)));
 			}
+			*/
 
 			$scope.markerBundles.push({marker: m, item: v});
 		});
