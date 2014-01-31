@@ -327,7 +327,6 @@ public class StreamingActivity extends Activity {
 		// important to release it when the activity is paused.
 		if (mCamera != null) {
 			mCamera.release();
-			mCamera.setPreviewCallback(null);
 			Log.d("CameraDebug", "Released cam");
 			mCamera = null;
 
@@ -353,7 +352,6 @@ public class StreamingActivity extends Activity {
 		if (mCamera != null) {
 			mCamera.release();
 			Log.d("CameraDebug", "Released cam in onStop");
-			mCamera.setPreviewCallback(null);
 			mCamera = null;
 
 		}
@@ -560,7 +558,6 @@ public class StreamingActivity extends Activity {
 			}
 		} catch (Exception e) {
 			cameraDevice.release();
-			cameraDevice.setPreviewCallback(null);
 			Log.d("CameraDebug", "Released cam in openCamera, exception occured");
 			Log.e(LOG_TAG, e.getMessage());
 			e.printStackTrace();
@@ -1086,7 +1083,6 @@ public class StreamingActivity extends Activity {
 			mHolder = getHolder();
 			mHolder.addCallback(CameraView.this);
 			mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-			mCamera.setPreviewCallback(CameraView.this);
 		}
 
 		@Override
@@ -1121,10 +1117,8 @@ public class StreamingActivity extends Activity {
 			try {
 				stopPreview();
 				mCamera.setPreviewDisplay(holder);
-				mCamera.setPreviewCallback(null);
 			} catch (IOException exception) {
 				mCamera.release();
-				mCamera.setPreviewCallback(null);
 				Log.d("CameraDebug", "SurfaceChanged exception occured, releasing camera");
 				mCamera = null;
 			}
@@ -1135,12 +1129,10 @@ public class StreamingActivity extends Activity {
 		public void surfaceDestroyed(SurfaceHolder holder) {
 			try {
 				mHolder.addCallback(null);
-				mCamera.setPreviewCallback(null);
 
 				if (mCamera != null) { 
 					mCamera.release();
 					Log.d("CameraDebug", "Camera released in surfaceDestroyed");
-					mCamera.setPreviewCallback(null);
 				}
 			} catch (RuntimeException e) {
 				// The camera has probably just been released, ignore.
@@ -1158,7 +1150,6 @@ public class StreamingActivity extends Activity {
 			if (isPreviewOn && mCamera != null) {
 				isPreviewOn = false;
 				mCamera.stopPreview();
-				mCamera.setPreviewCallback(null);
 			}
 		}
 
