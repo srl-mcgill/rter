@@ -185,6 +185,8 @@ public class StreamingActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_streaming);
 
+		Log.d("CameraDebug", "onCreate");
+		
 		pois = new POI[0];
 		poilist = new ArrayList<POI>();
 		oldpois = new HashMap<Integer, POI>();
@@ -278,6 +280,7 @@ public class StreamingActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
+		Log.d("CameraDebug", "onResume");
 		if (mWakeLock == null) {
 			PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 			mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK,
@@ -306,7 +309,7 @@ public class StreamingActivity extends Activity {
 	@Override
 	protected void onPause() {
 		super.onPause();
-		Log.d(TAG, "onPause");
+		Log.d("CameraDebug", "onPause");
 
 		stopRecording();
 		
@@ -329,7 +332,6 @@ public class StreamingActivity extends Activity {
 			mCamera.setPreviewCallback(null);
 			Log.d("CameraDebug", "Released cam");
 			mCamera = null;
-
 		}
 
 		if (mWakeLock != null) {
@@ -343,6 +345,7 @@ public class StreamingActivity extends Activity {
 	@Override
 	public void onStop() {
 		super.onStop();
+		Log.d("CameraDebug", "onStop");
 		if (putHeadingfeed != null) {
 			if (putHeadingfeed.isAlive()) {
 				putHeadingfeed.interrupt();
@@ -354,14 +357,14 @@ public class StreamingActivity extends Activity {
 			Log.d("CameraDebug", "Released cam in onStop");
 			mCamera.setPreviewCallback(null);
 			mCamera = null;
-
 		}
 		sensorSource.stopListeners();
 	}
-
+	// ca.srl.mcgill.rterresponder
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
+		Log.d("CameraDebug", "onDestroy");
 		recording = false;
 		myOrientationEventListener.disable();
 
@@ -444,6 +447,7 @@ public class StreamingActivity extends Activity {
 
 	private void initLayout() {
 		/* get size of screen */
+		Log.d("CameraDebug", "initLayout");
 		Display display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE))
 				.getDefaultDisplay();
 		screenWidth = display.getWidth();
@@ -514,6 +518,7 @@ public class StreamingActivity extends Activity {
 	 * Creates and initiates the Camera object.
 	 */
 	private Camera openCamera() {
+		Log.d("CameraDebug", "openCamera");
 		Camera cameraDevice = Camera.open();
 		numberOfCameras = Camera.getNumberOfCameras();
 		for(int i = 0; i < numberOfCameras && cameraDevice == null; i++) {
@@ -539,7 +544,7 @@ public class StreamingActivity extends Activity {
 	// ---------------------------------------
 	private void initRecorder() {
 
-		Log.w(LOG_TAG, "init recorder");
+		Log.w("CameraDebug", "init recorder");
 		if (yuvIplimage == null) {
 			yuvIplimage = IplImage.create(imageWidth, imageHeight,
 					IPL_DEPTH_8U, 2);
@@ -1010,11 +1015,7 @@ public class StreamingActivity extends Activity {
 					+ " imageHeight: " + imageHeight + " frameRate: "
 					+ frameRate);
 			Camera.Parameters camParams = mCamera.getParameters();
-			List<Size> list = camParams.getSupportedPreviewSizes();
 			Log.d("CameraDebug", "cam angle: "+camParams.getHorizontalViewAngle());
-			for(int j = 0; j < list.size(); j++){
-				Log.d("CameraDebug", "height "+j+": "+list.get(j).height+" width: "+list.get(j).width);
-			}
 			camParams.setPreviewSize(imageWidth, imageHeight);
 
 			Log.v(LOG_TAG,
