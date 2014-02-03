@@ -191,7 +191,9 @@ public class StreamingActivity extends Activity {
 
 		storedValues = getSharedPreferences("CommonValues", MODE_PRIVATE);
 		//server_url = storedValues.getString("server_url", "not-set");
-		server_url = "http://132.206.74.103";
+		//server_url = "http://132.206.74.103";
+		server_url = "http://192.168.2.32";
+		//server_url = "http://rter.zapto.org";
 		/* Orientation listenever implementation to orient video */
 		myOrientationEventListener = new OrientationEventListener(this, SensorManager.SENSOR_DELAY_NORMAL) {
 			@Override
@@ -544,7 +546,7 @@ public class StreamingActivity extends Activity {
 			Log.i(LOG_TAG, "create yuvIplimage");
 		}
 		if (recievedRterResource != null) {
-			Log.e(LOG_TAG, "rterResource" + recievedRterResource);
+			Log.e(LOG_TAG, "rterResource: " + recievedRterResource);
 			recorder = new FFmpegFrameSender(recievedRterResource, authToken,
 					imageWidth, imageHeight);
 			recorder.setVideoCodec(28); // H264
@@ -845,7 +847,7 @@ public class StreamingActivity extends Activity {
 
 				// Output the JSON object we're sending to Logcat:
 				Log.i(TAG, "PUTHEADNG::Body of update heading feed json = "
-						+ jsonObjSend.toString(2));
+						+ jsonObjSend.toString());
 
 				int TIMEOUT_MILLISEC = 1000; // = 1 seconds
 				Log.i(TAG, "postHeading()Put Request being sent" + server_url
@@ -1084,6 +1086,7 @@ public class StreamingActivity extends Activity {
 
 		@Override
 		public void onPreviewFrame(byte[] data, Camera camera) {
+			Log.d(TAG, "onPreviewFrame called");
 			/* get video data */
 			if(flipVideo) {
 				camera.setDisplayOrientation(180);

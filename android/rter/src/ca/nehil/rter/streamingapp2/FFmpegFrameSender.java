@@ -261,7 +261,9 @@ public class FFmpegFrameSender extends com.googlecode.javacv.FrameRecorder {
      * Start a stream.
      */
     public void start() throws Exception {
-        int ret;
+        Log.d("FFMPEG", "start called");
+    	
+    	int ret;
         this.frame_number = 0;
         picture = null;
         tmp_picture = null;
@@ -654,7 +656,8 @@ public class FFmpegFrameSender extends com.googlecode.javacv.FrameRecorder {
      * @throws Exception	if pixel format could not be guessed
      */
     public void record(IplImage image, int pixelFormat) throws Exception {
-        if (video_st == null) {
+        Log.d("FFMPEG", "record called");
+    	if (video_st == null) {
             throw new Exception("No video output stream (Is imageWidth > 0 && imageHeight > 0 and has start() been called?)");
         }
         int ret;
