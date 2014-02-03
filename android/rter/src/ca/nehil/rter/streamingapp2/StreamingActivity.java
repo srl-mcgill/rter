@@ -190,7 +190,8 @@ public class StreamingActivity extends Activity {
 		oldpois = new HashMap<Integer, POI>();
 
 		storedValues = getSharedPreferences("CommonValues", MODE_PRIVATE);
-		server_url = storedValues.getString("server_url", "not-set");
+		//server_url = storedValues.getString("server_url", "not-set");
+		server_url = "http://132.206.74.103";
 		/* Orientation listenever implementation to orient video */
 		myOrientationEventListener = new OrientationEventListener(this, SensorManager.SENSOR_DELAY_NORMAL) {
 			@Override
