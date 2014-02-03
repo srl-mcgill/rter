@@ -1006,10 +1006,12 @@ public class StreamingActivity extends Activity {
 
 		private SurfaceHolder mHolder;
 		private Camera mCamera;
+		
+		private final String TAG = "CameraView";
 
 		public CameraView(Context context, Camera camera) {
 			super(context);
-			Log.w("camera", "camera view");
+			Log.w(TAG, "constructor called");
 			mCamera = camera;
 			mHolder = getHolder();
 			mHolder.addCallback(CameraView.this);
@@ -1029,7 +1031,7 @@ public class StreamingActivity extends Activity {
 
 		public void surfaceChanged(SurfaceHolder holder, int format, int width,
 				int height) {
-			Log.v(LOG_TAG, "Setting imageWidth: " + imageWidth
+			Log.v(TAG, "Setting imageWidth: " + imageWidth
 					+ " imageHeight: " + imageHeight + " frameRate: "
 					+ frameRate);
 			Camera.Parameters camParams = mCamera.getParameters();
@@ -1040,7 +1042,7 @@ public class StreamingActivity extends Activity {
 			}
 			camParams.setPreviewSize(imageWidth, imageHeight);
 
-			Log.v(LOG_TAG,
+			Log.v(TAG,
 					"Preview Framerate: " + camParams.getPreviewFrameRate());
 
 			camParams.setPreviewFrameRate(frameRate);
@@ -1058,6 +1060,7 @@ public class StreamingActivity extends Activity {
 
 		@Override
 		public void surfaceDestroyed(SurfaceHolder holder) {
+			Log.d(TAG, "surfaceDestroyed called");
 			try {
 				mHolder.addCallback(null);
 
@@ -1071,6 +1074,7 @@ public class StreamingActivity extends Activity {
 		}
 
 		public void startPreview() {
+			Log.d(TAG, "startPreview called");
 			if (!isPreviewOn && mCamera != null) {
 				isPreviewOn = true;
 				mCamera.startPreview();
@@ -1078,6 +1082,7 @@ public class StreamingActivity extends Activity {
 		}
 
 		public void stopPreview() {
+			Log.d(TAG, "stopPreview called");
 			if (isPreviewOn && mCamera != null) {
 				isPreviewOn = false;
 				mCamera.stopPreview();
