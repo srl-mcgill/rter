@@ -1049,6 +1049,7 @@ public class StreamingActivity extends Activity {
 			mCamera.setParameters(camParams);
 			try {
 				stopPreview();
+				mCamera.setPreviewCallback(this);
 				mCamera.setPreviewDisplay(holder);
 			} catch (IOException exception) {
 				mCamera.release();
