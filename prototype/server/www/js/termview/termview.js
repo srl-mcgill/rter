@@ -202,7 +202,7 @@ angular.module('termview', [
 
 	$scope.mapOptions = {
 		center: $scope.mapCenter,
-		zoom: 10,
+		zoom: 18,
 		mapTypeId: google.maps.MapTypeId.ROADMAP
 	};
 
