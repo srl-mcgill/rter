@@ -618,8 +618,7 @@ public class StreamingActivity extends Activity {
 			return true;
 		} else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER){
 			// Glass touchpad tapped. Drop a beacon.
-			Log.d("MSC", "onTap fired");
-			Toast.makeText(StreamingActivity.this, "Attempting to create beacon", Toast.LENGTH_SHORT).show();
+			//Toast.makeText(StreamingActivity.this, "Attempting to create beacon", Toast.LENGTH_SHORT).show();
 			JSONObject jsonParams = new JSONObject();
 			Date date = new Date();
 			SimpleDateFormat dateFormatUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
@@ -1032,9 +1031,9 @@ public class StreamingActivity extends Activity {
 					+ frameRate);
 			Camera.Parameters camParams = mCamera.getParameters();
 			List<Size> list = camParams.getSupportedPreviewSizes();
-			Log.d("CameraDebug", "cam angle: "+camParams.getHorizontalViewAngle());
+			//Log.d("CameraDebug", "cam angle: "+camParams.getHorizontalViewAngle());
 			for(int j = 0; j < list.size(); j++){
-				Log.d("CameraDebug", "height "+j+": "+list.get(j).height+" width: "+list.get(j).width);
+				//Log.d("CameraDebug", "height "+j+": "+list.get(j).height+" width: "+list.get(j).width);
 			}
 			camParams.setPreviewSize(imageWidth, imageHeight);
 
@@ -1048,7 +1047,7 @@ public class StreamingActivity extends Activity {
 				mCamera.setPreviewDisplay(holder);
 			} catch (IOException exception) {
 				mCamera.release();
-				Log.d("CameraDebug", "SurfaceChanged exception occured, releasing camera");
+				//Log.d("CameraDebug", "SurfaceChanged exception occured, releasing camera");
 				mCamera = null;
 			}
 			startPreview();
