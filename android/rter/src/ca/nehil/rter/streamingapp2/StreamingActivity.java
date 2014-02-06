@@ -192,8 +192,9 @@ public class StreamingActivity extends Activity {
 		storedValues = getSharedPreferences("CommonValues", MODE_PRIVATE);
 		//server_url = storedValues.getString("server_url", "not-set");
 		//server_url = "http://132.206.74.103";
-		server_url = "http://192.168.2.32";
-		//server_url = "http://rter.zapto.org";
+		//server_url = "http://132.206.74.142";
+		//server_url = "http://192.168.2.32";
+		server_url = "http://rter.zapto.org";
 		/* Orientation listenever implementation to orient video */
 		myOrientationEventListener = new OrientationEventListener(this, SensorManager.SENSOR_DELAY_NORMAL) {
 			@Override
@@ -268,13 +269,6 @@ public class StreamingActivity extends Activity {
 		overlay.setDesiredOrientation(0.0f);
 
 		/* Fetch Point of interests (POI) every second from the server */
-		Timer timer = new Timer();
-		timer.scheduleAtFixedRate(new TimerTask() {
-			@Override
-			public void run() {
-				updateItems();
-			}
-		}, 1*1000, 1*1000);
 		
 	}
 
@@ -333,6 +327,15 @@ public class StreamingActivity extends Activity {
 			mCamera = null;
 
 		}
+		
+		if (mCamera != null) {
+			cameraDevice.release();
+			Log.d("CameraDebug", "Released cam");
+			cameraDevice = null;
+
+		}
+		
+		
 
 		if (mWakeLock != null) {
 			mWakeLock.release();
@@ -527,6 +530,7 @@ public class StreamingActivity extends Activity {
 			}
 		} catch (Exception e) {
 			cameraDevice.release();
+			cameraDevice = null;
 			Log.d("CameraDebug", "Released cam in openCamera, exception occured");
 			Log.e(LOG_TAG, e.getMessage());
 			e.printStackTrace();
@@ -1067,6 +1071,7 @@ public class StreamingActivity extends Activity {
 
 				if (mCamera != null) { 
 					mCamera.release();
+					mCamera = null;
 					Log.d("CameraDebug", "Camera released in surfaceDestroyed");
 				}
 			} catch (RuntimeException e) {

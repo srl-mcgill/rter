@@ -159,9 +159,10 @@ public class LoginActivity extends Activity{
 		
 		//Get server url.
 		//server_url = storedValues.getString("server_url", "not-set");
+		//server_url = "http://132.206.74.142";
 		//server_url = "http://132.206.74.103";
-		//server_url = "http://rter.zapto.org";
-		server_url = "http://192.168.2.32";
+		server_url = "http://rter.zapto.org";
+		//server_url = "http://192.168.2.32";
 		
 		if(server_url.equals("not-set")){
 			// This means there is no server data present, likely because the app is newly installed.
