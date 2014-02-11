@@ -33,7 +33,7 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	private float[] rotationMatrix = new float[16]; //Change to 9 if using sensorSource, 16 otherwise
 	private float[] orientationValues = new float[3];
 	private float[] outRotationMatrix = new float[16];
-	private static LocationManager locationManager;
+	private static LocationManager mLocationManager;
 	private static SensorManager mSensorManager;
 	private static String provider;
 	//SensorFusion Variables
@@ -82,12 +82,12 @@ public class SensorSource implements SensorEventListener, LocationListener{
     private MovingAverageCompass orientationFilter;
 	
 	public SensorSource(Context context){
-		locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+		mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		Criteria criteria = new Criteria();
 		criteria.setAccuracy(Criteria.ACCURACY_FINE);
 		orientationFilter = new MovingAverageCompass(30);
 		
-		provider = locationManager.getBestProvider(criteria, true);
+		provider = mLocationManager.getBestProvider(criteria, true);
 		mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
 		
 		locationIntent = new Intent (context.getString(R.string.LocationEvent));
@@ -110,31 +110,7 @@ public class SensorSource implements SensorEventListener, LocationListener{
 			singleton = new SensorSource(context);
 		}
 		
-		locationManager.requestLocationUpdates(provider, 1000, 0, singleton); //register singleton with locationmanager
-		//		LocationClient loca;
-		//		Location loc = new Location(provider);
-		//		loc.setLatitude(15.0000);
-		//		loc.setLongitude(15.0000);
-		//		loc.setAccuracy(3.0f);
-		//		loc.setTime(System.currentTimeMillis());
-		//		try {
-		//			Location.class.getMethod("makeComplete").invoke(loc);
-		//		} catch (Exception e) {
-		//			e.printStackTrace();
-		//		}
-		//		locationManager.setTestProviderLocation(provider, loc);
-		
-//		Location loc = new Location(provider);
-//		loc.setLatitude(15.0000);
-//		loc.setLongitude(15.0000);
-//		loc.setAccuracy(3.0f);
-//		loc.setTime(System.currentTimeMillis());
-//		try {
-//			Location.class.getMethod("makeComplete").invoke(loc);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//		locationManager.setTestProviderLocation(provider, loc);
+		mLocationManager.requestLocationUpdates(provider, 1000, 0, singleton); //register singleton with locationmanager
 		mcontext = context;
 		return singleton;
 	}
@@ -174,6 +150,7 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	
 	public void stopListeners(){
 		mSensorManager.unregisterListener(this);
+		mLocationManager.removeUpdates(this);
 		initState = true;
 		initValues();
 	}
@@ -183,7 +160,7 @@ public class SensorSource implements SensorEventListener, LocationListener{
 			Log.d("Location: ", this.location+"");
 			return this.location;
 		}else{
-			return locationManager.getLastKnownLocation(provider);
+			return mLocationManager.getLastKnownLocation(provider);
 		}
 	}
 

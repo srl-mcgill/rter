@@ -33,7 +33,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.Timer;
@@ -63,9 +62,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Point;
 import android.hardware.Camera;
 import android.hardware.Camera.PreviewCallback;
-import android.hardware.Camera.Size;
 import android.hardware.SensorManager;
 import android.location.Location;
 import android.os.AsyncTask;
@@ -84,10 +83,7 @@ import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 import ca.nehil.rter.streamingapp2.overlay.CameraGLSurfaceView;
@@ -116,11 +112,9 @@ public class StreamingActivity extends Activity {
 	private CameraGLSurfaceView mGLView;
 	private OverlayController overlay;
 	private SensorSource sensorSource;
-	private Camera mCamera;
 	private int numberOfCameras;
 	private float lati;
 	private float longi;
-	//	private LocationManager locationManager;
 	private POI[] pois;
 	
 	private String[] colors = new String[] {"#ff0000", "#0000ff", "#ffff00", "#00ffff", "#ffffff"};
@@ -185,14 +179,14 @@ public class StreamingActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_streaming);
 
-		Log.d("CameraDebug", "onCreate");
-		
 		pois = new POI[0];
 		poilist = new ArrayList<POI>();
 		oldpois = new HashMap<Integer, POI>();
 
+		/* Retrieve server URL from stored app values */
 		storedValues = getSharedPreferences("CommonValues", MODE_PRIVATE);
 		server_url = storedValues.getString("server_url", "not-set");
+		
 		/* Orientation listenever implementation to orient video */
 		myOrientationEventListener = new OrientationEventListener(this, SensorManager.SENSOR_DELAY_NORMAL) {
 			@Override
@@ -207,8 +201,6 @@ public class StreamingActivity extends Activity {
 			}
 		};
 		myOrientationEventListener.enable();
-
-		Log.e(TAG, "onCreate");
 
 		/* Retrieve user auth data from cookie */
 		cookies = getSharedPreferences("RterUserCreds", MODE_PRIVATE);
@@ -233,19 +225,14 @@ public class StreamingActivity extends Activity {
 			myCookieStore.addCookie(newCookie);
 			POIs = new POIList(this, serverURL, setRterCredentials);
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}		
 
 		overlay = new OverlayController(this, POIs); // OpenGL overlay 
+
+		/* Get location */
 		sensorSource = SensorSource.getInstance(this);
-		Log.d("alok", "got sensorsource instance");
-
-		//TODO: Remove sensormanager
-		/* Orientation */
-		
 		Location location = sensorSource.getLocation();
-
 		if (location != null) {
 			lati = (float) (location.getLatitude());
 			longi = (float) (location.getLongitude());
@@ -265,34 +252,29 @@ public class StreamingActivity extends Activity {
 		/* Test, set desired orienation to north */
 		overlay.letFreeRoam(false);
 		overlay.setDesiredOrientation(0.0f);
-
+		// TODO: Alok - setDesiredOrientation?
+		
 		/* Fetch Point of interests (POI) every second from the server */
-		Timer timer = new Timer();
-		timer.scheduleAtFixedRate(new TimerTask() {
-			@Override
-			public void run() {
-				updateItems();
-			}
-		}, 1*1000, 1*1000);
+		// TODO: Alok - timer thread still used?
+//		Timer timer = new Timer();
+//		timer.scheduleAtFixedRate(new TimerTask() {
+//			@Override
+//			public void run() {
+//				updateItems();
+//			}
+//		}, 1*1000, 1*1000);
 		
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		Log.d("CameraDebug", "onResume");
 		if (mWakeLock == null) {
 			PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 			mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK,
 					CLASS_LABEL);
 			mWakeLock.acquire();
 		}
-
-		//		locationManager.requestLocationUpdates(provider, 1000, 0, sensorSource); // Register sensorSource to listen to location events
-
-		/* Register SensorSource to listen to accelerometer and magnetic field sensors */
-		//		mSensorManager.registerListener(sensorSource, mAcc, SensorManager.SENSOR_DELAY_NORMAL); 
-		//		mSensorManager.registerListener(sensorSource, mMag, SensorManager.SENSOR_DELAY_NORMAL);
 
 		/* Registering a listener for the SensorEvent and LocationEvent broadcasts sent by SensorSource */
 		LocalBroadcastManager.getInstance(this).registerReceiver(sensorBroadcastReceiver,
@@ -301,7 +283,7 @@ public class StreamingActivity extends Activity {
 				new IntentFilter(getString(R.string.LocationEvent)));
 
 		initLayout();
-		sensorSource.resetHeading(); // Initialize and start the sensors
+		sensorSource.resetHeading(); // Initialize and start the sensors for sensorfusion
 		sensorSource.initListeners();
 		attemptHandshake(); // Start recording.
 	}
@@ -309,13 +291,14 @@ public class StreamingActivity extends Activity {
 	@Override
 	protected void onPause() {
 		super.onPause();
-		Log.d("CameraDebug", "onPause");
 
 		stopRecording();
 		
+		/* Unregister from sensor and location broadcast events */
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(sensorBroadcastReceiver);
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(locationBroadcastReceiver); 
-		sensorSource.stopListeners();
+		
+		sensorSource.stopListeners(); // Stop sensorSource from receiving sensor and location updates
 		topLayout.removeAllViews(); // Removes the camera view from the layout, as it is re-added in initlayout from onResume.
 
 		if (putHeadingfeed != null) {
@@ -324,90 +307,88 @@ public class StreamingActivity extends Activity {
 			}
 		}
 
-		// @Nehil should this be removed?
-		// Because the Camera object is a shared resource, it's very
-		// important to release it when the activity is paused.
-		if (mCamera != null) {
-			mCamera.release();
-			mCamera.setPreviewCallback(null);
-			Log.d("CameraDebug", "Released cam");
-			mCamera = null;
+		if(cameraDevice != null){
+			Log.d("CameraDebug", "onPause releasing");
+			topLayout.removeView(cameraView);
+			cameraDevice.setPreviewCallback(null);
+			cameraView.getHolder().removeCallback(cameraView);
+			cameraDevice.stopPreview();
+			cameraDevice.release();
+			cameraDevice = null;
 		}
 
 		if (mWakeLock != null) {
 			mWakeLock.release();
 			mWakeLock = null;
 		}
-		
-		sensorSource.stopListeners();
 	}
 
 	@Override
 	public void onStop() {
 		super.onStop();
-		Log.d("CameraDebug", "onStop");
 		if (putHeadingfeed != null) {
 			if (putHeadingfeed.isAlive()) {
 				putHeadingfeed.interrupt();
 			}
 		}
 
-		if (mCamera != null) {
-			mCamera.release();
-			Log.d("CameraDebug", "Released cam in onStop");
-			mCamera.setPreviewCallback(null);
-			mCamera = null;
+		if(cameraDevice != null){
+			cameraDevice.stopPreview();
+			cameraView.stopPreview();
+			cameraDevice.release();
+			cameraDevice = null;
 		}
 		sensorSource.stopListeners();
 	}
-	// ca.srl.mcgill.rterresponder
+
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		Log.d("CameraDebug", "onDestroy");
 		recording = false;
 		myOrientationEventListener.disable();
 
-		if (cameraView != null) {
+		if (cameraDevice != null) {
+			Log.d("CameraDebug", "Released camDevice in onDestroy");
+			cameraDevice.stopPreview();
+			cameraView.stopPreview();
 			cameraDevice.release();
-			Log.d("CameraDebug", "Released cam in onDestroy");
 			cameraDevice = null;
 		}
 	}
 
-	public void updateItems(){
-		String response = request("items");
-		JSONTokener tokener = new JSONTokener(response);
-		try {
-			JSONArray items = new JSONArray(tokener);
-			poilist.clear();
-			for(int i = 0; i < items.length(); i++) {
-				JSONObject item = items.getJSONObject(i);
-				try {
-					POI poi = new POI(this, item.getInt("ID"), item.getDouble("Heading"), item.getDouble("Lat"), item.getDouble("Lat"), colors[poilist.size()%colors.length], item.getString("ThumbnailURI"), item.getString("Type"));
-					poilist.add(poi);
-				}
-				catch (JSONException e) {
-					//skip item
-				}
-			}
-			oldpois.clear();
-			for (int i = 0; i < pois.length; i++) {
-				oldpois.put(pois[i].poiId, pois[i]);
-			}
-
-			pois = poilist.toArray(pois);
-			//			POI.updatePOIList(poilist);
-			for(int i = 0; i < pois.length; i++) {
-				if(oldpois.get(pois[i].poiId) == null || !pois[i].curThumbnailURL.equals(oldpois.get(pois[i].poiId).curThumbnailURL)) { // If its not an old poi, or if the thumbnail is not old
-					String url = "javascript:refreshImage("+ String.valueOf(pois[i].poiId) + ", \"" + pois[i].curThumbnailURL + "\");";
-					//							mWebView.loadUrl(url);
-				}
-			}
-		} catch(JSONException e) {
-			e.printStackTrace();
-		}
-	}
+//	public void updateItems(){
+//		String response = request("items");
+//		JSONTokener tokener = new JSONTokener(response);
+//		try {
+//			JSONArray items = new JSONArray(tokener);
+//			poilist.clear();
+//			for(int i = 0; i < items.length(); i++) {
+//				JSONObject item = items.getJSONObject(i);
+//				try {
+//					POI poi = new POI(this, item.getInt("ID"), item.getDouble("Heading"), item.getDouble("Lat"), item.getDouble("Lat"), colors[poilist.size()%colors.length], item.getString("ThumbnailURI"), item.getString("Type"));
+//					poilist.add(poi);
+//				}
+//				catch (JSONException e) {
+//					//skip item
+//				}
+//			}
+//			oldpois.clear();
+//			for (int i = 0; i < pois.length; i++) {
+//				oldpois.put(pois[i].poiId, pois[i]);
+//			}
+//
+//			pois = poilist.toArray(pois);
+//			//			POI.updatePOIList(poilist);
+//			for(int i = 0; i < pois.length; i++) {
+//				if(oldpois.get(pois[i].poiId) == null || !pois[i].curThumbnailURL.equals(oldpois.get(pois[i].poiId).curThumbnailURL)) { // If its not an old poi, or if the thumbnail is not old
+//					String url = "javascript:refreshImage("+ String.valueOf(pois[i].poiId) + ", \"" + pois[i].curThumbnailURL + "\");";
+//					//							mWebView.loadUrl(url);
+//				}
+//			}
+//		} catch(JSONException e) {
+//			e.printStackTrace();
+//		}
+//	}
 
 	public String request(String resource){
 		try {
@@ -447,11 +428,12 @@ public class StreamingActivity extends Activity {
 
 	private void initLayout() {
 		/* get size of screen */
-		Log.d("CameraDebug", "initLayout");
 		Display display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE))
 				.getDefaultDisplay();
-		screenWidth = display.getWidth();
-		screenHeight = display.getHeight();
+		Point size = new Point();
+		display.getSize(size);
+		screenWidth = size.x;
+		screenHeight = size.y;
 		FrameLayout.LayoutParams layoutParam = null;
 		LayoutInflater myInflate = null;
 		myInflate = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -484,6 +466,8 @@ public class StreamingActivity extends Activity {
 				+ live_width + ":: live_height:" + live_height
 				+ ":: button_width:" + button_width + ":: button_height:"
 				+ button_height);
+		
+		Log.d("CameraDebug", "InitLayout acquired camera");
 		cameraDevice = openCamera();
 		cameraView = new CameraView(this, cameraDevice);
 
@@ -494,24 +478,6 @@ public class StreamingActivity extends Activity {
 		layoutParam = new FrameLayout.LayoutParams(screenWidth, screenHeight);
 		topLayout.addView(preViewLayout, layoutParam);
 		Log.i(LOG_TAG, "cameara preview start: OK");
-		
-		// **Button commented for Glass. attemptHandshake() called above**
-//		final Button recorderButton = (Button) findViewById(R.id.recorder_control);
-//		recorderButton.setOnClickListener(new View.OnClickListener() {
-//			@Override
-//			public void onClick(View view) {
-//				if (!recording) {
-//					Log.d(TAG, "attemptHandshaking");
-//					attemptHandshake();
-//					Log.w(LOG_TAG, "Start Button Pushed");
-//					recorderButton.setText("Stop");
-//				} else {
-//					stopRecording();
-//					Log.w(LOG_TAG, "Stop Button Pushed");
-//					recorderButton.setText("Start");
-//				}
-//			}
-//		});
 	}
 
 	/*
@@ -530,9 +496,9 @@ public class StreamingActivity extends Activity {
 				throw new Exception("No camera device found");
 			}
 		} catch (Exception e) {
-			cameraDevice.release();
-			cameraDevice.setPreviewCallback(null);
 			Log.d("CameraDebug", "Released cam in openCamera, exception occured");
+			cameraDevice.release();
+			cameraDevice = null;
 			Log.e(LOG_TAG, e.getMessage());
 			e.printStackTrace();
 		}
@@ -611,7 +577,6 @@ public class StreamingActivity extends Activity {
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		
 		return true;
 	}
 	
@@ -624,9 +589,9 @@ public class StreamingActivity extends Activity {
 			}
 			finish();
 			return true;
+			
 		} else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER){
 			// Glass touchpad tapped. Drop a beacon.
-			Log.d("MSC", "onTap fired");
 			Toast.makeText(StreamingActivity.this, "Attempting to create beacon", Toast.LENGTH_SHORT).show();
 			JSONObject jsonParams = new JSONObject();
 			Date date = new Date();
@@ -883,16 +848,12 @@ public class StreamingActivity extends Activity {
 				}
 
 			} catch (JSONException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (UnsupportedEncodingException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (ClientProtocolException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -945,24 +906,18 @@ public class StreamingActivity extends Activity {
 				}
 
 			} catch (JSONException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (UnsupportedEncodingException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (ClientProtocolException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 
 		@Override
 		public void run() {
-			Log.d(TAG, " Update heading and location thread started");
-			Log.d(TAG, " PutHedingBool : " + PutHeadingBool);
 			while (PutHeadingBool) {
 				long millis = System.currentTimeMillis();
 				this.postHeading();
@@ -971,11 +926,9 @@ public class StreamingActivity extends Activity {
 				try {
 					Thread.sleep((PutHeadingTimer - millis % 1000));
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
-
 		}
 	}
 
@@ -1000,13 +953,6 @@ public class StreamingActivity extends Activity {
 
 		@Override
 		public void surfaceCreated(SurfaceHolder holder) {
-			//			try {
-			//				stopPreview();
-			//				mCamera.setPreviewDisplay(holder);
-			//			} catch (IOException exception) {
-			//				mCamera.release();
-			//				mCamera = null;
-			//			}
 		}
 
 		public void surfaceChanged(SurfaceHolder holder, int format, int width,
@@ -1015,7 +961,6 @@ public class StreamingActivity extends Activity {
 					+ " imageHeight: " + imageHeight + " frameRate: "
 					+ frameRate);
 			Camera.Parameters camParams = mCamera.getParameters();
-			Log.d("CameraDebug", "cam angle: "+camParams.getHorizontalViewAngle());
 			camParams.setPreviewSize(imageWidth, imageHeight);
 
 			Log.v(LOG_TAG,
@@ -1026,11 +971,9 @@ public class StreamingActivity extends Activity {
 			try {
 				stopPreview();
 				mCamera.setPreviewDisplay(holder);
-				mCamera.setPreviewCallback(null);
-			} catch (IOException exception) {
+			} catch (Exception exception) {
+				Log.e("CameraDebug", "SurfaceChanged exception occured, releasing camera");
 				mCamera.release();
-				mCamera.setPreviewCallback(null);
-				Log.d("CameraDebug", "SurfaceChanged exception occured, releasing camera");
 				mCamera = null;
 			}
 			startPreview();
@@ -1040,12 +983,9 @@ public class StreamingActivity extends Activity {
 		public void surfaceDestroyed(SurfaceHolder holder) {
 			try {
 				mHolder.addCallback(null);
-				mCamera.setPreviewCallback(null);
-
-				if (mCamera != null) { 
-					mCamera.release();
-					Log.d("CameraDebug", "Camera released in surfaceDestroyed");
-					mCamera.setPreviewCallback(null);
+				if (mCamera != null) {
+					stopPreview();
+					mCamera = null;
 				}
 			} catch (RuntimeException e) {
 				// The camera has probably just been released, ignore.
@@ -1063,7 +1003,6 @@ public class StreamingActivity extends Activity {
 			if (isPreviewOn && mCamera != null) {
 				isPreviewOn = false;
 				mCamera.stopPreview();
-				mCamera.setPreviewCallback(null);
 			}
 		}
 
@@ -1096,21 +1035,6 @@ public class StreamingActivity extends Activity {
 			}
 		}
 	}
-
-//	@Override
-//	public void onClick(View arg0) {
-//		// TODO Auto-generated method stub
-//		if (!recording) {
-//			attemptHandshake();
-//			Log.w(LOG_TAG, "Start Button Pushed");
-//		} else {
-//			// This will trigger the audio recording loop to stop and then set
-//			// isRecorderStart = false;
-//			stopRecording();
-//			Log.w(LOG_TAG, "Stop Button Pushed");
-//		}
-//
-//	}
 
 	public class HandShakeTask extends AsyncTask<Void, Void, Boolean> {
 		private static final String TAG = "GetTokenActivity HandshakeTask";
@@ -1203,19 +1127,14 @@ public class StreamingActivity extends Activity {
 				}
 
 			} catch (JSONException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (UnsupportedEncodingException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (ClientProtocolException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-
 			// TODO: register the new account here.
 			return true;
 		}
@@ -1229,9 +1148,6 @@ public class StreamingActivity extends Activity {
 				Log.d(TAG, "Success of Handshake");
 				initRecorder();
 				startRecording();
-
-			} else {
-
 			}
 		}
 
