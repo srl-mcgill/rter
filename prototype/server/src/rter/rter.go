@@ -31,6 +31,7 @@ import (
 	"rter/rest"
 	"rter/storage"
 	"rter/streaming"
+	"rter/twitter"
 )
 
 // TODO: Make a flag for the secret token (video server)
@@ -122,6 +123,8 @@ func main() {
 			legacy.MultiUploadHandler(*rterDir, uploadPath, w, r)
 		},
 	)
+
+	r.HandleFunc("/twitter", twitter.TokenHandlerFunc).Methods("GET")
 
 	r.HandleFunc("/", // Web client
 		func(w http.ResponseWriter, r *http.Request) {
