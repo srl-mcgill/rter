@@ -1,10 +1,8 @@
 package twitter
 
 import (
-	"io"
 	"bytes"
 	"net/http"
-	"os"
 	"rter/auth"
 	"encoding/json"
 	"errors"
@@ -34,6 +32,8 @@ func TokenHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Couldn't build JSON: " + token.TokenType, http.StatusBadRequest)
 		return
 	}
+
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }
 
