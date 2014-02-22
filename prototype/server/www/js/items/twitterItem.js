@@ -206,21 +206,30 @@ angular.module('twitterItem',  [
 	};
 })
 
-.controller('CloseupTwitterItemCtrl', function($scope, $http, ItemCache, CloseupItemDialog) {
-	 console.log($scope.item.ContentURI);
-	 $http({method: 'jsonp', url:$scope.item.ContentURI, cache: false})
+.controller('CloseupTwitterItemCtrl', function($scope, $http, ItemCache, CloseupItemDialog, TwitterClient) {
+	console.log("TwitterToken.get()", TwitterToken.get());
+	if(typeof TwitterToken == "undefined" || TwitterToken == null) {
+		//console.log("Twitter token not set");
+		//TwitterToken = "hi";
+	}
+	TwitterClient.request($scope.item.ContentURI);
+	$http({method: 'jsonp', url:$scope.item.ContentURI, cache: false})
       .success(function(data, status) {
         console.log(data, status);
         
         $scope.searchResult = data;
 
-      })
-      .error(function(data, status, headers) {
-         alert("Error in Loading Tweets" + data, status, headers);
-        $scope.data = data || "Request failed";
-        $scope.status = status;
+     })
+     .error(function(data, status, headers) {
+	    if(status == 400) {
 
-
+	 	}
+	 	else {
+	 		alert("Error in Loading Tweets " + data, status, headers);
+	        $scope.data = data || "Request failed";
+	        $scope.status = status;
+	 	}
+        
     });
     
     
