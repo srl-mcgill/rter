@@ -124,7 +124,7 @@ func main() {
 		},
 	)
 
-	r.HandleFunc("/twitter", twitter.TokenHandlerFunc).Methods("GET")
+	r.HandleFunc("/twitter", twitter.TwitterHandlerFunc).Methods("GET")
 
 	r.HandleFunc("/", // Web client
 		func(w http.ResponseWriter, r *http.Request) {

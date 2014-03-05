@@ -254,11 +254,5 @@ angular.module('termview', [
 			navigator.geolocation.getCurrentPosition(scope.centerAt);
 		}
 	};
-})
-
-.factory('TwitterClient', function() {
-	return function(properties) {
-
-	};
 });
 
