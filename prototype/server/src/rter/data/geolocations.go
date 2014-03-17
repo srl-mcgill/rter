@@ -9,6 +9,7 @@ import (
 )
 
 type Geolocation struct {
+	ID        int64
 	ItemID    int64     //Unique of the associated Item. Tied to Item.ID in DB
 	Lat       *float64   `json:",omitempty"`
 	Lng       *float64   `json:",omitempty"`
