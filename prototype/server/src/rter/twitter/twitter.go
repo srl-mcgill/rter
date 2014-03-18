@@ -42,8 +42,6 @@ func TwitterHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	twitterURL := "https://api.twitter.com" + r.URL.Path + "?" + r.URL.RawQuery
-	fmt.Println("Twitter search URL: " + twitterURL)
-	//count=40&include_entities=true&q=fire&result_type=recent&geocode=45.56021795715051,-73.5774564743042,38.36127544070008km"
 	req, err := http.NewRequest("GET", twitterURL, nil)
 	if err != nil {
 		http.Error(w, "Failed to build request : " + err.Error(), http.StatusBadRequest)

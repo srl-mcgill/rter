@@ -60,12 +60,10 @@ angular.module('twitterItem',  [
 			});
 			google.maps.event.addListener($scope.circle, 'radius_changed', function() {
 				$scope.item.Radius = $scope.circle.getRadius();
-				console.log("Radius changed and calling buildURl");
 				$scope.buildURL();
 			});
 			google.maps.event.addListener($scope.circle, 'center_changed', function() {
 			  	$scope.marker.setPosition($scope.circle.getCenter());
-			  	console.log("Center changed and calling buildURl");
 			  	$scope.buildURL();
 			});
 		} else {
@@ -75,8 +73,6 @@ angular.module('twitterItem',  [
 
 		$scope.item.Lat = $event.latLng.lat();
 		$scope.item.Lng = $event.latLng.lng();
-
-		console.log($scope.item);
 	};	
 })
                                                                                                                                      
@@ -142,7 +138,6 @@ angular.module('twitterItem',  [
 					
 					scope.item.ContentToken = scope.extra.SearchTerm; 				
 					scope.item.ContentURI = encodeURI(searchURL);
-					console.log("Built ContentURI " + scope.item.ContentURI);
 				};
 
 
@@ -152,9 +147,7 @@ angular.module('twitterItem',  [
 						scope.map.setCenter(scope.mapCenter);
 					},
 					0
-				);
-
-				console.log(scope.item, scope.extra);			
+				);		
 				
 				scope.$watch('extra.SearchTerm', function(newVal, oldVal){
 					if(!(newVal == undefined))	scope.buildURL();
@@ -208,13 +201,9 @@ angular.module('twitterItem',  [
 })
 
 .controller('CloseupTwitterItemCtrl', function($scope, $http, ItemCache, CloseupItemDialog) {
-	 console.log($scope.item.ContentURI);
 	 $http({method: 'GET', url:$scope.item.ContentURI, cache: false})
       .success(function(data, status) {
-        console.log(data, status);
-        
         $scope.searchResult = data;
-
       })
       .error(function(data, status, headers) {
          alert("Error in Loading Tweets" + data, status, headers);
@@ -245,8 +234,6 @@ angular.module('twitterItem',  [
 			newItem.HasGeo = false;
 			newItem.Live = false;
 
-			
-			console.log("it worked",$event );
 			if(tweet.geo != null)
 			{
 				newItem.Lat = tweet.geo.coordinates[0];
@@ -256,14 +243,14 @@ angular.module('twitterItem',  [
 			
 			if(tweet.entities.media !== undefined)
 			{
-					console.log(tweet.entities.media[0].media_url);
+					//console.log(tweet.entities.media[0].media_url);
 					newItem.ThumbnailURI = tweet.entities.media[0].media_url;
 			}
 			else if(tweet.entities.urls.length > 0)
 			{
 				if(!(tweet.entities.urls[0].expanded_url.search("instagram")< 0))
 				{
-					console.log(tweet.entities.urls[0].expanded_url);
+					//console.log(tweet.entities.urls[0].expanded_url);
 					newItem.ThumbnailURI = tweet.entities.urls[0].expanded_url;
 				}
 			}
