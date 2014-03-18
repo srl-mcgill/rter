@@ -124,7 +124,7 @@ func main() {
 		},
 	)
 
-	r.HandleFunc("/twitter", twitter.TwitterHandlerFunc).Methods("GET")
+	r.PathPrefix("/twitter").Handler(http.StripPrefix("/twitter", twitter.NewTwitterHandler()))
 
 	r.HandleFunc("/", // Web client
 		func(w http.ResponseWriter, r *http.Request) {

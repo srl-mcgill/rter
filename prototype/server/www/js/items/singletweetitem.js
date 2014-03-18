@@ -24,22 +24,21 @@ angular.module('singleItem', [
 })
 
 .controller('CloseupSingleTweeItemCtrl', function($scope, $http) {
-			console.log($scope.item.ContentURI);
-			$http({method: 'jsonp', url: $scope.item.ContentURI, cache: false}).
-		      success(function(data, status) {
-		          console.log(status);
-		          console.log($scope);
-		        $scope.displayTweet =  data.html;
-		        var TweetCardHtml = angular.element(data.html);
-		        $('#tweetcard').append(TweetCardHtml);
-		        console.log($scope.displayTweet);
+	$http({method: 'GET', url: $scope.item.ContentURI, cache: false}).
+      success(function(data, status) {
+        $scope.tweet = data;
+        console.log($scope.tweet);
+        //for($scope.tweet.entites.urls)
+        //var TweetCardHtml = angular.element(data.html);
+        //$('#tweetcard').append(TweetCardHtml);
+        //console.log($scope.displayTweet);
 
-		      }).
-		      error(function(data, status) {
-		         console.log(data, status);
-		        $scope.data = data || "Request failed";
-		        $scope.status = status;
-		    });
+      }).
+      error(function(data, status) {
+         console.log("Twitter request failed", data, status);
+        $scope.data = data || "Request failed";
+        $scope.status = status;
+    });
 })
 
 .directive('closeupSingletweetItem', function() {
