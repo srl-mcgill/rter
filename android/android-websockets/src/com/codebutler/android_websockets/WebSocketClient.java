@@ -237,15 +237,12 @@ public class WebSocketClient {
     }
 
     void sendFrame(final byte[] frame) {
-    	//Log.d("MSC", new String(frame));
         mHandler.post(new Runnable() {
             @Override
             public void run() {
                 try {
                     synchronized (mSendLock) {
-                    	Log.d("MSC", new String(frame));
                         OutputStream outputStream = mSocket.getOutputStream();
-                        Log.d("MSC", "after outputStream");
                         outputStream.write(frame);
                         outputStream.flush();
                     }
