@@ -52,7 +52,6 @@ public class LoginActivity extends Activity{
 			"anonymous", "anonymous" };
 
 	private String server_url;
-	final String VALUES_SHAREDPREF_FILE = "CommonValues";
 	
 	/**
 	 * The default email to populate the email field with.
@@ -154,7 +153,7 @@ public class LoginActivity extends Activity{
 	private void serverSetup(){
 		ArrayList<String> serverList;
 		
-		storedValues = getSharedPreferences(VALUES_SHAREDPREF_FILE, MODE_PRIVATE);
+		storedValues = getSharedPreferences(getString(R.string.sharedPreferences_filename), MODE_PRIVATE);
 		storedValuesEditor = storedValues.edit();
 		
 		//Get server url.

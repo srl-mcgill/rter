@@ -35,6 +35,7 @@
     <string name="hello_world">Hello world!</string>
     
     <!-- ServerList.java strings -->
+    <string name="sharedPreferences_filename">CommonValues</string>
     <string name="add_server">Add Server</string>
     <string name="add_server_dialog_title">Add New Server</string>
     <string name="add_server_dialog_message">Type in the new server URL</string>

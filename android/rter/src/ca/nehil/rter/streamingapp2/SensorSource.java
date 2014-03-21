@@ -26,11 +26,12 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	private static SensorSource singleton = null;
 	static Context mcontext; 	// Need context for broadcast manager
 	private Location location;
-	private float declination = 0;
-	private float currentOrientation;
+	private float declination = 0; 
+	private float currentOrientation = 0;
+	private float eyeLevelInclination = 0; //Angle of inclination of Glass (and the users eye level) from the horizon.
 	private float tempCurrentOrientation = 0;
 	private float deviceOrientation;
-	private float[] rotationMatrix = new float[16]; //Change to 9 if using sensorSource, 16 otherwise
+	private float[] rotationMatrix = new float[16]; //Change to 9 if using sensorFusion, 16 otherwise
 	private float[] orientationValues = new float[3];
 	private float[] outRotationMatrix = new float[16];
 	private static LocationManager mLocationManager;
@@ -155,6 +156,10 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		initValues();
 	}
 
+	/*
+	 * Getter methods for accessing all sensor and location data from SensorSource. 
+	 */
+	
 	public Location getLocation(){
 		if(this.location != null){
 			Log.d("Location: ", this.location+"");
@@ -164,12 +169,19 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		}
 	}
 
+	/**
+	 * @return Angle, in degrees, of the horizontal orientation. 
+	 */
 	public float getCurrentOrientation(){
 		return this.currentOrientation;
 	}
-
+	
+	/**
+	 * @return Angle, in degrees, of the device on the axis perpendicular to the screen.
+	 * Is used for figuring out if the device is in landscape or portrait.
+	 */
 	public float getDeviceOrientation(){
-		return this.deviceOrientation;
+		return deviceOrientation;
 	}
 
 	public float getDeclination(){
@@ -180,6 +192,7 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		return getGyroHeading();
 	}
 	
+	// gyroOrientation is same as fusedOrientation.
 	public double getGyroHeading(){
 		return gyroOrientation[0] * 180/Math.PI;
 	}
@@ -191,7 +204,14 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	public double getMagHeading(){
 		return accMagOrientation[0] * 180/Math.PI;
 	}
-
+	
+	/**
+	 * @return Angle, in degrees, of vertical inclination. Will be 0 if user is looking straight,
+	 * 90 when looking vertically down, and -90 when lookin vertically up. 
+	 */
+	public float getEyeLevelInclination(){
+		return eyeLevelInclination;
+	}
 
 	@Override
 	public void onSensorChanged(SensorEvent sensorEvent) {
@@ -199,6 +219,7 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		case Sensor.TYPE_ACCELEROMETER:
 			// copy new acceleroeter data into accel array and calculate orientation
 			System.arraycopy(sensorEvent.values, 0, accel, 0, 3);
+			eyeLevelInclination = sensorEvent.values[0];
             calculateAccMagOrientation();
 			break;
 			
@@ -222,15 +243,16 @@ public class SensorSource implements SensorEventListener, LocationListener{
 				SensorManager.AXIS_MINUS_X, outRotationMatrix);
 		SensorManager.getOrientation(outRotationMatrix, orientationValues);
 		orientationFilter.pushValue((float) Math.toDegrees(orientationValues[0]));
-//		currentOrientation = orientationFilter.getValue() + this.getDeclination();
-		currentOrientation = (float) (Math.toDegrees(orientationValues[0]) + this.getDeclination());
+		currentOrientation = orientationFilter.getValue() + this.getDeclination();
+//		currentOrientation = (float) (Math.toDegrees(orientationValues[0]) + this.getDeclination()); //(Degrees);
+		eyeLevelInclination = (float) Math.toDegrees(orientationValues[1]); //(Degrees); down is 90 , up is -90.
 		
 		// Method 3: Ignore all differences of less than 5 degrees
 		if(Math.abs(tempCurrentOrientation - currentOrientation) > 5){
 			tempCurrentOrientation = currentOrientation;
 		}
       currentOrientation = tempCurrentOrientation;
-//      // End of Method 3
+      	// End of Method 3
 		
 		deviceOrientation = (float) Math.toDegrees(orientationValues[2]);
 

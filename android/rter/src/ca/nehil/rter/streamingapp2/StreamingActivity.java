@@ -95,6 +95,7 @@ public class StreamingActivity extends Activity {
 
 	private static String server_url;
 	private SharedPreferences storedValues;
+	private SharedPreferences.Editor storedValuesEditor;
 	private HandShakeTask handshakeTask = null;
 	private int PutHeadingTimer = 2000; //	Updating the User location, heading and orientation every 4 secs.
 	private SharedPreferences cookies;
@@ -184,7 +185,8 @@ public class StreamingActivity extends Activity {
 		oldpois = new HashMap<Integer, POI>();
 
 		/* Retrieve server URL from stored app values */
-		storedValues = getSharedPreferences("CommonValues", MODE_PRIVATE);
+		storedValues = getSharedPreferences(getString(R.string.sharedPreferences_filename), MODE_PRIVATE);
+		storedValuesEditor = storedValues.edit();
 		server_url = storedValues.getString("server_url", "not-set");
 		
 		/* Orientation listenever implementation to orient video */
@@ -494,6 +496,10 @@ public class StreamingActivity extends Activity {
 		try {
 			if(cameraDevice == null) {
 				throw new Exception("No camera device found");
+			}else{
+				storedValuesEditor.putFloat("CamVerticalViewAngle", cameraDevice.getParameters().getVerticalViewAngle());
+				storedValuesEditor.putFloat("CamHorizontalViewAngle", cameraDevice.getParameters().getHorizontalViewAngle());
+				storedValuesEditor.commit();
 			}
 		} catch (Exception e) {
 			Log.d("CameraDebug", "Released cam in openCamera, exception occured");

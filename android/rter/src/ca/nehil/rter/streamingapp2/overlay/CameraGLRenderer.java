@@ -12,6 +12,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.location.Location;
 import android.location.LocationManager;
@@ -61,6 +62,9 @@ public class CameraGLRenderer implements Renderer {
 	LocationManager locationMan;
 	private SensorSource sensorSource;
 	Point screenSize;
+	
+	private SharedPreferences storedValues;
+	private SharedPreferences.Editor storedValuesEditor;
 
 	// Constructor with global application context
 	public CameraGLRenderer(Context context, POIList POIs) {
@@ -78,10 +82,9 @@ public class CameraGLRenderer implements Renderer {
 		LocalBroadcastManager.getInstance(context).registerReceiver(locationBroadcastReceiver, 
 				new IntentFilter(context.getString(R.string.LocationEvent)));
 		
-		WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        Display display = wm.getDefaultDisplay();
+        storedValues = context.getSharedPreferences(context.getString(R.string.sharedPreferences_filename), Context.MODE_PRIVATE);
+        storedValuesEditor = storedValues.edit();
         screenSize = new Point();
-        display.getSize(screenSize);
 	}
 
 	public void indicateTurn(Indicate direction, float percentage) {
@@ -144,6 +147,11 @@ public class CameraGLRenderer implements Renderer {
 
 		screenSize.x = (int) xTotal;
 		screenSize.y = (int) yTotal;
+		storedValuesEditor.putFloat("screenSize.x", xTotal); // Needed by the POI during its render function.
+		storedValuesEditor.putFloat("screenSize.y", yTotal);
+		Log.d("CameraDebug", "scrn size renderer: " + screenSize.y);
+		storedValuesEditor.commit();
+		
 		indicatorFrame.resize(xTotal, yTotal, distance);
 		// Set the viewport (display area) to cover the entire window
 		gl.glViewport(0, 0, width, height);
