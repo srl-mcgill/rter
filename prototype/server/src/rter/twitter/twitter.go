@@ -10,7 +10,6 @@ import (
 	"errors"
 	"io"
 	"strings"
-	"fmt"
 )
 
 type twitterToken struct {
