@@ -4,6 +4,56 @@ angular.module('twitterItem',  [
 	'ui.bootstrap'
 ])
 
+.config(function($httpProvider) {
+	delete $httpProvider.defaults.headers.common["X-Requested-With"];
+	delete $httpProvider.defaults.headers.common["Origin"];
+	delete $httpProvider.defaults.headers.common["Referer"];
+	$httpProvider.interceptors.push('twitterInterceptor');
+})
+
+.factory('twitterInterceptor', function($q, $injector) {
+	//console.log($injector.get('$http'));
+	var $http;
+	var token;
+	getToken = function() {
+		$http({method: 'GET', url: '/twitter', cache: false})
+	      .success(function(data, status) {
+	        token = data.access_token;
+	        console.log("got token", token);
+	     })
+	     .error(function(data, status, headers) {
+	 		alert("Error getting Twitter token from server.");		        
+	    });
+	};
+	return {
+		'request': function(config) {
+			if(typeof config.twitter !== "undefined" && config.twitter) {
+				console.log("Twitter request", config);
+				$http = $http || $injector.get('$http');
+				if(typeof token == "undefined") {
+					getToken();
+				}
+				config.headers['Authorization'] = "Bearer " + token;
+				console.log("Request with Auth headers:", config);
+			}
+			return config || $q.when(config);
+		},
+		'response': function(response) {
+			if(typeof response.config.twitter !== "undefined" && response.config.twitter) {
+				console.log("Twitter response", response);
+			}
+			return response || $q.when(response);
+		},
+		'responseError': function(rejection) {
+	        if(typeof rejection.config.twitter !== "undefined" && rejection.config.twitter) {
+				
+				console.log("Twitter rejection", rejection);
+			}
+	        return $q.reject(rejection);
+	    }
+	};
+})
+
 .controller('FormTwitterItemCtrl', function($scope, $resource) {
 
 	//Setting defaults
@@ -126,7 +176,7 @@ angular.module('twitterItem',  [
 						console.log("Error:  Search Query not set");
 					}
 						
-					var searchURL = "http://search.twitter.com/search.json?page=1&rpp=40&callback=JSON_CALLBACK&include_entities=1"	
+					var searchURL = "https://api.twitter.com/1.1/search/tweets.json?count=40&callback=JSON_CALLBACK&include_entities=true"	
 										+ "&q=" + scope.extra.SearchTerm 
 										+ "&result_type=" + scope.extra.ResultType
 
@@ -206,21 +256,24 @@ angular.module('twitterItem',  [
 	};
 })
 
-.controller('CloseupTwitterItemCtrl', function($scope, $http, ItemCache, CloseupItemDialog) {
-	 console.log($scope.item.ContentURI);
-	 $http({method: 'jsonp', url:$scope.item.ContentURI, cache: false})
+.controller('CloseupTwitterItemCtrl', function($scope, $http, $resource, ItemCache, CloseupItemDialog) {
+	$http({method: 'GET', url:$scope.item.ContentURI, cache: false, twitter: true})
       .success(function(data, status) {
         console.log(data, status);
         
         $scope.searchResult = data;
 
-      })
-      .error(function(data, status, headers) {
-         alert("Error in Loading Tweets" + data, status, headers);
-        $scope.data = data || "Request failed";
-        $scope.status = status;
+     })
+     .error(function(data, status, headers) {
+	    if(status == 400) {
 
-
+	 	}
+	 	else {
+	 		alert("Error in Loading Tweets " + data, status, headers);
+	        $scope.data = data || "Request failed";
+	        $scope.status = status;
+	 	}
+        
     });
     
     
@@ -228,54 +281,54 @@ angular.module('twitterItem',  [
 
 	$scope.test = function(tweet, $event) {
 			
-			var newItem = {} ;
-			newItem.Type = "singletweet";
-			newItem.ContentURI = 'http://api.twitter.com/1/statuses/oembed.json?id='+tweet.id_str
-								+'&align=center&callback=JSON_CALLBACK';
-			
-			var tokenText = tweet.text;
-			var urlRegex = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/;
-			console.log(tokenText.replace(urlRegex, "'url'"));
-			newItem.ContentToken = tokenText.replace(urlRegex, "&ldquo;url&rdquo;");
-			newItem.StartTime = new Date();
-			newItem.StopTime = newItem.StartTime;
+		var newItem = {} ;
+		newItem.Type = "singletweet";
+		newItem.ContentURI = 'http://api.twitter.com/1/statuses/oembed.json?id='+tweet.id_str
+							+'&align=center&callback=JSON_CALLBACK';
+		
+		var tokenText = tweet.text;
+		var urlRegex = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/;
+		console.log(tokenText.replace(urlRegex, "'url'"));
+		newItem.ContentToken = tokenText.replace(urlRegex, "&ldquo;url&rdquo;");
+		newItem.StartTime = new Date();
+		newItem.StopTime = newItem.StartTime;
 
-			newItem.HasHeading = false;
-			newItem.HasGeo = false;
-			newItem.Live = false;
+		newItem.HasHeading = false;
+		newItem.HasGeo = false;
+		newItem.Live = false;
 
-			
-			console.log("it worked",$event );
-			if(tweet.geo != null)
+		
+		console.log("it worked",$event );
+		if(tweet.geo != null)
+		{
+			newItem.Lat = tweet.geo.coordinates[0];
+			newItem.Lng = tweet.geo.coordinates[1];					
+		}
+		console.log(newItem);
+		
+		if(tweet.entities.media !== undefined)
+		{
+				console.log(tweet.entities.media[0].media_url);
+				newItem.ThumbnailURI = tweet.entities.media[0].media_url;
+		}
+		else if(tweet.entities.urls.length > 0)
+		{
+			if(!(tweet.entities.urls[0].expanded_url.search("instagram")< 0))
 			{
-				newItem.Lat = tweet.geo.coordinates[0];
-				newItem.Lng = tweet.geo.coordinates[1];					
+				console.log(tweet.entities.urls[0].expanded_url);
+				newItem.ThumbnailURI = tweet.entities.urls[0].expanded_url;
 			}
-			console.log(newItem);
-			
-			if(tweet.entities.media !== undefined)
-			{
-					console.log(tweet.entities.media[0].media_url);
-					newItem.ThumbnailURI = tweet.entities.media[0].media_url;
+		}
+		ItemCache.create(
+		newItem,
+		function() {
+			if($scope.dialog !== undefined) {
+				$scope.dialog.close();
 			}
-			else if(tweet.entities.urls.length > 0)
-			{
-				if(!(tweet.entities.urls[0].expanded_url.search("instagram")< 0))
-				{
-					console.log(tweet.entities.urls[0].expanded_url);
-					newItem.ThumbnailURI = tweet.entities.urls[0].expanded_url;
-				}
-			}
-			ItemCache.create(
-			newItem,
-			function() {
-				if($scope.dialog !== undefined) {
-					$scope.dialog.close();
-				}
-			},
-			function(e) {
-				console.log(e);
-			});
+		},
+		function(e) {
+			console.log(e);
+		});
 	};  
 })
 

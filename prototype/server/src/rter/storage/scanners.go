@@ -49,6 +49,7 @@ func scanGeolocation(geolocation *data.Geolocation, rows *sql.Rows) error {
 	)
 
 	err := rows.Scan(
+		&geolocation.ID,
 		&geolocation.ItemID,
 		&lat,
 		&lng,
