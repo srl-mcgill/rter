@@ -10,6 +10,7 @@ nohup.out
 # Folders
 bin
 pkg
+gen
 prototype/videoserver/data/
 !prototype/videoserver/data/log
 
