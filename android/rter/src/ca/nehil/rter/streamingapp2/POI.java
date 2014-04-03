@@ -64,7 +64,7 @@ public class POI {
 		return fromLoc.bearingTo(loc);
 	}
 	public float relativeBearingTo(Location fromLoc) { //bearing relative to user position
-		Log.d("SensorDebug", "curr orien: " + sensorSource.getCurrentOrientation());
+//		Log.d("SensorDebug", "curr orien: " + sensorSource.getCurrentOrientation());
 		return minDegreeDelta(fromLoc.bearingTo(loc), sensorSource.getCurrentOrientation());
 		//		return minDegreeDelta(fromLoc.bearingTo(loc), (float)sensorSource.getHeading());
 	}
@@ -118,7 +118,7 @@ public class POI {
 		if(userLocation != null){
 			if(debugCount++ % 50 == 0) Log.d("LocationDebug", "POI received userLocation");
 			bearingToPoi = this.relativeBearingTo(userLocation);
-			Log.d("SensorDebug", "bearing to: " + bearingToPoi);
+//			Log.d("SensorDebug", "bearing to: " + bearingToPoi);
 			distance = this.distanceTo(userLocation);
 			calculateFrameSize(distance);
 			// Interpolate the values from 0.5 meters - 20 meters to lie between 4.2 and 0.5.

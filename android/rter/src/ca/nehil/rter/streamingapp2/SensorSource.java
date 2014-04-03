@@ -141,6 +141,9 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		mSensorManager.registerListener(this,
 				mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
 				SensorManager.SENSOR_DELAY_NORMAL);
+		mSensorManager.registerListener(this, 
+				mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY),
+				SensorManager.SENSOR_DELAY_NORMAL);
 	}
 
 	private void initGyroListener() {
@@ -217,9 +220,7 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	public void onSensorChanged(SensorEvent sensorEvent) {
 		switch (sensorEvent.sensor.getType()) {
 		case Sensor.TYPE_ACCELEROMETER:
-			// copy new acceleroeter data into accel array and calculate orientation
-//			System.arraycopy(sensorEvent.values, 0, accel, 0, 3);
-			eyeLevelInclination = sensorEvent.values[0];
+			// copy new accelerometer data into accel array and calculate orientation
 			accel = lowPass(sensorEvent.values.clone(), accel);
 			break;
 			
@@ -231,7 +232,11 @@ public class SensorSource implements SensorEventListener, LocationListener{
 			
 		case Sensor.TYPE_GYROSCOPE:
 			//process gyro data
-			gyroFunction(sensorEvent);
+//			gyroFunction(sensorEvent);
+			break;
+		
+		case Sensor.TYPE_GRAVITY:
+//			accel = lowPass(sensorEvent.values.clone(), accel);
 			break;
 		}
 
@@ -240,17 +245,18 @@ public class SensorSource implements SensorEventListener, LocationListener{
 
 		if (!SensorManager.getRotationMatrix(rotationMatrix, null, accel, magnet))
 			return;
-		SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_Z,
-				SensorManager.AXIS_MINUS_X, outRotationMatrix);
+		SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_X,
+				SensorManager.AXIS_Z, outRotationMatrix);
 		SensorManager.getOrientation(outRotationMatrix, orientationValues);
 		
 //		orientationFilter.pushValue((float) Math.toDegrees(orientationValues[0])); // If using moving average
 //		currentOrientation = orientationFilter.getValue() + this.getDeclination(); // If using moving average compass
-
+		
 		currentOrientation = (float) (Math.toDegrees(orientationValues[0]) + this.getDeclination()); //(Degrees);
 		eyeLevelInclination = (float) Math.toDegrees(orientationValues[1]); //(Degrees); down is 90 , up is -90.
 		deviceOrientation = (float) Math.toDegrees(orientationValues[2]);
-
+		Log.d("SensorDebug", "curr: " + currentOrientation + " eye: " + eyeLevelInclination);
+		
 		sendSensorBroadcast(); 
 	}
 	
@@ -273,7 +279,7 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	    }
 	    return output;
 	}
-
+	
 	@Override
 	public void onLocationChanged(Location location) {
 		GeomagneticField gmf = new GeomagneticField(
