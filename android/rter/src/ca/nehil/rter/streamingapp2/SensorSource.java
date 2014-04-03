@@ -141,6 +141,9 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		mSensorManager.registerListener(this,
 				mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
 				SensorManager.SENSOR_DELAY_NORMAL);
+		mSensorManager.registerListener(this, 
+				mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY),
+				SensorManager.SENSOR_DELAY_NORMAL);
 	}
 
 	private void initGyroListener() {
@@ -217,20 +220,23 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	public void onSensorChanged(SensorEvent sensorEvent) {
 		switch (sensorEvent.sensor.getType()) {
 		case Sensor.TYPE_ACCELEROMETER:
-			// copy new acceleroeter data into accel array and calculate orientation
-			System.arraycopy(sensorEvent.values, 0, accel, 0, 3);
-			eyeLevelInclination = sensorEvent.values[0];
-            calculateAccMagOrientation();
+			// copy new accelerometer data into accel array and calculate orientation
+			accel = lowPass(sensorEvent.values.clone(), accel);
 			break;
 			
 		case Sensor.TYPE_MAGNETIC_FIELD:
 			// copy new magnetometer data into magnet array
-			System.arraycopy(sensorEvent.values, 0, magnet, 0, 3);
+//			System.arraycopy(sensorEvent.values, 0, magnet, 0, 3);
+			magnet = lowPass(sensorEvent.values.clone(), magnet);
 			break;
 			
 		case Sensor.TYPE_GYROSCOPE:
 			//process gyro data
-			gyroFunction(sensorEvent);
+//			gyroFunction(sensorEvent);
+			break;
+		
+		case Sensor.TYPE_GRAVITY:
+//			accel = lowPass(sensorEvent.values.clone(), accel);
 			break;
 		}
 
@@ -239,26 +245,41 @@ public class SensorSource implements SensorEventListener, LocationListener{
 
 		if (!SensorManager.getRotationMatrix(rotationMatrix, null, accel, magnet))
 			return;
-		SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_Z,
-				SensorManager.AXIS_MINUS_X, outRotationMatrix);
+		SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_X,
+				SensorManager.AXIS_Z, outRotationMatrix);
 		SensorManager.getOrientation(outRotationMatrix, orientationValues);
-		orientationFilter.pushValue((float) Math.toDegrees(orientationValues[0]));
-		currentOrientation = orientationFilter.getValue() + this.getDeclination();
-//		currentOrientation = (float) (Math.toDegrees(orientationValues[0]) + this.getDeclination()); //(Degrees);
+		
+//		orientationFilter.pushValue((float) Math.toDegrees(orientationValues[0])); // If using moving average
+//		currentOrientation = orientationFilter.getValue() + this.getDeclination(); // If using moving average compass
+		
+		currentOrientation = (float) (Math.toDegrees(orientationValues[0]) + this.getDeclination()); //(Degrees);
 		eyeLevelInclination = (float) Math.toDegrees(orientationValues[1]); //(Degrees); down is 90 , up is -90.
-		
-		// Method 3: Ignore all differences of less than 5 degrees
-		if(Math.abs(tempCurrentOrientation - currentOrientation) > 5){
-			tempCurrentOrientation = currentOrientation;
-		}
-      currentOrientation = tempCurrentOrientation;
-      	// End of Method 3
-		
 		deviceOrientation = (float) Math.toDegrees(orientationValues[2]);
-
+		Log.d("SensorDebug", "curr: " + currentOrientation + " eye: " + eyeLevelInclination);
+		
 		sendSensorBroadcast(); 
 	}
-
+	
+	/*
+	 * 	time smoothing constant for low-pass filter
+	 * 0 <= alpha <= 1 ; a smaller value basically means more smoothing
+	 * See: http://en.wikipedia.org/wiki/Low-pass_filter#Discrete-time_realization
+	 */
+	static final float ALPHA = 0.15f;
+	
+	/**
+	 * @see http://en.wikipedia.org/wiki/Low-pass_filter#Algorithmic_implementation
+	 * @see Adapted from http://blog.thomnichols.org/2011/08/smoothing-sensor-data-with-a-low-pass-filter
+	 */
+	protected float[] lowPass( float[] input, float[] output ) {
+	    if ( output == null ) return input;
+	     
+	    for ( int i=0; i<input.length; i++ ) {
+	        output[i] = output[i] + ALPHA * (input[i] - output[i]);
+	    }
+	    return output;
+	}
+	
 	@Override
 	public void onLocationChanged(Location location) {
 		GeomagneticField gmf = new GeomagneticField(
