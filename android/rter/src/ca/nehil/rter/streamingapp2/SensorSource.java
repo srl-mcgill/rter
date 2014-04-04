@@ -26,14 +26,15 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	private static SensorSource singleton = null;
 	static Context mcontext; 	// Need context for broadcast manager
 	private Location location;
-	private float declination = 0;
-	private float currentOrientation;
+	private float declination = 0; 
+	private float currentOrientation = 0;
+	private float eyeLevelInclination = 0; //Angle of inclination of Glass (and the users eye level) from the horizon.
 	private float tempCurrentOrientation = 0;
 	private float deviceOrientation;
-	private float[] rotationMatrix = new float[16]; //Change to 9 if using sensorSource, 16 otherwise
+	private float[] rotationMatrix = new float[16]; //Change to 9 if using sensorFusion, 16 otherwise
 	private float[] orientationValues = new float[3];
 	private float[] outRotationMatrix = new float[16];
-	private static LocationManager locationManager;
+	private static LocationManager mLocationManager;
 	private static SensorManager mSensorManager;
 	private static String provider;
 	//SensorFusion Variables
@@ -82,12 +83,12 @@ public class SensorSource implements SensorEventListener, LocationListener{
     private MovingAverageCompass orientationFilter;
 	
 	public SensorSource(Context context){
-		locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+		mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		Criteria criteria = new Criteria();
 		criteria.setAccuracy(Criteria.ACCURACY_FINE);
 		orientationFilter = new MovingAverageCompass(30);
 		
-		provider = locationManager.getBestProvider(criteria, true);
+		provider = mLocationManager.getBestProvider(criteria, true);
 		mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
 		
 		locationIntent = new Intent (context.getString(R.string.LocationEvent));
@@ -110,31 +111,7 @@ public class SensorSource implements SensorEventListener, LocationListener{
 			singleton = new SensorSource(context);
 		}
 		
-		locationManager.requestLocationUpdates(provider, 1000, 0, singleton); //register singleton with locationmanager
-		//		LocationClient loca;
-		//		Location loc = new Location(provider);
-		//		loc.setLatitude(15.0000);
-		//		loc.setLongitude(15.0000);
-		//		loc.setAccuracy(3.0f);
-		//		loc.setTime(System.currentTimeMillis());
-		//		try {
-		//			Location.class.getMethod("makeComplete").invoke(loc);
-		//		} catch (Exception e) {
-		//			e.printStackTrace();
-		//		}
-		//		locationManager.setTestProviderLocation(provider, loc);
-		
-//		Location loc = new Location(provider);
-//		loc.setLatitude(15.0000);
-//		loc.setLongitude(15.0000);
-//		loc.setAccuracy(3.0f);
-//		loc.setTime(System.currentTimeMillis());
-//		try {
-//			Location.class.getMethod("makeComplete").invoke(loc);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//		locationManager.setTestProviderLocation(provider, loc);
+		mLocationManager.requestLocationUpdates(provider, 1000, 0, singleton); //register singleton with locationmanager
 		mcontext = context;
 		return singleton;
 	}
@@ -164,6 +141,9 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		mSensorManager.registerListener(this,
 				mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
 				SensorManager.SENSOR_DELAY_NORMAL);
+		mSensorManager.registerListener(this, 
+				mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY),
+				SensorManager.SENSOR_DELAY_NORMAL);
 	}
 
 	private void initGyroListener() {
@@ -174,25 +154,37 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	
 	public void stopListeners(){
 		mSensorManager.unregisterListener(this);
+		mLocationManager.removeUpdates(this);
 		initState = true;
 		initValues();
 	}
 
+	/*
+	 * Getter methods for accessing all sensor and location data from SensorSource. 
+	 */
+	
 	public Location getLocation(){
 		if(this.location != null){
 			Log.d("Location: ", this.location+"");
 			return this.location;
 		}else{
-			return locationManager.getLastKnownLocation(provider);
+			return mLocationManager.getLastKnownLocation(provider);
 		}
 	}
 
+	/**
+	 * @return Angle, in degrees, of the horizontal orientation. 
+	 */
 	public float getCurrentOrientation(){
 		return this.currentOrientation;
 	}
-
+	
+	/**
+	 * @return Angle, in degrees, of the device on the axis perpendicular to the screen.
+	 * Is used for figuring out if the device is in landscape or portrait.
+	 */
 	public float getDeviceOrientation(){
-		return this.deviceOrientation;
+		return deviceOrientation;
 	}
 
 	public float getDeclination(){
@@ -203,6 +195,7 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		return getGyroHeading();
 	}
 	
+	// gyroOrientation is same as fusedOrientation.
 	public double getGyroHeading(){
 		return gyroOrientation[0] * 180/Math.PI;
 	}
@@ -214,25 +207,36 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	public double getMagHeading(){
 		return accMagOrientation[0] * 180/Math.PI;
 	}
-
+	
+	/**
+	 * @return Angle, in degrees, of vertical inclination. Will be 0 if user is looking straight,
+	 * 90 when looking vertically down, and -90 when lookin vertically up. 
+	 */
+	public float getEyeLevelInclination(){
+		return eyeLevelInclination;
+	}
 
 	@Override
 	public void onSensorChanged(SensorEvent sensorEvent) {
 		switch (sensorEvent.sensor.getType()) {
 		case Sensor.TYPE_ACCELEROMETER:
-			// copy new acceleroeter data into accel array and calculate orientation
-			System.arraycopy(sensorEvent.values, 0, accel, 0, 3);
-            calculateAccMagOrientation();
+			// copy new accelerometer data into accel array and calculate orientation
+			accel = lowPass(sensorEvent.values.clone(), accel);
 			break;
 			
 		case Sensor.TYPE_MAGNETIC_FIELD:
 			// copy new magnetometer data into magnet array
-			System.arraycopy(sensorEvent.values, 0, magnet, 0, 3);
+//			System.arraycopy(sensorEvent.values, 0, magnet, 0, 3);
+			magnet = lowPass(sensorEvent.values.clone(), magnet);
 			break;
 			
 		case Sensor.TYPE_GYROSCOPE:
 			//process gyro data
-			gyroFunction(sensorEvent);
+//			gyroFunction(sensorEvent);
+			break;
+		
+		case Sensor.TYPE_GRAVITY:
+//			accel = lowPass(sensorEvent.values.clone(), accel);
 			break;
 		}
 
@@ -241,25 +245,41 @@ public class SensorSource implements SensorEventListener, LocationListener{
 
 		if (!SensorManager.getRotationMatrix(rotationMatrix, null, accel, magnet))
 			return;
-		SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_Z,
-				SensorManager.AXIS_MINUS_X, outRotationMatrix);
+		SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_X,
+				SensorManager.AXIS_Z, outRotationMatrix);
 		SensorManager.getOrientation(outRotationMatrix, orientationValues);
-		orientationFilter.pushValue((float) Math.toDegrees(orientationValues[0]));
-//		currentOrientation = orientationFilter.getValue() + this.getDeclination();
-		currentOrientation = (float) (Math.toDegrees(orientationValues[0]) + this.getDeclination());
 		
-		// Method 3: Ignore all differences of less than 5 degrees
-		if(Math.abs(tempCurrentOrientation - currentOrientation) > 5){
-			tempCurrentOrientation = currentOrientation;
-		}
-      currentOrientation = tempCurrentOrientation;
-//      // End of Method 3
+//		orientationFilter.pushValue((float) Math.toDegrees(orientationValues[0])); // If using moving average
+//		currentOrientation = orientationFilter.getValue() + this.getDeclination(); // If using moving average compass
 		
+		currentOrientation = (float) (Math.toDegrees(orientationValues[0]) + this.getDeclination()); //(Degrees);
+		eyeLevelInclination = (float) Math.toDegrees(orientationValues[1]); //(Degrees); down is 90 , up is -90.
 		deviceOrientation = (float) Math.toDegrees(orientationValues[2]);
-
+		Log.d("SensorDebug", "curr: " + currentOrientation + " eye: " + eyeLevelInclination);
+		
 		sendSensorBroadcast(); 
 	}
-
+	
+	/*
+	 * 	time smoothing constant for low-pass filter
+	 * 0 <= alpha <= 1 ; a smaller value basically means more smoothing
+	 * See: http://en.wikipedia.org/wiki/Low-pass_filter#Discrete-time_realization
+	 */
+	static final float ALPHA = 0.15f;
+	
+	/**
+	 * @see http://en.wikipedia.org/wiki/Low-pass_filter#Algorithmic_implementation
+	 * @see Adapted from http://blog.thomnichols.org/2011/08/smoothing-sensor-data-with-a-low-pass-filter
+	 */
+	protected float[] lowPass( float[] input, float[] output ) {
+	    if ( output == null ) return input;
+	     
+	    for ( int i=0; i<input.length; i++ ) {
+	        output[i] = output[i] + ALPHA * (input[i] - output[i]);
+	    }
+	    return output;
+	}
+	
 	@Override
 	public void onLocationChanged(Location location) {
 		GeomagneticField gmf = new GeomagneticField(
