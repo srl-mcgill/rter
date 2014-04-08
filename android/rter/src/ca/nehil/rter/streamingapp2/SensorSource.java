@@ -1,5 +1,9 @@
 package ca.nehil.rter.streamingapp2;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -144,6 +148,9 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		mSensorManager.registerListener(this, 
 				mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY),
 				SensorManager.SENSOR_DELAY_NORMAL);
+		mSensorManager.registerListener(this,
+				mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR),
+				SensorManager.SENSOR_DELAY_NORMAL);
 	}
 
 	private void initGyroListener() {
@@ -215,69 +222,27 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	public float getEyeLevelInclination(){
 		return eyeLevelInclination;
 	}
-
+	
 	@Override
 	public void onSensorChanged(SensorEvent sensorEvent) {
 		switch (sensorEvent.sensor.getType()) {
-		case Sensor.TYPE_ACCELEROMETER:
-			// copy new accelerometer data into accel array and calculate orientation
-			accel = lowPass(sensorEvent.values.clone(), accel);
-			break;
-			
-		case Sensor.TYPE_MAGNETIC_FIELD:
-			// copy new magnetometer data into magnet array
-//			System.arraycopy(sensorEvent.values, 0, magnet, 0, 3);
-			magnet = lowPass(sensorEvent.values.clone(), magnet);
-			break;
-			
-		case Sensor.TYPE_GYROSCOPE:
-			//process gyro data
-//			gyroFunction(sensorEvent);
-			break;
 		
-		case Sensor.TYPE_GRAVITY:
-//			accel = lowPass(sensorEvent.values.clone(), accel);
-			break;
+		case Sensor.TYPE_ROTATION_VECTOR:
+			rotationMatrix=new float[16];
+			SensorManager.getRotationMatrixFromVector(rotationMatrix, sensorEvent.values);
 		}
-
-		if (accel == null || magnet == null)
-			return;
-
-		if (!SensorManager.getRotationMatrix(rotationMatrix, null, accel, magnet))
-			return;
+		
 		SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_X,
-				SensorManager.AXIS_Z, outRotationMatrix);
+				SensorManager.AXIS_Z, outRotationMatrix);  	// Remap coordinate System to compensate for the landscape position of device
 		SensorManager.getOrientation(outRotationMatrix, orientationValues);
 		
-//		orientationFilter.pushValue((float) Math.toDegrees(orientationValues[0])); // If using moving average
-//		currentOrientation = orientationFilter.getValue() + this.getDeclination(); // If using moving average compass
+		currentOrientation = (float) (Math.toDegrees(orientationValues[0]) + this.getDeclination()); //Azimuth; (Degrees);
+		eyeLevelInclination = (float) Math.toDegrees(orientationValues[1]); //Pitch; (Degrees); down is 90 , up is -90.
+		deviceOrientation = (float) Math.toDegrees(orientationValues[2]); // Roll;
+
+//		Log.d("SensorDebug", "az: " + currentOrientation + " pitch: " + eyeLevelInclination + " roll: " + deviceOrientation);
 		
-		currentOrientation = (float) (Math.toDegrees(orientationValues[0]) + this.getDeclination()); //(Degrees);
-		eyeLevelInclination = (float) Math.toDegrees(orientationValues[1]); //(Degrees); down is 90 , up is -90.
-		deviceOrientation = (float) Math.toDegrees(orientationValues[2]);
-		Log.d("SensorDebug", "curr: " + currentOrientation + " eye: " + eyeLevelInclination);
-		
-		sendSensorBroadcast(); 
-	}
-	
-	/*
-	 * 	time smoothing constant for low-pass filter
-	 * 0 <= alpha <= 1 ; a smaller value basically means more smoothing
-	 * See: http://en.wikipedia.org/wiki/Low-pass_filter#Discrete-time_realization
-	 */
-	static final float ALPHA = 0.15f;
-	
-	/**
-	 * @see http://en.wikipedia.org/wiki/Low-pass_filter#Algorithmic_implementation
-	 * @see Adapted from http://blog.thomnichols.org/2011/08/smoothing-sensor-data-with-a-low-pass-filter
-	 */
-	protected float[] lowPass( float[] input, float[] output ) {
-	    if ( output == null ) return input;
-	     
-	    for ( int i=0; i<input.length; i++ ) {
-	        output[i] = output[i] + ALPHA * (input[i] - output[i]);
-	    }
-	    return output;
+		sendSensorBroadcast();  // Let other classes know of update to sensor data.
 	}
 	
 	@Override
