@@ -538,16 +538,20 @@ public class StreamingActivity extends Activity {
 	public void startRecording() {
 		putHeadingfeed = new PutSensorsFeed(this.handler,
 				this.notificationRunnable);
-		try {
-			PutHeadingBool = true;
-			putHeadingfeed.start();
-			recorder.start();
-			startTime = System.currentTimeMillis();
-			recording = true;
-			// audioThread.start();
+		if(recorder != null){
+			try {
+				PutHeadingBool = true;
+				putHeadingfeed.start();
+				recorder.start();
+				startTime = System.currentTimeMillis();
+				recording = true;
+				// audioThread.start();
 
-		} catch (FFmpegFrameSender.Exception e) {
-			e.printStackTrace();
+			} catch (FFmpegFrameSender.Exception e) {
+				e.printStackTrace();
+			}
+		}else{
+			Toast.makeText(this, "Unable to connect to the server", Toast.LENGTH_LONG).show();
 		}
 	}
 
