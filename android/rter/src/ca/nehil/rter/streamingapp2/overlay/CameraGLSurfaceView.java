@@ -1,18 +1,9 @@
 package ca.nehil.rter.streamingapp2.overlay;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
-import ca.nehil.rter.streamingapp2.POI;
 import ca.nehil.rter.streamingapp2.POIList;
-import ca.nehil.rter.streamingapp2.R;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.PixelFormat;
 import android.opengl.GLSurfaceView;
-import android.support.v4.content.LocalBroadcastManager;
 
 public class CameraGLSurfaceView extends GLSurfaceView {
 	protected CameraGLRenderer camGLRenderer;
