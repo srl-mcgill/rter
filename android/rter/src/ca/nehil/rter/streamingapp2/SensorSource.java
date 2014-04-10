@@ -139,18 +139,8 @@ public class SensorSource implements SensorEventListener, LocationListener{
 
 	public void initListeners(){
 		mSensorManager.registerListener(this,
-				mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-				SensorManager.SENSOR_DELAY_NORMAL);
-
-		mSensorManager.registerListener(this,
-				mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
-				SensorManager.SENSOR_DELAY_NORMAL);
-		mSensorManager.registerListener(this, 
-				mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY),
-				SensorManager.SENSOR_DELAY_NORMAL);
-		mSensorManager.registerListener(this,
 				mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR),
-				SensorManager.SENSOR_DELAY_NORMAL);
+				SensorManager.SENSOR_DELAY_FASTEST);
 	}
 
 	private void initGyroListener() {

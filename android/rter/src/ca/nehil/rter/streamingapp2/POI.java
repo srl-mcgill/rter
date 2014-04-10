@@ -149,11 +149,15 @@ public class POI {
 		gl.glTranslatef((float)framePositionX, (float)framePositionY, -6.0f);
 		gl.glScalef(scale, scale, scale);
 		
-		if(this.type.equals("streaming-video-v1") || this.type.equals("type1")){
+		if(squareFrame == (null) || triangleFrame == (null)){
 			squareFrame = new IndicatorFrame();
+			triangleFrame = new Triangle();
+			Log.d("CameraDebug", "created new objects");
+		}
+		
+		if(this.type.equals("streaming-video-v1") || this.type.equals("type1")){
 			squareFrame.draw(gl);
 		}else if (this.type.equals("beacon") || this.type.equals("type2")){
-			triangleFrame = new Triangle();
 			triangleFrame.draw(gl);
 		}
 	}
