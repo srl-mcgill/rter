@@ -51,10 +51,7 @@ import org.json.JSONObject;
 import com.loopj.android.http.*;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.hardware.Camera;
@@ -65,7 +62,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
@@ -250,12 +246,6 @@ public class StreamingActivity extends Activity {
 			mWakeLock.acquire();
 		}
 
-		/* Registering a listener for the SensorEvent and LocationEvent broadcasts sent by SensorSource */
-		LocalBroadcastManager.getInstance(this).registerReceiver(sensorBroadcastReceiver,
-				new IntentFilter(getString(R.string.SensorEvent)));
-		LocalBroadcastManager.getInstance(this).registerReceiver(locationBroadcastReceiver, 
-				new IntentFilter(getString(R.string.LocationEvent)));
-
 		initLayout();
 		sensorSource.initListeners();
 		attemptHandshake(); // Start recording.
@@ -266,11 +256,6 @@ public class StreamingActivity extends Activity {
 		super.onPause();
 
 		stopRecording();
-
-		/* Unregister from sensor and location broadcast events */
-		LocalBroadcastManager.getInstance(this).unregisterReceiver(sensorBroadcastReceiver);
-		LocalBroadcastManager.getInstance(this).unregisterReceiver(locationBroadcastReceiver); 
-
 		sensorSource.stopListeners(); // Stop sensorSource from receiving sensor and location updates
 		topLayout.removeAllViews(); // Removes the camera view from the layout, as it is re-added in initlayout from onResume.
 
@@ -610,28 +595,6 @@ public class StreamingActivity extends Activity {
 
 	}
 
-	/* Receiver for Sensor broadcast events */ 
-	private BroadcastReceiver sensorBroadcastReceiver = new BroadcastReceiver() {
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			// Extract data included in the Intent
-		}
-	};
-
-	/* Receiver for Location broadcast events  */
-	private BroadcastReceiver locationBroadcastReceiver = new BroadcastReceiver() {
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			Location location;
-			location = sensorSource.getLocation();
-			Log.d("alok", "streaming activity location:"+location);
-			lati = (float) (location.getLatitude());
-			longi = (float) (location.getLongitude());
-		}
-	};
-
 	public static byte[] convertStringToByteArray(String s) {
 		byte[] theByteArray = s.getBytes();
 		Log.e(TAG, "length of byte array" + theByteArray.length);
@@ -747,7 +710,6 @@ public class StreamingActivity extends Activity {
 				float lat = lati;
 				float lng = longi;
 				float heading = sensorSource.getCurrentOrientation();
-				//				float heading = (float)sensorSource.getHeading();
 				jsonObjSend.put("Lat", lat);
 				jsonObjSend.put("Lng", lng);
 				jsonObjSend.put("Heading", heading);
@@ -1148,10 +1110,10 @@ public class StreamingActivity extends Activity {
 
 }
 
-
-class FrameInfo {
-	public byte[] uid;
-	public byte[] lat;
-	public byte[] lon;
-	public byte[] orientation;
-}
+//
+//class FrameInfo {
+//	public byte[] uid;
+//	public byte[] lat;
+//	public byte[] lon;
+//	public byte[] orientation;
+//}
