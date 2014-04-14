@@ -2,6 +2,7 @@ package ca.nehil.rter.streamingapp2;
 
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.GeomagneticField;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -29,6 +30,8 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	private Intent locationIntent;
 	private Intent sensorIntent;
 	private LocalBroadcastManager localBroadcastManager;
+	private float[] orientationValues = new float[3];
+	private float declination = 0;
 
 	public SensorSource(Context context){
 		mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
@@ -56,11 +59,11 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	public void initListeners(){
 		mSensorManager.registerListener(this,
 				mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR),
-				SensorManager.SENSOR_DELAY_FASTEST);
+				SensorManager.SENSOR_DELAY_NORMAL);
 	}
 
 	/**
-	 * @return The rotation matrix received from the sensors
+	 * @return The rotation matrix received from the sensors. Sent directly to openGL for rendering.
 	 */
 	public float[] getLandscapeRotationMatrix(){
 		return outRotationMatrix;
@@ -87,6 +90,10 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	public float getCurrentOrientation(){
 		return this.currentOrientation;
 	}
+	
+	public float getDeclination(){
+		return declination;
+	}
 
 	@Override
 	public void onSensorChanged(SensorEvent sensorEvent) {
@@ -99,11 +106,16 @@ public class SensorSource implements SensorEventListener, LocationListener{
 
 		SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_Y,
 				SensorManager.AXIS_MINUS_X, outRotationMatrix);  	// Remap coordinate System to compensate for the landscape position of device
+		SensorManager.getOrientation(outRotationMatrix, orientationValues);
+		currentOrientation = (float) (Math.toDegrees(orientationValues[0]) + this.getDeclination());
 		sendSensorBroadcast();  // Let other classes know of update to sensor data.
 	}
 
 	@Override
 	public void onLocationChanged(Location location) {
+		GeomagneticField gmf = new GeomagneticField(
+				(float)location.getLatitude(), (float)location.getLongitude(), (float)location.getAltitude(), System.currentTimeMillis());
+		declination = gmf.getDeclination();
 		this.location = location;
 		Log.d("LocationDebug", "location broadcast: "+location);
 		sendLocationBroadcast();
