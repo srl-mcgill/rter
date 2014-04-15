@@ -32,11 +32,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.TimeZone;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -49,18 +45,13 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.cookie.BasicClientCookie;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONTokener;
 
 import com.loopj.android.http.*;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.hardware.Camera;
@@ -71,7 +62,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
@@ -94,12 +84,11 @@ import static com.googlecode.javacv.cpp.opencv_core.*;
 public class StreamingActivity extends Activity {
 
 	private static String server_url;
-	private SharedPreferences storedValues;
-	private SharedPreferences.Editor storedValuesEditor;
 	private HandShakeTask handshakeTask = null;
 	private int PutHeadingTimer = 2000; //	Updating the User location, heading and orientation every 4 secs.
+	private SharedPreferences storedValues;
 	private SharedPreferences cookies;
-	private SharedPreferences.Editor prefEditor;
+	private SharedPreferences.Editor cookieEditor;
 	private Boolean PutHeadingBool = false;
 	private String setUsername = null;
 	private String setRterCredentials = null;
@@ -116,9 +105,6 @@ public class StreamingActivity extends Activity {
 	private int numberOfCameras;
 	private float lati;
 	private float longi;
-	private POI[] pois;
-	
-	private String[] colors = new String[] {"#ff0000", "#0000ff", "#ffff00", "#00ffff", "#ffffff"};
 
 	/*************
 	 * Mikes variables for JAVACV testing
@@ -147,8 +133,6 @@ public class StreamingActivity extends Activity {
 	/* mikes variables ends */
 
 	ArrayList<POI> poilist;
-	Map<Integer, POI> oldpois;
-	
 	private POIList POIs;
 	private static AsyncHttpClient client = new AsyncHttpClient();
 
@@ -180,15 +164,12 @@ public class StreamingActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_streaming);
 
-		pois = new POI[0];
 		poilist = new ArrayList<POI>();
-		oldpois = new HashMap<Integer, POI>();
 
 		/* Retrieve server URL from stored app values */
 		storedValues = getSharedPreferences(getString(R.string.sharedPreferences_filename), MODE_PRIVATE);
-		storedValuesEditor = storedValues.edit();
 		server_url = storedValues.getString("server_url", "not-set");
-		
+
 		/* Orientation listenever implementation to orient video */
 		myOrientationEventListener = new OrientationEventListener(this, SensorManager.SENSOR_DELAY_NORMAL) {
 			@Override
@@ -206,7 +187,7 @@ public class StreamingActivity extends Activity {
 
 		/* Retrieve user auth data from cookie */
 		cookies = getSharedPreferences("RterUserCreds", MODE_PRIVATE);
-		prefEditor = cookies.edit();
+		cookieEditor = cookies.edit();
 		setUsername = cookies.getString("Username", "not-set");
 		setRterCredentials = cookies.getString("RterCreds", "not-set");
 		if (setRterCredentials.equalsIgnoreCase("not-set")
@@ -214,7 +195,7 @@ public class StreamingActivity extends Activity {
 			Log.e("PREFS", "Login Not successful, please restart");
 		}
 		Log.d("PREFS", "Prefs ==> rter_Creds:" + setRterCredentials);
-		
+
 		URL serverURL = null;
 		try {
 			serverURL = new URL(server_url);
@@ -252,20 +233,7 @@ public class StreamingActivity extends Activity {
 		mWakeLock.acquire();
 
 		/* Test, set desired orienation to north */
-		overlay.letFreeRoam(false);
 		overlay.setDesiredOrientation(0.0f);
-		// TODO: Alok - setDesiredOrientation?
-		
-		/* Fetch Point of interests (POI) every second from the server */
-		// TODO: Alok - timer thread still used?
-//		Timer timer = new Timer();
-//		timer.scheduleAtFixedRate(new TimerTask() {
-//			@Override
-//			public void run() {
-//				updateItems();
-//			}
-//		}, 1*1000, 1*1000);
-		
 	}
 
 	@Override
@@ -278,14 +246,7 @@ public class StreamingActivity extends Activity {
 			mWakeLock.acquire();
 		}
 
-		/* Registering a listener for the SensorEvent and LocationEvent broadcasts sent by SensorSource */
-		LocalBroadcastManager.getInstance(this).registerReceiver(sensorBroadcastReceiver,
-				new IntentFilter(getString(R.string.SensorEvent)));
-		LocalBroadcastManager.getInstance(this).registerReceiver(locationBroadcastReceiver, 
-				new IntentFilter(getString(R.string.LocationEvent)));
-
 		initLayout();
-		sensorSource.resetHeading(); // Initialize and start the sensors for sensorfusion
 		sensorSource.initListeners();
 		attemptHandshake(); // Start recording.
 	}
@@ -295,11 +256,6 @@ public class StreamingActivity extends Activity {
 		super.onPause();
 
 		stopRecording();
-		
-		/* Unregister from sensor and location broadcast events */
-		LocalBroadcastManager.getInstance(this).unregisterReceiver(sensorBroadcastReceiver);
-		LocalBroadcastManager.getInstance(this).unregisterReceiver(locationBroadcastReceiver); 
-		
 		sensorSource.stopListeners(); // Stop sensorSource from receiving sensor and location updates
 		topLayout.removeAllViews(); // Removes the camera view from the layout, as it is re-added in initlayout from onResume.
 
@@ -357,40 +313,6 @@ public class StreamingActivity extends Activity {
 			cameraDevice = null;
 		}
 	}
-
-//	public void updateItems(){
-//		String response = request("items");
-//		JSONTokener tokener = new JSONTokener(response);
-//		try {
-//			JSONArray items = new JSONArray(tokener);
-//			poilist.clear();
-//			for(int i = 0; i < items.length(); i++) {
-//				JSONObject item = items.getJSONObject(i);
-//				try {
-//					POI poi = new POI(this, item.getInt("ID"), item.getDouble("Heading"), item.getDouble("Lat"), item.getDouble("Lat"), colors[poilist.size()%colors.length], item.getString("ThumbnailURI"), item.getString("Type"));
-//					poilist.add(poi);
-//				}
-//				catch (JSONException e) {
-//					//skip item
-//				}
-//			}
-//			oldpois.clear();
-//			for (int i = 0; i < pois.length; i++) {
-//				oldpois.put(pois[i].poiId, pois[i]);
-//			}
-//
-//			pois = poilist.toArray(pois);
-//			//			POI.updatePOIList(poilist);
-//			for(int i = 0; i < pois.length; i++) {
-//				if(oldpois.get(pois[i].poiId) == null || !pois[i].curThumbnailURL.equals(oldpois.get(pois[i].poiId).curThumbnailURL)) { // If its not an old poi, or if the thumbnail is not old
-//					String url = "javascript:refreshImage("+ String.valueOf(pois[i].poiId) + ", \"" + pois[i].curThumbnailURL + "\");";
-//					//							mWebView.loadUrl(url);
-//				}
-//			}
-//		} catch(JSONException e) {
-//			e.printStackTrace();
-//		}
-//	}
 
 	public String request(String resource){
 		try {
@@ -468,7 +390,7 @@ public class StreamingActivity extends Activity {
 				+ live_width + ":: live_height:" + live_height
 				+ ":: button_width:" + button_width + ":: button_height:"
 				+ button_height);
-		
+
 		Log.d("CameraDebug", "InitLayout acquired camera");
 		cameraDevice = openCamera();
 		cameraView = new CameraView(this, cameraDevice);
@@ -490,22 +412,18 @@ public class StreamingActivity extends Activity {
 		Camera cameraDevice = Camera.open();
 		numberOfCameras = Camera.getNumberOfCameras();
 		for(int i = 0; i < numberOfCameras && cameraDevice == null; i++) {
-			Log.d(LOG_TAG, "opening camera #" + String.valueOf(i));
+			Log.d("CameraDebug", "opening camera #" + String.valueOf(i));
 			cameraDevice = Camera.open(i);
 		}
 		try {
 			if(cameraDevice == null) {
 				throw new Exception("No camera device found");
-			}else{
-				storedValuesEditor.putFloat("CamVerticalViewAngle", cameraDevice.getParameters().getVerticalViewAngle());
-				storedValuesEditor.putFloat("CamHorizontalViewAngle", cameraDevice.getParameters().getHorizontalViewAngle());
-				storedValuesEditor.commit();
 			}
 		} catch (Exception e) {
 			Log.d("CameraDebug", "Released cam in openCamera, exception occured");
 			cameraDevice.release();
 			cameraDevice = null;
-			Log.e(LOG_TAG, e.getMessage());
+			Log.e("CameraDebug", e.getMessage());
 			e.printStackTrace();
 		}
 		return cameraDevice;
@@ -538,16 +456,20 @@ public class StreamingActivity extends Activity {
 	public void startRecording() {
 		putHeadingfeed = new PutSensorsFeed(this.handler,
 				this.notificationRunnable);
-		try {
-			PutHeadingBool = true;
-			putHeadingfeed.start();
-			recorder.start();
-			startTime = System.currentTimeMillis();
-			recording = true;
-			// audioThread.start();
+		if(recorder != null){
+			try {
+				PutHeadingBool = true;
+				putHeadingfeed.start();
+				recorder.start();
+				startTime = System.currentTimeMillis();
+				recording = true;
+				// audioThread.start();
 
-		} catch (FFmpegFrameSender.Exception e) {
-			e.printStackTrace();
+			} catch (FFmpegFrameSender.Exception e) {
+				e.printStackTrace();
+			}
+		}else{
+			Toast.makeText(this, "Unable to connect to the server", Toast.LENGTH_LONG).show();
 		}
 	}
 
@@ -585,7 +507,7 @@ public class StreamingActivity extends Activity {
 	public boolean onTouchEvent(MotionEvent event) {
 		return true;
 	}
-	
+
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 
@@ -595,7 +517,7 @@ public class StreamingActivity extends Activity {
 			}
 			finish();
 			return true;
-			
+
 		} else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER){
 			// Glass touchpad tapped. Drop a beacon.
 			Toast.makeText(StreamingActivity.this, "Attempting to create beacon", Toast.LENGTH_SHORT).show();
@@ -614,9 +536,9 @@ public class StreamingActivity extends Activity {
 				jsonParams.put("Heading", sensorSource.getCurrentOrientation());
 				StringEntity entity = new StringEntity(jsonParams.toString());
 				client.post(this, server_url + "/1.0/items", entity, "application/json", new JsonHttpResponseHandler() {
-		            @Override
-		            public void onSuccess(JSONObject response) {
-		            	try {
+					@Override
+					public void onSuccess(JSONObject response) {
+						try {
 							int id = response.getInt("ID");
 							Toast.makeText(StreamingActivity.this, "Beacon Created", Toast.LENGTH_SHORT).show();
 							Log.e("MSC", "Beacon Created");
@@ -625,8 +547,8 @@ public class StreamingActivity extends Activity {
 							Log.e("MSC", "Error: unexpected response from server");
 							e.printStackTrace();
 						}
-		            }
-		        });
+					}
+				});
 			} catch (JSONException e) {
 				Log.e("MSC", "Error: " + e.toString());
 				e.printStackTrace();
@@ -674,28 +596,6 @@ public class StreamingActivity extends Activity {
 
 	}
 
-	/* Receiver for Sensor broadcast events */ 
-	private BroadcastReceiver sensorBroadcastReceiver = new BroadcastReceiver() {
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			// Extract data included in the Intent
-		}
-	};
-
-	/* Receiver for Location broadcast events  */
-	private BroadcastReceiver locationBroadcastReceiver = new BroadcastReceiver() {
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			Location location;
-			location = sensorSource.getLocation();
-			Log.d("alok", "streaming activity location:"+location);
-			lati = (float) (location.getLatitude());
-			longi = (float) (location.getLongitude());
-		}
-	};
-
 	public static byte[] convertStringToByteArray(String s) {
 		byte[] theByteArray = s.getBytes();
 		Log.e(TAG, "length of byte array" + theByteArray.length);
@@ -719,7 +619,6 @@ public class StreamingActivity extends Activity {
 
 		/**
 		 * Show UI notification.
-		 * 
 		 * @param message
 		 */
 		private void showMessage(String message) {
@@ -774,16 +673,12 @@ public class StreamingActivity extends Activity {
 				}
 
 			} catch (JSONException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (UnsupportedEncodingException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (ClientProtocolException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -801,7 +696,6 @@ public class StreamingActivity extends Activity {
 
 		/**
 		 * Show UI notification.
-		 * 
 		 * @param message
 		 */
 		private void showMessage(String message) {
@@ -817,7 +711,6 @@ public class StreamingActivity extends Activity {
 				float lat = lati;
 				float lng = longi;
 				float heading = sensorSource.getCurrentOrientation();
-//				float heading = (float)sensorSource.getHeading();
 				jsonObjSend.put("Lat", lat);
 				jsonObjSend.put("Lng", lng);
 				jsonObjSend.put("Heading", heading);
@@ -867,7 +760,6 @@ public class StreamingActivity extends Activity {
 		private void getHeading() {
 
 			try {
-
 				// Getting the user orientation
 				int TIMEOUT_MILLISEC = 1000; // = 1 seconds
 				URL getUrl = new URL(server_url + "/1.0/users/" + setUsername
@@ -1122,13 +1014,13 @@ public class StreamingActivity extends Activity {
 					Log.i(TAG, "Response from starting item rter_signature : "
 							+ recievedRterSignature);
 
-					prefEditor.putString("ID", recievedItemID);
-					prefEditor.putString("rter_resource", recievedRterResource);
-					prefEditor.putString("rter_signature",
+					cookieEditor.putString("ID", recievedItemID);
+					cookieEditor.putString("rter_resource", recievedRterResource);
+					cookieEditor.putString("rter_signature",
 							recievedRterSignature);
-					prefEditor.putString("rter_valid_until",
+					cookieEditor.putString("rter_valid_until",
 							recievedRterValidUntil);
-					prefEditor.commit();
+					cookieEditor.commit();
 
 				}
 
@@ -1194,10 +1086,10 @@ public class StreamingActivity extends Activity {
 
 }
 
-
-class FrameInfo {
-	public byte[] uid;
-	public byte[] lat;
-	public byte[] lon;
-	public byte[] orientation;
-}
+//
+//class FrameInfo {
+//	public byte[] uid;
+//	public byte[] lat;
+//	public byte[] lon;
+//	public byte[] orientation;
+//}

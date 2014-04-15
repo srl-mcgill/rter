@@ -1,15 +1,7 @@
 package ca.nehil.rter.streamingapp2.overlay;
 
 import ca.nehil.rter.streamingapp2.POIList;
-import ca.nehil.rter.streamingapp2.R;
-import ca.nehil.rter.streamingapp2.SensorSource;
-import ca.nehil.rter.streamingapp2.overlay.CameraGLRenderer.Indicate;
-
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.support.v4.content.LocalBroadcastManager;
 
 /**
  * NORTH: 0 deg
@@ -18,90 +10,25 @@ import android.support.v4.content.LocalBroadcastManager;
  * SOUTH: +/- 180 deg
  * 
  * @author stepan
- *
  */
+
 public class OverlayController {
 	protected float desiredOrientation;
 	protected float currentOrientation;
-	protected float deviceOrientation;
-	protected boolean rightSideUp = true;
-	private boolean freeRoam = true;
 
 	protected CameraGLSurfaceView mGLView;
 	protected CameraGLRenderer mGLRenderer;
 	protected Context context;
-	private SensorSource sensorSource;
 
 	float declination = 0;	//geo magnetic declinationf from true North
 
 	public float orientationTolerance = 10.0f; // Max orientation tolerance in degrees
-	
+
 	public OverlayController(Context context, POIList POIs) {
 		this.context = context;
 		this.mGLView = new CameraGLSurfaceView(context, POIs);
 		this.mGLRenderer = this.mGLView.getGLRenderer();
-		
-		sensorSource = SensorSource.getInstance(context);
-		
-		/* Register for sensor broadcasts */
-		LocalBroadcastManager.getInstance(context).registerReceiver(sensorBroadcastReceiver, 
-				new IntentFilter(context.getString(R.string.SensorEvent)));
 	}
-	
-	/*
-	 * Receiver for sensor broadcasts
-	 */
-	private BroadcastReceiver sensorBroadcastReceiver = new BroadcastReceiver() {
-		
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			
-			deviceOrientation = sensorSource.getDeviceOrientation();
-			currentOrientation = sensorSource.getCurrentOrientation();
-//			currentOrientation = (float)sensorSource.getHeading();
-			if (freeRoam) {
-				mGLRenderer.indicateTurn(Indicate.FREE, 0.0f);
-				return;
-			}
-
-			// check orientation of device
-			if (deviceOrientation <= 90.0f && deviceOrientation >= -90.0f) {
-				rightSideUp = true;
-			} else
-				rightSideUp = false;
-
-			// graphics logic
-			boolean rightArrow = true;
-			float difference = fixAngle(desiredOrientation - currentOrientation);
-			if (Math.abs(difference) > orientationTolerance) {
-				
-				if (difference > 0) {
-					// turn right
-					rightArrow = true;
-				} else {
-					// turn left
-					rightArrow = false;
-				}
-
-				// flip arrow incase device is flipped
-				if (!rightSideUp) {
-					rightArrow = !rightArrow;
-				}
-
-				if (rightArrow) {
-					mGLRenderer.indicateTurn(Indicate.RIGHT,
-							Math.abs(difference) / 180.0f);
-				} else {
-					mGLRenderer.indicateTurn(Indicate.LEFT,
-							Math.abs(difference) / 180.0f);
-				}
-
-			} else {
-				mGLRenderer.indicateTurn(Indicate.NONE, 0.0f);
-			}
-		}
-	};
-	
 
 	/**
 	 * @return the camera GLView
@@ -110,16 +37,6 @@ public class OverlayController {
 		return this.mGLView;
 	}
 
-	/**
-	 * when set to 'true', no indicator arrows will be given, and frame will be
-	 * blue
-	 * 
-	 * @param freeRoam
-	 */
-	public void letFreeRoam(boolean freeRoam) {
-		this.freeRoam = freeRoam;
-	}
-	
 	/**
 	 * Set the desired absolute bearing Should be between +180 and -180, but
 	 * will work otherwise
@@ -140,7 +57,7 @@ public class OverlayController {
 	protected float fixAngle(float angle) {
 		if (angle > 180.0f) {
 			angle = -180.0f + angle % 180;
-		} else if (angle < -180.0f) {
+		} else if (angle < -180.0f) { 
 			angle = 180.0f - Math.abs(angle) % 180;
 		}
 

@@ -8,8 +8,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.microedition.khronos.opengles.GL10;
@@ -19,9 +17,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
-import android.graphics.Point;
 import android.location.Location;
 import android.util.Log;
+
+import ca.nehil.rter.streamingapp2.overlay.Triangle;
 
 import com.codebutler.android_websockets.WebSocketClient;
 
@@ -33,26 +32,21 @@ public class POIList {
 
 	private final static String CLASS_LABEL = "POIList";
 	private final static String TAG = CLASS_LABEL;
-	
 	private WebSocketClient client;
 	private URI serverURI;
 	private String rterCredentials;
-	
 	private ConcurrentHashMap<Integer, POI> items;
 	private SensorSource sensorSource;
-	
 	private Context context;
+	Triangle triangleFrame;
+	float[] displacement = new float[2];
 	
-	/**
-	 * 
-	 */
 	public POIList(Context context, URL baseURL, String rterCredentials) {
 		this.context = context;
 		items = new ConcurrentHashMap<Integer, POI>();
 		try {
 			serverURI = new URI("ws", baseURL.getHost(), baseURL.getPath() + "/1.0/streaming/items/websocket", null);
 		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
 			Log.e(TAG, "URISyntaxException");
 			e.printStackTrace();
 		}
@@ -60,9 +54,10 @@ public class POIList {
 		sensorSource = SensorSource.getInstance(context);
 		initClient();
 		Log.d(TAG, "Connecting to " + serverURI.toString());
-		// initializeList();
 		client.connect();
 		generateTestList();
+		
+		triangleFrame = new Triangle();
 	}
 	
 	private void initClient() {
@@ -97,7 +92,6 @@ public class POIList {
 								int id = item.getInt("ID");
 								POI poi = new POI(context, 
 										id, 
-										null, //item.getBoolean("HasHeading") ? item.getDouble("Heading") : null,
 										item.getDouble("Lat"),
 										item.getDouble("Lng"), "red", 
 										"", 
@@ -136,6 +130,7 @@ public class POIList {
 			//client.send(new byte[] { (byte)0xDE, (byte)0xAD, (byte)0xBE, (byte)0xEF });		
 	}
 	
+	//TODO: Why arent these used?
 	private void connect() {
 		client.connect();
 	}
@@ -144,25 +139,79 @@ public class POIList {
 		client.disconnect();
 	}
 	
+	/*
+	 * Hard-coded geo points representing the two types of POIs (type 1 and type2), for demo purposes. This data would be fetched from the server
+	 * in a real scenario.
+	 */
 	private void generateTestList() {
-		POI poi1 = new POI(context , 1, 1.5, 45.5056, -73.5769, "", "http://rter.zapto.org:8080/v1/videos/385/thumb/000000001.jpg", "type1");
-		POI poi2 = new POI(context, 2, 2.5, 45.5058, -73.5755, "","","type2");
+		POI poi1 = new POI(context , 1, 45.5056, -73.5769, "", "http://rter.zapto.org:8080/v1/videos/385/thumb/000000001.jpg", "type1");
+		POI poi2 = new POI(context, 2, 45.5058, -73.5755, "","","type2");
 //		POI poi3 = new POI(context, 3, 3.5, 45.5047, -73.5762, "", "", "");
 		
 		items.put(Integer.valueOf(1), poi1);
 		items.put(Integer.valueOf(2), poi2);
 	}
 	
-	public void render(GL10 gl, Location userLocation, Point screenSize) {
+	public void render(GL10 gl, Location userLocation) {
+
+		gl.glLineWidth(2);
+		
+		float[] lrm = sensorSource.getLandscapeRotationMatrix();
+		float scale = 0.1f;
+		displacement[0] += lrm[2] * scale; // used for the auto-walk demo feature to show POI size increase
+		displacement[1] += lrm[6] * scale;
+		
 		// foreach POI as poi, poi.render(gl, userLocation, screenSize)
 		for (POI item : items.values()) {
-		    item.render(gl, userLocation, screenSize);
+		    item.render(gl, userLocation, displacement);
 		}
-		/*
-		for (Map.Entry<Integer, POI> entry : items.entrySet()) {
-		    // ...
+		drawAxes(gl, lrm);
+	}
+	
+	/*
+	 * Draw axes for debug purposes.
+	 */
+	private void drawAxes(GL10 gl, float[] lrm){
+		
+		gl.glLineWidth(1);
+		
+		gl.glLoadIdentity();
+		gl.glPushMatrix();
+		gl.glTranslatef(-1.5f, 0.5f, -6.0f);
+		gl.glScalef(0.3f, 0.3f, 0.3f);
+		gl.glMultMatrixf(lrm, 0);
+		
+		gl.glPushMatrix();
+		gl.glRotatef(90, 0, 0, -1);
+		gl.glTranslatef(0.0f, 2.0f, 0.0f);
+		triangleFrame.colour(Triangle.Colour.RED);
+		for( int i = 0; i < 8; i++ ) {
+			 gl.glRotatef(360.0f/8.0f, 0, 1, 0);
+			 triangleFrame.draw(gl, true);
 		}
-		*/
+		gl.glPopMatrix();
+		
+		gl.glPushMatrix();
+		gl.glTranslatef(0.0f, 1.0f, 0.0f);
+		 triangleFrame.colour(Triangle.Colour.GREEN);
+		 for( int i = 0; i < 8; i++ ) {
+			 gl.glRotatef(360.0f/8.0f, 0, 1, 0);
+			 triangleFrame.draw(gl, true);
+		 }
+		 gl.glPopMatrix();
+		 		
+		 gl.glPushMatrix();
+		 gl.glRotatef(90, 1, 0, 0);
+		 gl.glTranslatef(0.0f, 1.0f, 0.0f);
+		 triangleFrame.colour(Triangle.Colour.BLUE);
+		 for( int i = 0; i < 8; i++ ) {
+			 gl.glRotatef(360.0f/8.0f, 0, 1, 0);
+			 triangleFrame.draw(gl, true);
+		 }
+		 gl.glPopMatrix();
+		 
+		 gl.glPopMatrix();
+		 
 	}
 
 }
