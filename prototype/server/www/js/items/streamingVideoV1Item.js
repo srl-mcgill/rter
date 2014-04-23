@@ -49,7 +49,9 @@ angular.module('streamingVideoV1Item', [
 	};
 })
 
-.controller('CloseupStreamingVideoV1ItemCtrl', function($scope, $timeout, ItemCache, CloseupItemDialog) {
+.controller('CloseupStreamingVideoV1ItemCtrl', function($scope, $timeout, $window, ItemCache, CloseupItemDialog) {
+	$scope.isChromeBorwser = $window.navigator.userAgent.toLowerCase().indexOf("chrome") !== -1;
+
 	$scope.videoConfig = {
 		width: 480,
 		height: 360
@@ -78,6 +80,29 @@ angular.module('streamingVideoV1Item', [
 		//console.log("play video " + $scope.item.ID);
 	});
 
+
+	if(!$scope.isChromeBorwser) {
+		videojs.options.flash.swf = "/vendor/video-js/video-js.swf";
+		var player;
+		
+		$timeout(function () {
+			console.log(angular.element('video'));
+	        player = videojs(angular.element('video')[0], {"techOrder": ["flash"]});
+	    }, 0);
+	    
+		$scope.$watch('item.Live', function() {
+			if(typeof player !== "undefined")
+				player.dispose();
+			$timeout(function () {
+				player = videojs(angular.element('video')[0], {"techOrder": ["flash"]});
+			}, 0);
+		});
+
+		$scope.$on('$destroy', function () {
+		    player.dispose();
+		});
+	}
+
 	$scope.toggleLive = function() {
 		$scope.item.Liveseek = false;
 		$timeout(function() {
@@ -86,7 +111,7 @@ angular.module('streamingVideoV1Item', [
 	};
 })
 
-.directive('closeupStreamingVideoV1Item', function() {
+.directive('closeupStreamingVideoV1Item', function($timeout) {
 	return {
 		restrict: 'E',
 		scope: {
@@ -96,7 +121,7 @@ angular.module('streamingVideoV1Item', [
 		templateUrl: '/template/items/streamingVideoV1/closeup-streamingVideoV1-item.html',
 		controller: 'CloseupStreamingVideoV1ItemCtrl',
 		link: function(scope, element, attr) {
-
+			
 		}
 	};
 })
