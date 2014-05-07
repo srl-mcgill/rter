@@ -84,11 +84,6 @@ angular.module('streamingVideoV1Item', [
 	if(!$scope.isChromeBorwser) {
 		videojs.options.flash.swf = "/vendor/video-js/video-js.swf";
 		var player;
-		
-		$timeout(function () {
-			console.log(angular.element('video'));
-	        player = videojs(angular.element('video')[0], {"techOrder": ["flash"]});
-	    }, 0);
 	    
 		$scope.$watch('item.Live', function() {
 			if(typeof player !== "undefined")
@@ -101,9 +96,11 @@ angular.module('streamingVideoV1Item', [
 		$scope.$on('$destroy', function () {
 		    player.dispose();
 		});
+
 	}
 
 	$scope.toggleLive = function() {
+    	player.currentTime(player.duration());
 		$scope.item.Liveseek = false;
 		$timeout(function() {
 			$scope.item.Liveseek = true;
