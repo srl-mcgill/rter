@@ -884,8 +884,8 @@ public class StreamingActivity extends Activity {
 			Camera.Parameters camParams = mCamera.getParameters();
 			camParams.setPreviewSize(imageWidth, imageHeight);
 
-			Log.v(LOG_TAG,
-					"Preview Framerate: " + camParams.getPreviewFrameRate());
+//			Log.v(LOG_TAG,
+//					"Preview Framerate: " + camParams.getPreviewFrameRate());
 
 			camParams.setPreviewFrameRate(frameRate);
 			mCamera.setParameters(camParams);

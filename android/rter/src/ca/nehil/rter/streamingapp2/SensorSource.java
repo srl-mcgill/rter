@@ -59,7 +59,7 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	public void initListeners(){
 		mSensorManager.registerListener(this,
 				mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR),
-				SensorManager.SENSOR_DELAY_NORMAL);
+				SensorManager.SENSOR_DELAY_FASTEST);
 	}
 
 	/**
