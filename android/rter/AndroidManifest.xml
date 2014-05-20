@@ -12,14 +12,14 @@
      distributed under the License is distributed on an "AS IS" BASIS,
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
-     limitations under the License.
+     limitations under the License.
 -->
 
 
 <!--
      This file describes the code in the SkeletonApp package, which is
      used by the system to determine how to start your application and
-     integrate it with the rest of the system.
+     integrate it with the rest of the system.
 -->
 
 
@@ -28,7 +28,7 @@
      attribute brings in the Android platform namespace, and the package
      supplies a unique name for the application.  When writing your
      own application, the package name must be changed from "com.example.*"
-     to come from a domain that you own or have control over.
+     to come from a domain that you own or have control over.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="ca.nehil.rter.streamingapp2"
@@ -71,35 +71,43 @@
          This package contains an application...  The 'label' is the name
          to display to the user for the overall application, and provides
          a default label for all following components.  The syntax here is a
-         reference to one of our string resources.
+         reference to one of our string resources.
     -->
     <application
         android:icon="@drawable/ic_launcher"
         android:label="@string/skeleton_app" >
+        
         <activity
             android:name="ca.nehil.rter.streamingapp2.StreamingActivity"
+            android:configChanges="orientation"
             android:label="@string/skeleton_app"
             android:screenOrientation="sensorLandscape"
-            android:configChanges="orientation"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
-           
         </activity>
+        
         <activity
             android:name="ca.nehil.rter.streamingapp2.GetTokenActivity"
             android:label="Contacting Servers" >
-           
         </activity>
+        
         <activity
             android:name="ca.nehil.rter.streamingapp2.LoginActivity"
             android:windowSoftInputMode="adjustResize|stateVisible" >
-             <intent-filter>
+            <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <service android:name=".BackgroundService"> </service>
+
+        <service android:name="ca.nehil.rter.streamingapp2.BackgroundService" >
+        </service>
+
+        <activity 
+            android:name="ca.nehil.rter.streamingapp2.ServerList"
+            android:label="Server List">
+        </activity>
     </application>
 
 </manifest>

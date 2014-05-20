@@ -21,6 +21,17 @@ angular.module('cache', [
 		function addUpdateElem(newElem) {
 			var found = false;
 
+			if(typeof newElem.StartTime !== "undefined")
+				newElem.StartTime = new Date(newElem.StartTime);
+			if(typeof newElem.StopTime !== "undefined")
+				newElem.StopTime = new Date(newElem.StopTime);
+			if(typeof newElem.UpdateTime !== "undefined")
+				newElem.UpdateTime = new Date(newElem.UpdateTime);
+			if(typeof newElem.Geolocations !== "undefined")
+				for(var i = 0; i < newElem.Geolocations.length; i++)
+					if(typeof newElem.Geolocations[i].Timestamp !== "undefined")
+						newElem.Geolocations[i].Timestamp = new Date(newElem.Geolocations[i].Timestamp);
+
 			for(var i = 0;i < self.contents.length;i++) {
 				if(self.matchFn(self.contents[i], newElem)) {
 					for (var key in newElem) {

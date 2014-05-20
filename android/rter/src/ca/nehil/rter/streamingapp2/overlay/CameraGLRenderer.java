@@ -80,7 +80,7 @@ public class CameraGLRenderer implements Renderer {
 		}
 	}
 
-	// Call back when the surface is first created or re-created
+	/* Called when the surface is first created or re-created */
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 		gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Set color's clear-value to
 													// black
@@ -92,14 +92,13 @@ public class CameraGLRenderer implements Renderer {
 																		// perspective
 																		// view
 		gl.glShadeModel(GL10.GL_SMOOTH); // Enable smooth shading of color
-		gl.glDisable(GL10.GL_DITHER); // Disable dithering for better
-										// performance
+		gl.glDisable(GL10.GL_DITHER); // Disable dithering for better performance
 
-		// You OpenGL|ES initialization code here
+		// Your OpenGL|ES initialization code here
 		// ......
 	}
 
-	// Call back after onSurfaceCreated() or whenever the window's size changes
+	/* Called after onSurfaceCreated() or whenever the window's size changes */
 	public void onSurfaceChanged(GL10 gl, int width, int height) {
 		if (height == 0)
 			height = 1; // To prevent divide by zero

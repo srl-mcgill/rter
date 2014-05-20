@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"rter/data"
 	"time"
+	"fmt"
 )
 
 func Insert(val interface{}) error {
@@ -40,6 +41,16 @@ func Insert(val interface{}) error {
 			v.ItemID,
 			v.Author,
 			v.Body,
+			now,
+		)
+	case *data.Geolocation:
+		res, err = Exec(
+			"INSERT INTO Geolocations (ItemID, Lat, Lng, Heading, Radius, Timestamp) VALUES (?, ?, ?, ?, ?, ?)",
+			v.ItemID,
+			v.Lat,
+			v.Lng,
+			v.Heading,
+			v.Radius,
 			now,
 		)
 	case *data.Term:
@@ -132,6 +143,15 @@ func Insert(val interface{}) error {
 	case *data.ItemComment:
 		v.ID = ID
 		v.UpdateTime = now
+	case *data.Geolocation:
+		v.Timestamp = &now
+		item := new(data.Item)
+		item.ID = v.ItemID
+		err = Select(item)
+		if err != nil {
+			return err
+		}
+		listeners.NotifyUpdate(item)
 	case *data.Term:
 		v.UpdateTime = now
 
@@ -162,6 +182,8 @@ func Update(val interface{}) error {
 		res sql.Result
 		err error
 	)
+
+	fmt.Printf("%v\n", val)
 
 	now := time.Now().UTC()
 
@@ -329,6 +351,12 @@ func Select(val interface{}) error {
 		if err == ErrZeroAffected {
 			err = nil
 		}
+
+		err = SelectWhere(&v.Geolocations, ", Items WHERE Geolocations.ItemID = Items.ID AND Items.ID=? ORDER BY Geolocations.Timestamp ASC", v.ID)
+
+		if err == ErrZeroAffected {
+			err = nil
+		}
 	case *data.ItemComment:
 		err = scanItemComment(v, rows)
 	case *data.Term:
@@ -359,6 +387,8 @@ func SelectWhere(slicePtr interface{}, whereClause string, args ...interface{}) 
 		return SelectQuery(slicePtr, "SELECT Items.* FROM Items "+whereClause, args...)
 	case *[]*data.ItemComment:
 		return SelectQuery(slicePtr, "SELECT ItemComments.* FROM ItemComments "+whereClause, args...)
+	case *[]*data.Geolocation:
+		return SelectQuery(slicePtr, "SELECT Geolocations.* FROM Geolocations "+whereClause, args...)
 	case *[]*data.Term:
 		return SelectQuery(slicePtr, "SELECT Terms.* FROM Terms "+whereClause, args...)
 	case *[]*data.TermRelationship:
@@ -376,6 +406,7 @@ func SelectQuery(slicePtr interface{}, query string, args ...interface{}) error 
 	switch slicePtr.(type) {
 	case *[]*data.Item:
 	case *[]*data.ItemComment:
+	case *[]*data.Geolocation:
 	case *[]*data.Term:
 	case *[]*data.TermRelationship:
 	case *[]*data.Role:
@@ -406,6 +437,12 @@ func SelectQuery(slicePtr interface{}, query string, args ...interface{}) error 
 				return err
 			}
 
+			err = SelectWhere(&item.Geolocations, ", Items WHERE Geolocations.ItemID=Items.ID AND Items.ID=? ORDER BY Geolocations.Timestamp ASC", item.ID)
+
+			if err != ErrZeroAffected && err != nil {
+				return err
+			}
+
 			*s = append(*s, item)
 		case *[]*data.ItemComment:
 			comment := new(data.ItemComment)
@@ -416,6 +453,15 @@ func SelectQuery(slicePtr interface{}, query string, args ...interface{}) error 
 			}
 
 			*s = append(*s, comment)
+		case *[]*data.Geolocation:
+			geolocation := new(data.Geolocation)
+			err = scanGeolocation(geolocation, rows)
+
+			if err != nil {
+				return err
+			}
+
+			*s = append(*s, geolocation)
 		case *[]*data.Term:
 			term := new(data.Term)
 			err = scanTerm(term, rows)
@@ -461,6 +507,8 @@ func SelectQuery(slicePtr interface{}, query string, args ...interface{}) error 
 	case *[]*data.Item:
 		sliceLen = len(*s)
 	case *[]*data.ItemComment:
+		sliceLen = len(*s)
+	case *[]*data.Geolocation:
 		sliceLen = len(*s)
 	case *[]*data.Term:
 		sliceLen = len(*s)

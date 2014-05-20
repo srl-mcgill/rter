@@ -12,7 +12,7 @@ var db *sql.DB
 // Open a connection the storage solution: a MySQL db
 func OpenStorage(user, pass, protocol, addr, dbname string) error {
 	netAddr := fmt.Sprintf("%s(%s)", protocol, addr)
-	dsn := fmt.Sprintf("%s:%s@%s/%s?charset=utf8", user, pass, netAddr, dbname)
+	dsn := fmt.Sprintf("%s:%s@%s/%s?charset=utf8&parseTime=true", user, pass, netAddr, dbname)
 	var err error
 	db, err = sql.Open("mysql", dsn)
 
