@@ -53,6 +53,7 @@ public final class R {
         public static final int surface_camera=0x7f0a0000;
         public static final int textView1=0x7f0a000a;
         public static final int username=0x7f0a0004;
+		public static final int call = 0;
     }
     public static final class layout {
         public static final int activity_first=0x7f030000;
