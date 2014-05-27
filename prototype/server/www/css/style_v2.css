@@ -416,6 +416,10 @@ label {
 	margin-bottom: 15px;
 }
 
+.closeup-item .closeup-streamingVideoV1-item .left .vjs-default-skin {
+	margin-bottom: 15px;
+}
+
 .closeup-item .closeup-generic-item .left div {
 	font-size: 14pt;
 	max-width: 80%;
