@@ -198,7 +198,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CrossdomainHandler(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "crossdomain.xml")
+	http.ServeFile(w, r, C.Server.Crossdomainfile)
 }
 
 func AVCIngestHandler(w http.ResponseWriter, r *http.Request) {

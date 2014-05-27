@@ -30,6 +30,7 @@ type ServerConfig struct {
 		Session_timeout             uint64 `json:"session_timeout"`
 		Session_maxage              uint64 `json:"session_maxage"`
 		Logfile                     string `json:"logfile"`
+		Crossdomainfile             string `json:"crossdomainfile"`
 	}
 	Hack struct {
 		Disable_port_check bool `json:"disable_port_check"`
@@ -114,6 +115,7 @@ func (c *ServerConfig) ParseConfig() {
 	c.Server.Session_timeout = 10                           // close after 10 seconds inactivity
 	c.Server.Session_maxage = 3600                          // keep state for at most 1 hour
 	c.Server.Logfile = ""                                   // logfile, console if empty
+	c.Server.Logfile = "crossdomain.xml"                    // crossdomain.xml file
 	c.Hack.Disable_port_check = false                       // don't check port when validating injest request
 	c.Limits.Max_cpu = 1                                    // max number of CPUs used
 	c.Limits.Max_memory_mbytes = 128                        // max amount of memory used
