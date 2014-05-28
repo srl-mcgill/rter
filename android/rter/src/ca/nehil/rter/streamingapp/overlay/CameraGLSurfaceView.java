@@ -1,6 +1,6 @@
-package ca.nehil.rter.streamingapp2.overlay;
+package ca.nehil.rter.streamingapp.overlay;
 
-import ca.nehil.rter.streamingapp2.POIList;
+import ca.nehil.rter.streamingapp.POIList;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.opengl.GLSurfaceView;

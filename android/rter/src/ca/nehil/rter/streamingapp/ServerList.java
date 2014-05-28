@@ -1,8 +1,10 @@
-package ca.nehil.rter.streamingapp2;
+package ca.nehil.rter.streamingapp;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+
+import ca.nehil.rter.streamingapp.R;
 
 import android.app.Activity;
 import android.app.AlertDialog;

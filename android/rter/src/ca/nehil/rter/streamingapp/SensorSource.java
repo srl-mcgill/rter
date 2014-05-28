@@ -1,5 +1,6 @@
-package ca.nehil.rter.streamingapp2;
+package ca.nehil.rter.streamingapp;
 
+import ca.nehil.rter.streamingapp.R;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.GeomagneticField;

@@ -1,11 +1,11 @@
-package ca.nehil.rter.streamingapp2.overlay;
+package ca.nehil.rter.streamingapp.overlay;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import ca.nehil.rter.streamingapp2.POIList;
-import ca.nehil.rter.streamingapp2.R;
-import ca.nehil.rter.streamingapp2.SensorSource;
+import ca.nehil.rter.streamingapp.POIList;
+import ca.nehil.rter.streamingapp.SensorSource;
+import ca.nehil.rter.streamingapp.R;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;

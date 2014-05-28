@@ -1,7 +1,7 @@
 /**
  * 
  */
-package ca.nehil.rter.streamingapp2;
+package ca.nehil.rter.streamingapp;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,7 +15,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import ca.nehil.rter.streamingapp2.StreamingActivity.NotificationRunnable;
+import ca.nehil.rter.streamingapp.StreamingActivity.NotificationRunnable;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
