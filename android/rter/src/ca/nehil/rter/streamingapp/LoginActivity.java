@@ -1,4 +1,4 @@
-package ca.nehil.rter.streamingapp2;
+package ca.nehil.rter.streamingapp;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -19,6 +19,8 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import ca.nehil.rter.streamingapp.R;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;

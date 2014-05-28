@@ -24,7 +24,7 @@
 <resources>
 
     <!-- Simple strings. -->
-    <string name="skeleton_app">rtER</string>
+    <string name="skeleton_app">rtER (responder)</string>
     <string name="back">Back</string>
     <string name="clear">Camera</string>
 

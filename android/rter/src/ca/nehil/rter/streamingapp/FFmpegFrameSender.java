@@ -1,4 +1,4 @@
-package ca.nehil.rter.streamingapp2;
+package ca.nehil.rter.streamingapp;
 
 import com.googlecode.javacpp.BytePointer;
 import com.googlecode.javacpp.DoublePointer;

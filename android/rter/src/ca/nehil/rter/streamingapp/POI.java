@@ -1,11 +1,11 @@
-package ca.nehil.rter.streamingapp2;
+package ca.nehil.rter.streamingapp;
 
 import java.util.ArrayList;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import ca.nehil.rter.streamingapp2.overlay.IndicatorFrame;
-import ca.nehil.rter.streamingapp2.overlay.Triangle;
+import ca.nehil.rter.streamingapp.overlay.IndicatorFrame;
+import ca.nehil.rter.streamingapp.overlay.Triangle;
 
 import android.content.Context;
 import android.location.Location;

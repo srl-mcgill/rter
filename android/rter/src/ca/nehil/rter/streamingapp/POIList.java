@@ -1,7 +1,7 @@
 /**
  * 
  */
-package ca.nehil.rter.streamingapp2;
+package ca.nehil.rter.streamingapp;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -22,7 +22,7 @@ import android.location.Location;
 import android.util.Log;
 import android.widget.Toast;
 
-import ca.nehil.rter.streamingapp2.overlay.Triangle;
+import ca.nehil.rter.streamingapp.overlay.Triangle;
 
 import com.codebutler.android_websockets.WebSocketClient;
 

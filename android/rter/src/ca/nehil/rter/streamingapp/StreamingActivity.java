@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ca.nehil.rter.streamingapp2;
+package ca.nehil.rter.streamingapp;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -76,8 +76,9 @@ import android.view.SurfaceView;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.Toast;
-import ca.nehil.rter.streamingapp2.overlay.CameraGLSurfaceView;
-import ca.nehil.rter.streamingapp2.overlay.OverlayController;
+import ca.nehil.rter.streamingapp.overlay.CameraGLSurfaceView;
+import ca.nehil.rter.streamingapp.overlay.OverlayController;
+import ca.nehil.rter.streamingapp.R;
 import android.view.OrientationEventListener;
 import static com.googlecode.javacv.cpp.opencv_core.*;
 
