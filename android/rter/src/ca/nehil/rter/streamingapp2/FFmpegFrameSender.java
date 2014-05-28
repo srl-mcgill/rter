@@ -8,12 +8,7 @@ import com.googlecode.javacpp.Loader;
 import com.googlecode.javacpp.Pointer;
 import com.googlecode.javacpp.PointerPointer;
 import com.googlecode.javacpp.ShortPointer;
-import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
@@ -27,7 +22,6 @@ import org.apache.http.client.ClientProtocolException;
 
 import android.util.Log;
 
-import com.googlecode.javacv.FrameRecorder;
 import com.googlecode.javacv.cpp.avcodec.AVCodecContext;
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
 
@@ -37,19 +31,11 @@ import static com.googlecode.javacv.cpp.avutil.*;
 import static com.googlecode.javacv.cpp.opencv_core.*;
 import static com.googlecode.javacv.cpp.swresample.*;
 import static com.googlecode.javacv.cpp.swscale.*;
-import static com.googlecode.javacv.cpp.opencv_imgproc.*;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
-
-import java.io.FileOutputStream;
-import java.util.Arrays;
 
 /**
  * Encodes images and audio samples into an H264 MPEG-TS stream, and sends as packets over HTTP.
