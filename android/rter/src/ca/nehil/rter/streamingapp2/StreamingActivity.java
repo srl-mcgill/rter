@@ -28,6 +28,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 
 import org.apache.http.client.ClientProtocolException;
@@ -35,6 +36,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningTaskInfo;
+import android.app.IntentService;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -48,6 +52,7 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -147,14 +152,8 @@ public class StreamingActivity extends Activity implements OnClickListener {
 	//enjoy my code :D
 	private Context mContext=null;
 	private mThread th;
-	private StreamingActivity obj;
-	//private DrawerLayout mDrawerLayout;
-    //private ListView mDrawerList;
-
-
-	private boolean is_calling=false;
+	//Yetesh ends here
 	
-
 	private static final String TAG = "Streaming Activity";
 	private FrameLayout topLayout;
 
@@ -256,16 +255,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		
 		//Yetesh Chaudhary
 		mContext=this;
-		is_calling=false;
-		obj=this;
-		//mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        //mDrawerList = (ListView) findViewById(R.id.left_drawer);
 
-        // Set the adapter for the list view
-       // mDrawerList.setAdapter(new ArrayAdapter<String>(this,R.layout.drawer_list_item, mPlanetTitles));
-        // Set the list's click listener
-        //mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
-		
 	}
 	
 	@Override
@@ -446,26 +436,19 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		
 		//@Yetesh Chaudhary
 		Button callButton = (Button) findViewById(R.id.call);
-		callButton.setOnClickListener(new View.OnClickListener() {
+		callButton.setOnClickListener(new View.OnClickListener() 
+		{
 			@Override
-			public void onClick(View view) {
+			public void onClick(View view) 
+			{
 				EndCallListener callListener = new EndCallListener();
 				TelephonyManager mTM = (TelephonyManager)mContext.getSystemService(Context.TELEPHONY_SERVICE);
 				mTM.listen(callListener, PhoneStateListener.LISTEN_CALL_STATE);
-				
-				
-				Toast.makeText(mContext,"Make a phone call" , Toast.LENGTH_LONG).show();
 				Intent dial = new Intent();
-				   dial.setAction("android.intent.action.DIAL");
-				   dial.setData(Uri.parse("tel:"));
-				   dial.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); 
-				   mContext.startActivity(dial);
-				/*try{
-					Toast.makeText(mContext,"Make a phone call" , Toast.LENGTH_LONG).show();
-					String url = "tel:123456789";
-				    Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse(url));
-					startActivity(intent);
-					}catch(Exception e){e.printStackTrace();}*/
+				dial.setAction("android.intent.action.DIAL");
+				dial.setData(Uri.parse("tel:"));
+				dial.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); 
+				mContext.startActivity(dial);
 			}
 		});
 		
@@ -585,12 +568,6 @@ public class StreamingActivity extends Activity implements OnClickListener {
 	{
 		/* Inflate the menu; this adds items to the action bar if it is present. */
 		menu.add(0, 0, 0, "Start");
-		
-		/*//@Yetesh Chaudhary
-		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.main_activity_actions, menu);
-		//getActionBar().show();
-		System.out.println("I m here calling..");*/
 		return super.onCreateOptionsMenu(menu);
 	}
 
@@ -609,17 +586,6 @@ public class StreamingActivity extends Activity implements OnClickListener {
 			Log.w(LOG_TAG, "Stop Button Pushed");
 			item.setTitle("Start");
 		}
-		
-		/*//@Yetesh Chaudhary
-		if(item.getItemId()==R.id.action_phone_call)
-		{
-			try{
-			Toast.makeText(mContext,"Make a phone call" , Toast.LENGTH_LONG).show();
-			String url = "tel:123456789";
-		    Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse(url));
-			startActivity(intent);
-			}catch(Exception e){e.printStackTrace();}
-		}*/
 		
 		return super.onOptionsItemSelected(item);
 	}
@@ -1205,37 +1171,52 @@ public class StreamingActivity extends Activity implements OnClickListener {
 	  }
 	}
 	
-	private class EndCallListener extends PhoneStateListener {
+	
+	private class EndCallListener extends PhoneStateListener
+	{
 	    @Override
-	    public void onCallStateChanged(int state, String incomingNumber) {
-	        if(TelephonyManager.CALL_STATE_RINGING == state) {
-	            //Log.i(LOG_TAG, "RINGING, number: " + incomingNumber);
-	            //Toast.makeText(mContext, "Incoming call", Toast.LENGTH_SHORT).show();
+	    public void onCallStateChanged(int state, String incomingNumber)
+	    {
+	        if(TelephonyManager.CALL_STATE_RINGING == state) 
+	        {
+	        	Log.i(LOG_TAG, "RINGING, number: " + incomingNumber);
 	        }
-	        if(TelephonyManager.CALL_STATE_OFFHOOK == state) {
-	            //wait for phone to go offhook (probably set a boolean flag) so you know your app initiated the call.
-	           is_calling=true;
-	        	//Log.i(LOG_TAG, "OFFHOOK");
-	            //Toast.makeText(mContext,"Make a call", Toast.LENGTH_SHORT).show();
+	        if(TelephonyManager.CALL_STATE_OFFHOOK == state) 
+	        {
+	        	Log.i(LOG_TAG, "OFFHOOK");
+	        	try{Thread.sleep(2000);}catch(Exception e){e.printStackTrace();}
+	        	moveToFront();
 	        }
-	        if(TelephonyManager.CALL_STATE_IDLE == state) {
-	            //when this state occurs, and your flag is set, restart your app
-	            if(is_calling)
-	            {
-	            	is_calling=false;
-	            	//recreate();
-	            	
-	            	obj.finish();
-	            	Intent intent =getIntent();
-	            	startActivity(intent);
-	            	
-	            }
-	        	//Log.i(LOG_TAG, "IDLE");
-	            //Toast.makeText(mContext, "Call ended", Toast.LENGTH_SHORT).show();
+	        if(TelephonyManager.CALL_STATE_IDLE == state) 
+	        {
+	        	Log.i(LOG_TAG, "IDLE");
 	        }
 	    }
+	    
+	    
 	}
 	
+	protected void moveToFront() 
+    {
+        if (Build.VERSION.SDK_INT >= 11) 
+        { // honeycomb
+            final ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+            final List<RunningTaskInfo> recentTasks = activityManager.getRunningTasks(Integer.MAX_VALUE);
+            for (int i = 0; i < recentTasks.size(); i++) 
+            {
+                   Log.d("Executed app", "Application executed : " 
+                           +recentTasks.get(i).topActivity.toShortString()
+                           + "\t\t ID: "+recentTasks.get(i).id+"");  
+                   // bring to front                
+                   if (recentTasks.get(i).topActivity.toShortString().indexOf("ca.nehil.rter.streamingapp2.StreamingActivity") > -1)
+                   {  
+                	   //Toast.makeText(mContext, recentTasks.get(i).topActivity.toShortString(), Toast.LENGTH_SHORT).show();
+                      activityManager.moveTaskToFront(recentTasks.get(i).id, ActivityManager.MOVE_TASK_WITH_HOME);
+                      break;
+                   }
+            }
+        }
+    }
 	
 	
 	//@Yetesh Chaudhary ends here
@@ -1277,3 +1258,5 @@ class FrameInfo {
 	public byte[] lon;
 	public byte[] orientation;
 }
+
+
