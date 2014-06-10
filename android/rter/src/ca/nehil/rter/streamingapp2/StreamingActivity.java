@@ -25,16 +25,29 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningTaskInfo;
+import android.app.IntentService;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -48,16 +61,21 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.os.PowerManager;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.widget.*;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -67,15 +85,33 @@ import android.view.View.OnClickListener;
 import android.view.WindowManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
+import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 import ca.nehil.rter.streamingapp2.overlay.CameraGLSurfaceView;
 import ca.nehil.rter.streamingapp2.overlay.OverlayController;
 import android.view.OrientationEventListener;
 import static com.googlecode.javacv.cpp.opencv_core.*;
 
-public class StreamingActivity extends Activity implements OnClickListener {
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
+import android.net.ConnectivityManager;
+import android.net.Uri;
+import android.app.ActionBar;
+
+import java.io.File;
+import java.io.IOException;
+import android.media.MediaRecorder;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.os.Environment;
+
+public class StreamingActivity extends Activity implements OnClickListener
+{
 
 	private static String server_url;
 	private SharedPreferences storedValues;
@@ -128,8 +164,14 @@ public class StreamingActivity extends Activity implements OnClickListener {
 	private final int live_width = 640;
 	private final int live_height = 480;
 	private int screenWidth, screenHeight;
+	
 	/* mikes variables ends */
-
+	
+	//Author: YETESH CHAUDHARY
+	//enjoy my code :D
+	private Context mContext=null;
+	//Yetesh ends here
+	
 	private static final String TAG = "Streaming Activity";
 	private FrameLayout topLayout;
 
@@ -228,6 +270,9 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		/* Test, set desired orienation to north */
 		overlay.letFreeRoam(false);
 		overlay.setDesiredOrientation(0.0f);
+		
+		//Yetesh Chaudhary
+		mContext=this;
 	}
 	
 	@Override
@@ -252,9 +297,13 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		LocalBroadcastManager.getInstance(this).registerReceiver(locationBroadcastReceiver, 
 				new IntentFilter(getString(R.string.LocationEvent)));
 
+		//@Yetesh Chaudhary
+		registerReceiver(networkBroadcastReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 		initLayout();
+		
 	}
-
+	
+	
 	@Override
 	protected void onPause() {
 		super.onPause();
@@ -263,6 +312,9 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(sensorBroadcastReceiver);	// Stop listening for broadcast from SensorSource
 		topLayout.removeAllViews(); // Removes the camera view from the layout, as it is re-added in initlayout from onResume.
 
+		//@yetesh
+		unregisterReceiver(networkBroadcastReceiver);
+		
 		if (putHeadingfeed != null) {
 			if (putHeadingfeed.isAlive()) {
 				putHeadingfeed.interrupt();
@@ -382,6 +434,9 @@ public class StreamingActivity extends Activity implements OnClickListener {
 				}
 			}
 		});
+		
+		
+		
 	}
 
 	/*
@@ -492,10 +547,11 @@ public class StreamingActivity extends Activity implements OnClickListener {
 	}
 
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
+	public boolean onCreateOptionsMenu(Menu menu)
+	{
 		/* Inflate the menu; this adds items to the action bar if it is present. */
 		menu.add(0, 0, 0, "Start");
-		return true;
+		return super.onCreateOptionsMenu(menu);
 	}
 
 	@Override
@@ -513,6 +569,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 			Log.w(LOG_TAG, "Stop Button Pushed");
 			item.setTitle("Start");
 		}
+		
 		return super.onOptionsItemSelected(item);
 	}
 
@@ -545,6 +602,42 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		}
 	};
 
+	//@Yetesh Chaudhary
+	private BroadcastReceiver networkBroadcastReceiver = new BroadcastReceiver() 
+	{
+		@Override
+		public void onReceive(Context context, Intent intent) 
+		{
+			String type=null;
+			ConnectivityManager connManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+			if(connManager.getActiveNetworkInfo().getType()==ConnectivityManager.TYPE_WIFI)	{type="Wireless Network";}
+			else if(connManager.getActiveNetworkInfo().getType()==ConnectivityManager.TYPE_MOBILE)
+			{
+				TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);      
+				if ((tm.getNetworkType() == TelephonyManager.NETWORK_TYPE_HSDPA)) 
+				{	
+					type="3g Network";
+			    } 
+				else if ((tm.getNetworkType() == TelephonyManager.NETWORK_TYPE_HSPAP))
+				{
+					type="4g Network";
+			    }
+				else if ((tm.getNetworkType() == TelephonyManager.NETWORK_TYPE_GPRS)) 
+				{
+					type="GPRS Network";
+			    } 
+				else if ((tm.getNetworkType() == TelephonyManager.NETWORK_TYPE_EDGE))
+				{
+					type="2g Network";
+			    }
+				else type="Unknown network";
+			}
+			Toast.makeText(mContext,type,Toast.LENGTH_LONG).show();
+		}
+	};
+
+	
+	
 	public static byte[] convertStringToByteArray(String s) {
 		byte[] theByteArray = s.getBytes();
 		Log.e(TAG, "length of byte array" + theByteArray.length);
@@ -1047,6 +1140,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		}
 	}
 
+	
 	private byte[] rotateYUV420Degree90(byte[] data, int imageWidth, int imageHeight) 
 	{
 		byte [] yuv = new byte[imageWidth*imageHeight*3/2];
@@ -1074,6 +1168,7 @@ public class StreamingActivity extends Activity implements OnClickListener {
 		}
 		return yuv;
 	}
+	
 
 }
 
@@ -1083,3 +1178,5 @@ class FrameInfo {
 	public byte[] lon;
 	public byte[] orientation;
 }
+
+
