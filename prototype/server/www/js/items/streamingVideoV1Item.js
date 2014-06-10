@@ -94,7 +94,8 @@ angular.module('streamingVideoV1Item', [
 				player = videojs(angular.element('video')[0], {"techOrder": ["flash"]});
 				var startTime = new Date($scope.item.StartTime).getTime();
 				var currentGeolocationIndex = 0;
-				player.on("timeupdate", function(event) {
+				function updateGeolocation(event) {
+					console.log("updateGeolocation", event);
 					var currentDateTime = new Date(startTime + player.currentTime() * 1000);
 					currentGeolocationIndex = $filter('findGeolocationIndexAtTime')($scope.item.Geolocations, currentDateTime, currentGeolocationIndex);
 					$scope.$apply(function() {
@@ -102,7 +103,9 @@ angular.module('streamingVideoV1Item', [
 						$scope.item.Lng = $scope.item.Geolocations[currentGeolocationIndex].Lng;
 						$scope.item.Heading = $scope.item.Geolocations[currentGeolocationIndex].Heading;
 					});
-				});
+				}
+				player.on("timeupdate", updateGeolocation);
+				player.ready(updateGeolocation(event));
 			}, 0);
 		});
 
