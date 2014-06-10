@@ -49,7 +49,7 @@ angular.module('streamingVideoV1Item', [
 	};
 })
 
-.controller('CloseupStreamingVideoV1ItemCtrl', function($scope, $timeout, $window, ItemCache, CloseupItemDialog) {
+.controller('CloseupStreamingVideoV1ItemCtrl', function($scope, $timeout, $filter, $window, ItemCache, CloseupItemDialog) {
 	$scope.isChromeBorwser = $window.navigator.userAgent.toLowerCase().indexOf("chrome") !== -1;
 
 	$scope.videoConfig = {
@@ -92,6 +92,17 @@ angular.module('streamingVideoV1Item', [
 				player.dispose();
 			$timeout(function () {
 				player = videojs(angular.element('video')[0], {"techOrder": ["flash"]});
+				var startTime = new Date($scope.item.StartTime).getTime();
+				var currentGeolocationIndex = 0;
+				player.on("timeupdate", function(event) {
+					var currentDateTime = new Date(startTime + player.currentTime() * 1000);
+					currentGeolocationIndex = $filter('findGeolocationIndexAtTime')($scope.item.Geolocations, currentDateTime, currentGeolocationIndex);
+					$scope.$apply(function() {
+						$scope.item.Lat = $scope.item.Geolocations[currentGeolocationIndex].Lat;
+						$scope.item.Lng = $scope.item.Geolocations[currentGeolocationIndex].Lng;
+						$scope.item.Heading = $scope.item.Geolocations[currentGeolocationIndex].Heading;
+					});
+				});
 			}, 0);
 		});
 
@@ -157,18 +168,7 @@ angular.module('streamingVideoV1Item', [
 	return {
 		restrict: "A",
 		link: function(scope, element, attr) {
-			var startTime = new Date(scope.item.StartTime).getTime();
-			var currentGeolocationIndex = 0;
-			element.bind("timeupdate", function(event) {
-				var currentDateTime = new Date(startTime + element[0].currentTime * 1000);
-				console.log("currentDateTime", currentDateTime);
-				currentGeolocationIndex = $filter('findGeolocationIndexAtTime')(scope.item.Geolocations, currentDateTime, currentGeolocationIndex);
-				scope.$apply(function() {
-					scope.item.Lat = scope.item.Geolocations[currentGeolocationIndex].Lat;
-					scope.item.Lng = scope.item.Geolocations[currentGeolocationIndex].Lng;
-					scope.item.Heading = scope.item.Geolocations[currentGeolocationIndex].Heading;
-				});
-			});
+			
 		}
 	};
 })
