@@ -13,9 +13,9 @@
 	<classpathentry kind="lib" path="libs/javacv.jar"/>
 	<classpathentry kind="lib" path="libs/android-support-v4.jar"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
-	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="gen"/>
+	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="libs/android-async-http-1.4.4.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/android-websockets"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/android-websockets"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
