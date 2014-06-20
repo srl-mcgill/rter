@@ -77,7 +77,7 @@ public class SensorSource implements SensorEventListener, LocationListener{
 
 	public Location getLocation(){
 		if(this.location != null){
-			Log.d("Location: ", this.location+"");
+			Log.d("SenorDebug", this.location+"");
 			return this.location;
 		}else{
 			return mLocationManager.getLastKnownLocation(provider);
