@@ -52,8 +52,10 @@ import com.loopj.android.http.*;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Point;
+import android.graphics.Typeface;
 import android.hardware.Camera;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.SensorManager;
@@ -75,10 +77,12 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import ca.nehil.rter.streamingapp.overlay.CameraGLSurfaceView;
 import ca.nehil.rter.streamingapp.overlay.OverlayController;
 import ca.nehil.rter.streamingapp.R;
+import ca.mcgill.srl.bledevices.DeviceScanService;
 import android.view.OrientationEventListener;
 import static com.googlecode.javacv.cpp.opencv_core.*;
 
@@ -159,12 +163,12 @@ public class StreamingActivity extends Activity {
 		Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
 	}
 
+	TextView tempTextView;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_streaming);
-
 		poilist = new ArrayList<POI>();
 
 		/* Retrieve server URL from stored app values */
@@ -185,7 +189,6 @@ public class StreamingActivity extends Activity {
 			}
 		};
 		myOrientationEventListener.enable();
-
 		/* Retrieve user auth data from cookie */
 		cookies = getSharedPreferences("RterUserCreds", MODE_PRIVATE);
 		cookieEditor = cookies.edit();
@@ -250,6 +253,7 @@ public class StreamingActivity extends Activity {
 		initLayout();
 		sensorSource.initListeners();
 		attemptHandshake(); // Start recording.
+		POIs.registerSensortagReceiver();
 	}
 
 	@Override
@@ -280,6 +284,7 @@ public class StreamingActivity extends Activity {
 			mWakeLock.release();
 			mWakeLock = null;
 		}
+		POIs.unregisterSensortagReceiver();
 	}
 
 	@Override
@@ -313,6 +318,7 @@ public class StreamingActivity extends Activity {
 			cameraDevice.release();
 			cameraDevice = null;
 		}
+		POIs.unregisterSensortagReceiver();
 	}
 
 	public String request(String resource){
@@ -395,6 +401,9 @@ public class StreamingActivity extends Activity {
 		Log.d("CameraDebug", "InitLayout acquired camera");
 		cameraDevice = openCamera();
 		cameraView = new CameraView(this, cameraDevice);
+		tempTextView = new TextView(this);
+		tempTextView.setTypeface(null, Typeface.BOLD);
+		tempTextView.setTextSize(20);
 
 		topLayout.addView(cameraView, layoutParam);
 		topLayout.addView(mGLView, layoutParam);
@@ -402,6 +411,7 @@ public class StreamingActivity extends Activity {
 		FrameLayout preViewLayout = (FrameLayout) myInflate.inflate(R.layout.activity_streaming, null);
 		layoutParam = new FrameLayout.LayoutParams(screenWidth, screenHeight);
 		topLayout.addView(preViewLayout, layoutParam);
+		topLayout.addView(tempTextView);
 		Log.i(LOG_TAG, "cameara preview start: OK");
 	}
 
@@ -943,7 +953,6 @@ public class StreamingActivity extends Activity {
 			if (yuvIplimage != null && recording) {
 				yuvIplimage.getByteBuffer().put(data);
 
-				Log.v(LOG_TAG, "Writing Frame");
 				try {
 					long t = 1000 * (System.currentTimeMillis() - startTime);
 					if (t > recorder.getTimestamp()) {

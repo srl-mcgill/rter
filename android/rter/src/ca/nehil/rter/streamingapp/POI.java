@@ -14,11 +14,18 @@ import android.util.Log;
 public class POI {
 
 	SensorSource sensorSource;
-	protected ArrayList<POI> poiList;
+	protected ArrayList<POI> poiList;	
 	IndicatorFrame squareFrame;
 	Triangle triangleFrame;
+	
+	public int poiId;
+	Location loc;
+	public String curThumbnailURL;
+	public String color;
+	public String type;
+	private Integer temperature;
 
-	public POI(Context context, int _poiId, double _lat, double _lng, String _color, String _curThumbnailURL, String _type) {
+	public POI(Context context, int _poiId, double _lat, double _lng, String _color, String _curThumbnailURL, String _type, Integer _temperature) {
 		poiId = _poiId;
 		loc = new Location("poi");
 		loc.setLatitude(_lat);
@@ -26,18 +33,14 @@ public class POI {
 		color = _color;
 		curThumbnailURL = _curThumbnailURL;
 		type = _type;
+		temperature = _temperature;
 		sensorSource = SensorSource.getInstance(context);
+		Log.d("alok", "Lat: " + _lat + "Long: " + _lng);
 	}
 
 	public void updatePOIList(ArrayList<POI> newPoi){
 		poiList = new ArrayList<POI>(newPoi);
 	}
-
-	public int poiId;
-	Location loc;
-	public String curThumbnailURL;
-	public String color;
-	public String type;
 	
 	public float bearingTo(Location fromLoc) {
 		return fromLoc.bearingTo(loc);
@@ -89,6 +92,7 @@ public class POI {
 		gl.glMultMatrixf(sensorSource.getLandscapeRotationMatrix(), 0);
 
 		if(userLocation != null){
+			Log.d("alok", "rendering: " + userLocation.getLatitude() + ", " + userLocation.getLongitude());
 			float scale = 10000.0f; /* Scale to world. Increasing this to 10^5 will make the world bigger, and hence the POIs smaller. It will also push the POI outside
 			 						* the limit that OpenGL renders objects. So, if changed to 10^5, you will see some POIs dissappear. If you want to change the sizes
 			 						* of the POI, instead change the glScalef below.*/
@@ -130,6 +134,10 @@ public class POI {
 				triangleFrame.draw(gl);
 			}
 			gl.glPopMatrix();
+		}else if(this.type.equals("sensorTag") || this.type.equals("type3")){
+			//draw something
+			//set the color based on temperature. Will need temp value here.
+			
 		}
 	}
 }

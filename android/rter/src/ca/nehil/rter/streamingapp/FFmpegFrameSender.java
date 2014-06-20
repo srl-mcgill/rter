@@ -586,7 +586,7 @@ public class FFmpegFrameSender extends com.googlecode.javacv.FrameRecorder {
     	    public int call(Pointer opaque, BytePointer buf, int buf_size) {
     	    	byte[] bbuf = new byte[buf_size];
     	    	buf.get(bbuf);
-    	    	Log.d("FFMPEG", "write_packet: " + String.valueOf(buf_size) + " bytes");
+//    	    	Log.d("FFMPEG", "write_packet: " + String.valueOf(buf_size) + " bytes");
     	    	
     	    	HttpPost httpPost = new HttpPost(RterResourceSet + "/ts");
                 httpPost.setHeader("Authorization", RterAuthToken);

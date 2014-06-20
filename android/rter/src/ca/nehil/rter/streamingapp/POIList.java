@@ -3,6 +3,8 @@
  */
 package ca.nehil.rter.streamingapp;
 
+import de.grundid.ble.sensors.tisensortag.TISensorTagTemperature;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -17,12 +19,25 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.location.Location;
+import android.os.Bundle;
+import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import ca.nehil.rter.streamingapp.overlay.Triangle;
+import ca.mcgill.srl.bledevices.BluetoothLeService;
+import ca.mcgill.srl.bledevices.DeviceScanService;
+import ca.mcgill.srl.bledevices.TISensorTagService;
 
 import com.codebutler.android_websockets.WebSocketClient;
 
@@ -42,9 +57,17 @@ public class POIList {
 	private Context context;
 	Triangle triangleFrame;
 	float[] displacement = new float[2];
+	private double sensorTagTemperatureAmbient;
+	private double sensorTagTemperatureTarget;
+	StreamingActivity mStreamingActivity;
+	private boolean mSensorTagBound = false;
+	private Intent scanIntent;
+	
+	private TISensorTagService mTISensorTagService;
 	
 	public POIList(Context context, URL baseURL, String rterCredentials) {
 		this.context = context;
+		this.mStreamingActivity = (StreamingActivity)context;
 		items = new ConcurrentHashMap<Integer, POI>();
 		try {
 			serverURI = new URI("ws", baseURL.getHost(), baseURL.getPath() + "/1.0/streaming/items/websocket", null);
@@ -59,6 +82,11 @@ public class POIList {
 		client.connect();
 		generateTestList();
 		
+		//SensorTag stuff begins
+		registerSensortagReceiver();
+		
+		//SensorTag ends
+		
 		triangleFrame = new Triangle();
 	}
 	
@@ -66,7 +94,7 @@ public class POIList {
 		List<BasicNameValuePair> extraHeaders = Arrays.asList(
 			    new BasicNameValuePair("Cookie", rterCredentials)
 			);
-
+			
 			client = new WebSocketClient(serverURI, new WebSocketClient.Listener() {
 			    @Override
 			    public void onConnect() {
@@ -108,7 +136,7 @@ public class POIList {
 										item.getDouble("Lat"),
 										item.getDouble("Lng"), "red", 
 										"", 
-										type);
+										type, null);
 								items.put(Integer.valueOf(id), poi);
 							} else {
 								return;
@@ -157,13 +185,151 @@ public class POIList {
 	 * in a real scenario.
 	 */
 	private void generateTestList() {
-		POI poi1 = new POI(context , 1, 45.5056, -73.5769, "", "http://rter.zapto.org:8080/v1/videos/385/thumb/000000001.jpg", "type1");
-		POI poi2 = new POI(context, 2, 45.5058, -73.5755, "","","type2");
+		POI poi1 = new POI(context , 1, 45.5056, -73.5769, "", "http://rter.zapto.org:8080/v1/videos/385/thumb/000000001.jpg", "type1", null);
+		POI poi2 = new POI(context, 2, 45.5058, -73.5755, "","","type2", null);
 //		POI poi3 = new POI(context, 3, 3.5, 45.5047, -73.5762, "", "", "");
 		
-		items.put(Integer.valueOf(1), poi1);
-		items.put(Integer.valueOf(2), poi2);
+//		items.put(Integer.valueOf(1), poi1);
+//		items.put(Integer.valueOf(2), poi2);
 	}
+	
+	/**
+	 * [SensorTag] 
+	 */
+	public void registerSensortagReceiver(){
+		Log.d("alok", "registered app from tags");
+		//Start the device scan service
+		scanIntent = new Intent(context, DeviceScanService.class);
+		context.startService(scanIntent);
+		
+		final IntentFilter intentFilter = new IntentFilter();
+		intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
+		intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
+		intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
+		intentFilter.addAction("TISensorTag_characteristic");
+		LocalBroadcastManager.getInstance(context).registerReceiver(sensorTagDataReceiver,  intentFilter);
+		LocalBroadcastManager.getInstance(context).registerReceiver(sensorTagDiscoveryReceiver, new IntentFilter("DeviceFound"));
+	}
+	
+	/**
+	 * [SensorTag]
+	 * Parent activity (StreamingActivity in this case) should call this method in its onPause/onDestroy.
+	 */
+	public void unregisterSensortagReceiver(){
+		Log.d("alok", "unregistered app from tags");
+		LocalBroadcastManager.getInstance(context).unregisterReceiver(sensorTagDataReceiver);
+		LocalBroadcastManager.getInstance(context).unregisterReceiver(sensorTagDiscoveryReceiver);
+		
+		if(mSensorTagBound){
+			context.unbindService(sensorTagConnection);
+		}
+		
+		//Stop the service.
+		context.stopService(scanIntent);
+	}
+	
+	/**
+	 * [SensorTag]
+	 */
+	private BroadcastReceiver sensorTagDiscoveryReceiver = new BroadcastReceiver() {
+		
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			Log.d("alok", "Device discovered broadcast");
+			String device = intent.getStringExtra("device");
+			sensorTagConnect(device);
+		}
+	};
+	
+	/**
+	 * [SensorTag]
+	 */
+	private BroadcastReceiver sensorTagDataReceiver = new BroadcastReceiver() {
+		
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			final String action = intent.getAction();
+			if(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)){
+				mTISensorTagService.temperatureEnable((byte)1); //Enable the temperature sensor.
+				mTISensorTagService.temperatureSetPeriod(1000); 
+			}else if(BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)){
+				if(mSensorTagBound){
+					context.unbindService(sensorTagConnection);
+					mSensorTagBound = false;
+				}
+			}else if("TISensorTag_characteristic".equals(action)){
+				// Get extra data included in the Intent
+                Bundle bundle = intent.getExtras();
+                switch(bundle.getInt("type")) {
+                case TISensorTagService.TISENSORTAG_SENSORTYPE_TEMPERATURE:
+                    TISensorTagTemperature tiSensorTagTemperature = (TISensorTagTemperature)bundle.getSerializable("sensor_object");
+                    Log.d("alok", "Got temperature event: " + tiSensorTagTemperature.asString());
+                    sensorTagTemperatureAmbient = Math.round(tiSensorTagTemperature.getAmbient());
+                    sensorTagTemperatureTarget = Math.round(tiSensorTagTemperature.getTarget());
+                    mStreamingActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                        	mStreamingActivity.tempTextView.setText("Ambient: " + convertCtoF(sensorTagTemperatureAmbient) + "F Focus:" + convertCtoF(sensorTagTemperatureTarget) + "F");
+                        	mStreamingActivity.tempTextView.setTextColor(getColor(sensorTagTemperatureTarget));
+                        }
+                    });
+                }
+			}
+		}
+		
+	};
+	
+	private int getColor(double temperature){
+		int color = Color.BLUE;
+
+		if(temperature >60){
+			color = Color.RED;
+			POI poi3 = new POI(context, 3, sensorSource.getLocation().getLatitude(), sensorSource.getLocation().getLongitude(), "", "", "sensorTag", (int)temperature);
+			items.put(Integer.valueOf(3), poi3);
+		}else if(temperature>=40 && temperature<=60){
+			color = Color.YELLOW;
+		}else if(temperature<40){
+			color = Color.CYAN;
+		}
+		return color;
+	}
+	
+	private double convertCtoF(double temperatureC){
+		double temperatureF;
+		temperatureF = (9*temperatureC)/5 + 32.0;
+		return temperatureF;
+	}
+	
+	/**
+	 * [SensorTag]
+	 * @param address Address of the SensorTag to connect to.
+	 */
+	public void sensorTagConnect(String address){
+		Intent tagConnectIntent = new Intent(context, TISensorTagService.class);
+		tagConnectIntent.putExtra("deviceAddress", address);
+		tagConnectIntent.putExtra("flushGatt", false);
+		tagConnectIntent.putExtra("retryTimeout", 60);
+		context.bindService(tagConnectIntent, sensorTagConnection, context.BIND_AUTO_CREATE);
+	}
+	
+	/**
+	 * [SensorTag]
+	 */
+	private ServiceConnection sensorTagConnection = new ServiceConnection() {
+		
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service) {
+			
+			TISensorTagService.LocalBinder binder = (TISensorTagService.LocalBinder) service;
+			mTISensorTagService = binder.getService();
+			mSensorTagBound = true;
+		}
+		
+		@Override
+		public void onServiceDisconnected(ComponentName name) {
+			mSensorTagBound = true;
+		}
+	};
 	
 	public void render(GL10 gl, Location userLocation) {
 
