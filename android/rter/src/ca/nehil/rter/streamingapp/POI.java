@@ -94,7 +94,11 @@ public class POI {
 			 						* of the POI, instead change the glScalef below.*/
 //			gl.glTranslatef(displacement[0], displacement[1], 0.0f); // If you want to auto-walk close to a POI and demo the size increase
 			gl.glTranslatef((float)(loc.getLongitude() - userLocation.getLongitude()) * scale, (float)(loc.getLatitude() - userLocation.getLatitude()) * scale, 0.0f);
-			gl.glScalef(0.1f, 0.1f, 0.1f); // Scaling the POI to a suitable size. This may need to be adjusted if you change the 'scale' variable.
+			float size = 0.1f;
+			//if(this.type.equals("breadcrumb")) {
+			//	size = 0.02f;
+			//}
+			gl.glScalef(size, size, size); // Scaling the POI to a suitable size. This may need to be adjusted if you change the 'scale' variable.
 		}
 
 		if(squareFrame == (null) || triangleFrame == (null)){
@@ -125,6 +129,17 @@ public class POI {
 			triangleFrame.colour(Triangle.Colour.GREEN);
 			gl.glRotatef(90, 1, 0, 0);
 			gl.glScalef(5, 5, 5);
+			for ( int i = 0; i < 8; i++ ){
+				gl.glRotatef(360.0f/8.0f, 0, 1, 0);
+				triangleFrame.draw(gl);
+			}
+			gl.glPopMatrix();
+		}else if (this.type.equals("breadcrumb")){
+			triangleFrame.draw(gl);
+			gl.glPushMatrix();
+			triangleFrame.colour(Triangle.Colour.RED);
+			gl.glRotatef(90, 1, 0, 0);
+			gl.glScalef(1, 1, 1);
 			for ( int i = 0; i < 8; i++ ){
 				gl.glRotatef(360.0f/8.0f, 0, 1, 0);
 				triangleFrame.draw(gl);

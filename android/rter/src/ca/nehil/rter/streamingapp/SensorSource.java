@@ -33,8 +33,13 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	private LocalBroadcastManager localBroadcastManager;
 	private float[] orientationValues = new float[3];
 	private float declination = 0;
+	
+	private Location[] fakeLocations;
 
 	public SensorSource(Context context){
+		
+		buildFakeLocations();
+		
 		mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		Criteria criteria = new Criteria();
 		criteria.setAccuracy(Criteria.ACCURACY_FINE);
@@ -45,6 +50,60 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		locationIntent = new Intent (context.getString(R.string.LocationEvent));
 		sensorIntent = new Intent (context.getString(R.string.SensorEvent));
 		localBroadcastManager = LocalBroadcastManager.getInstance(context);
+	}
+	
+	private void buildFakeLocations() {
+		fakeLocations[0] = new Location("aaa");
+		fakeLocations[0].setLatitude(0);
+		fakeLocations[0].setLongitude(0);
+		
+		fakeLocations[0] = new Location("aaa");
+		fakeLocations[0].setLatitude(0);
+		fakeLocations[0].setLongitude(0);
+		
+		fakeLocations[0] = new Location("aaa");
+		fakeLocations[0].setLatitude(0);
+		fakeLocations[0].setLongitude(0);
+		
+		fakeLocations[0] = new Location("aaa");
+		fakeLocations[0].setLatitude(0);
+		fakeLocations[0].setLongitude(0);
+		
+		fakeLocations[0] = new Location("aaa");
+		fakeLocations[0].setLatitude(0);
+		fakeLocations[0].setLongitude(0);
+		
+		fakeLocations[0] = new Location("aaa");
+		fakeLocations[0].setLatitude(0);
+		fakeLocations[0].setLongitude(0);
+		
+		fakeLocations[0] = new Location("aaa");
+		fakeLocations[0].setLatitude(0);
+		fakeLocations[0].setLongitude(0);
+		
+		fakeLocations[0] = new Location("aaa");
+		fakeLocations[0].setLatitude(0);
+		fakeLocations[0].setLongitude(0);
+		
+		fakeLocations[0] = new Location("aaa");
+		fakeLocations[0].setLatitude(0);
+		fakeLocations[0].setLongitude(0);
+		
+		fakeLocations[0] = new Location("aaa");
+		fakeLocations[0].setLatitude(0);
+		fakeLocations[0].setLongitude(0);
+		
+		fakeLocations[0] = new Location("aaa");
+		fakeLocations[0].setLatitude(0);
+		fakeLocations[0].setLongitude(0);
+		
+		fakeLocations[0] = new Location("aaa");
+		fakeLocations[0].setLatitude(0);
+		fakeLocations[0].setLongitude(0);
+		
+		fakeLocations[0] = new Location("aaa");
+		fakeLocations[0].setLatitude(0);
+		fakeLocations[0].setLongitude(0);
 	}
 
 	public static SensorSource getInstance(Context context){
@@ -76,6 +135,9 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	}
 
 	public Location getLocation(){
+		Location test = new Location("aaa");
+		test.setLatitude(latitude);
+		test.setLongitude(longitude);
 		if(this.location != null){
 			Log.d("Location: ", this.location+"");
 			return this.location;

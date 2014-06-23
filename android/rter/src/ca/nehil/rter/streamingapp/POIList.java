@@ -101,7 +101,7 @@ public class POIList {
 								} else {
 									return;
 								}
-							} else if(type.equals("streaming-video-v1") && live || type.equals("beacon")) {
+							} else if(type.equals("streaming-video-v1") && live || type.equals("beacon") || type.equals("breadcrumb")) {
 								int id = item.getInt("ID");
 								POI poi = new POI(context, 
 										id, 
