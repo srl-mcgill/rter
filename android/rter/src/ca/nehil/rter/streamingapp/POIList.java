@@ -102,10 +102,11 @@ public class POIList {
 									return;
 								}
 							} else if(type.equals("streaming-video-v1") && live || type.equals("beacon") || type.equals("breadcrumb")) {
-								if(type.equals("breadcrumb")) {
-									Log.d("BREAD", "breadcrumb received on websocket");
-								}
+								
 								int id = item.getInt("ID");
+								if(type.equals("breadcrumb")) {
+									Log.d("BREAD", "breadcrumb received on websocket: " + id);
+								}
 								POI poi = new POI(context, 
 										id, 
 										item.getDouble("Lat"),

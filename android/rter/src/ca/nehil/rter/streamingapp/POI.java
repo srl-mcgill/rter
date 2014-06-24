@@ -135,7 +135,6 @@ public class POI {
 			}
 			gl.glPopMatrix();
 		}else if (this.type.equals("breadcrumb")){
-			Log.d("BREAD", "drawing type breadcrumb");
 			triangleFrame.draw(gl);
 			gl.glPushMatrix();
 			triangleFrame.colour(Triangle.Colour.RED);
