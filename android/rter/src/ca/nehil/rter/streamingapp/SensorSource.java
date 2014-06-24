@@ -35,10 +35,13 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	private float declination = 0;
 	
 	private Location[] fakeLocations;
+	private long startTime;
+	private final long DEMO_TIME_MS = 10 * 1000;
 
 	public SensorSource(Context context){
 		
 		buildFakeLocations();
+		this.startTime = System.currentTimeMillis();
 		
 		mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		Criteria criteria = new Criteria();
@@ -54,56 +57,21 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	
 	private void buildFakeLocations() {
 		fakeLocations[0] = new Location("aaa");
-		fakeLocations[0].setLatitude(0);
-		fakeLocations[0].setLongitude(0);
+		fakeLocations[0].setLatitude(37.40784);
+		fakeLocations[0].setLongitude(-122.02905);
 		
-		fakeLocations[0] = new Location("aaa");
-		fakeLocations[0].setLatitude(0);
-		fakeLocations[0].setLongitude(0);
+		fakeLocations[1] = new Location("aaa");
+		fakeLocations[1].setLatitude(37.40796);
+		fakeLocations[1].setLongitude(-122.02914);
 		
-		fakeLocations[0] = new Location("aaa");
-		fakeLocations[0].setLatitude(0);
-		fakeLocations[0].setLongitude(0);
+		fakeLocations[2] = new Location("aaa");
+		fakeLocations[2].setLatitude(37.40808);
+		fakeLocations[2].setLongitude(-122.02905);
 		
-		fakeLocations[0] = new Location("aaa");
-		fakeLocations[0].setLatitude(0);
-		fakeLocations[0].setLongitude(0);
+		fakeLocations[3] = new Location("aaa");
+		fakeLocations[3].setLatitude(37.40798);
+		fakeLocations[3].setLongitude(-122.02889);
 		
-		fakeLocations[0] = new Location("aaa");
-		fakeLocations[0].setLatitude(0);
-		fakeLocations[0].setLongitude(0);
-		
-		fakeLocations[0] = new Location("aaa");
-		fakeLocations[0].setLatitude(0);
-		fakeLocations[0].setLongitude(0);
-		
-		fakeLocations[0] = new Location("aaa");
-		fakeLocations[0].setLatitude(0);
-		fakeLocations[0].setLongitude(0);
-		
-		fakeLocations[0] = new Location("aaa");
-		fakeLocations[0].setLatitude(0);
-		fakeLocations[0].setLongitude(0);
-		
-		fakeLocations[0] = new Location("aaa");
-		fakeLocations[0].setLatitude(0);
-		fakeLocations[0].setLongitude(0);
-		
-		fakeLocations[0] = new Location("aaa");
-		fakeLocations[0].setLatitude(0);
-		fakeLocations[0].setLongitude(0);
-		
-		fakeLocations[0] = new Location("aaa");
-		fakeLocations[0].setLatitude(0);
-		fakeLocations[0].setLongitude(0);
-		
-		fakeLocations[0] = new Location("aaa");
-		fakeLocations[0].setLatitude(0);
-		fakeLocations[0].setLongitude(0);
-		
-		fakeLocations[0] = new Location("aaa");
-		fakeLocations[0].setLatitude(0);
-		fakeLocations[0].setLongitude(0);
 	}
 
 	public static SensorSource getInstance(Context context){
@@ -135,15 +103,18 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	}
 
 	public Location getLocation(){
-		Location test = new Location("aaa");
-		test.setLatitude(latitude);
-		test.setLongitude(longitude);
+		
+		int i = (int) ((System.currentTimeMillis() - startTime) / DEMO_TIME_MS * fakeLocations.length);
+		
+		return fakeLocations[i];
+		/*
 		if(this.location != null){
 			Log.d("Location: ", this.location+"");
 			return this.location;
 		}else{
 			return mLocationManager.getLastKnownLocation(provider);
 		}
+		*/
 	}
 
 	//TODO: [Urgent]; Alok- Need to get current orientation here. This value is sent to the server in StreamingActivity
