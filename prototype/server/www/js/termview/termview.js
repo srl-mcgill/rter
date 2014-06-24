@@ -232,6 +232,9 @@ angular.module('termview', [
 			if(v.Type == "streaming-video-v1" && v.Live === true) {
 				m.setIcon("http://maps.google.com/mapfiles/ms/icons/yellow-dot.png");
 			}
+			else if(v.Type == "breadcrumb") {
+				m.setIcon("http://rter.cim.mcgill.ca/asset/small_blue.png");
+			}
 
 			/*
 			if(v.ThumbnailURI !== undefined && v.ThumbnailURI !== "") {

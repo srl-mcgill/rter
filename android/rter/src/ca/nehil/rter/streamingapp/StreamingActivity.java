@@ -87,11 +87,12 @@ public class StreamingActivity extends Activity {
 	private static String server_url;
 	private HandShakeTask handshakeTask = null;
 	private int PutHeadingTimer = 2000; //	Updating the User location, heading and orientation every 4 secs.
-	private int BreadcrumbTimer = 500;
+	private int BreadcrumbTimer = 2000;
 	private SharedPreferences storedValues;
 	private SharedPreferences cookies;
 	private SharedPreferences.Editor cookieEditor;
 	private Boolean PutHeadingBool = false;
+	private Boolean breadcrumbBool = false;
 	private String setUsername = null;
 	private String setRterCredentials = null;
 	private String recievedRterResource = null;
@@ -476,6 +477,7 @@ public class StreamingActivity extends Activity {
 		if(recorder != null){
 			try {
 				PutHeadingBool = true;
+				breadcrumbBool = true;
 				putHeadingfeed.start();
 				breadcrumbThread.start();
 				recorder.start();
@@ -493,6 +495,7 @@ public class StreamingActivity extends Activity {
 
 	public void stopRecording() {
 		PutHeadingBool = false;
+		breadcrumbBool = false;
 		if (putHeadingfeed != null) {
 			Log.v(LOG_TAG, "Stopping Put Heading Feed");
 			putHeadingfeed.interrupt();
@@ -899,6 +902,9 @@ public class StreamingActivity extends Activity {
 		}
 
 		private void postBreadcrumb() {
+			Location location = sensorSource.getLocation();
+				lati = (float) (location.getLatitude());
+				longi = (float) (location.getLongitude());
 			JSONObject jsonObjSend = new JSONObject();
 
 			try {
@@ -906,6 +912,7 @@ public class StreamingActivity extends Activity {
 				float lat = lati;
 				float lng = longi;
 				jsonObjSend.put("Type", "breadcrumb");
+				jsonObjSend.put("HasGeo", true);
 				jsonObjSend.put("Lat", lat);
 				jsonObjSend.put("Lng", lng);
 
@@ -952,7 +959,7 @@ public class StreamingActivity extends Activity {
 
 		@Override
 		public void run() {
-			while (true) {
+			while (breadcrumbBool) {
 				long millis = System.currentTimeMillis();
 				this.postBreadcrumb();
 

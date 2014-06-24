@@ -34,7 +34,7 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	private float[] orientationValues = new float[3];
 	private float declination = 0;
 	
-	private Location[] fakeLocations;
+	private Location[] fakeLocations = new Location[4];
 	private long startTime;
 	private final long DEMO_TIME_MS = 10 * 1000;
 
@@ -104,8 +104,10 @@ public class SensorSource implements SensorEventListener, LocationListener{
 
 	public Location getLocation(){
 		
-		int i = (int) ((System.currentTimeMillis() - startTime) / DEMO_TIME_MS * fakeLocations.length);
-		
+		int i = (int) ((double)(System.currentTimeMillis() - startTime) / (double)DEMO_TIME_MS * fakeLocations.length);
+		if(i >= fakeLocations.length) {
+			return fakeLocations[fakeLocations.length - 1];
+		}
 		return fakeLocations[i];
 		/*
 		if(this.location != null){
