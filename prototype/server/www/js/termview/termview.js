@@ -221,7 +221,7 @@ angular.module('termview', [
 
 		angular.forEach($scope.finalMapItems, function(v) {
 			if(v.Lat === undefined || v.Lng === undefined || (v.Lat === 0 && v.Lng === 0)) return;
-
+			if(v.Type == "streaming-video-v1" && v.Live === false) return;
 			var m = new google.maps.Marker({
 				map: $scope.map,
 				position: new google.maps.LatLng(v.Lat, v.Lng)

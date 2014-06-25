@@ -548,14 +548,14 @@ public class StreamingActivity extends Activity {
 			return true;
 
 		} else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER){
-			Toast.makeText(StreamingActivity.this, "Attempting to create beacon", Toast.LENGTH_SHORT).show();
+			//Toast.makeText(StreamingActivity.this, "Attempting to create beacon", Toast.LENGTH_SHORT).show();
 			JSONObject jsonParams = new JSONObject();
 			Date date = new Date();
 			SimpleDateFormat dateFormatUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 			dateFormatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
 			String formattedDate = dateFormatUTC.format(date);
 			try {
-				jsonParams.put("Type", "beacon");
+				jsonParams.put("Type", "victim");
 				jsonParams.put("StartTime", formattedDate);
 				jsonParams.put("StopTime", formattedDate);
 				jsonParams.put("HasGeo", true);

@@ -140,6 +140,17 @@ public class POI {
 		}else if (this.type.equals("breadcrumb")){
 			triangleFrame.draw(gl);
 			gl.glPushMatrix();
+			triangleFrame.colour(Triangle.Colour.BLUE);
+			gl.glRotatef(90, 1, 0, 0);
+			gl.glScalef(1, 1, 1);
+			for ( int i = 0; i < 8; i++ ){
+				gl.glRotatef(360.0f/8.0f, 0, 1, 0);
+				triangleFrame.draw(gl);
+			}
+			gl.glPopMatrix();
+		} else if (this.type.equals("victim")){
+			triangleFrame.draw(gl);
+			gl.glPushMatrix();
 			triangleFrame.colour(Triangle.Colour.RED);
 			gl.glRotatef(90, 1, 0, 0);
 			gl.glScalef(1, 1, 1);
