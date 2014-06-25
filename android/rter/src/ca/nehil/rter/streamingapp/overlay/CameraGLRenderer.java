@@ -27,6 +27,7 @@ public class CameraGLRenderer implements Renderer {
 	
 	// Constructor with global application context
 	public CameraGLRenderer(Context context, POIList POIs) {
+		Log.d("OPENGL", "OpenGL renderer created");
 		this.context = context;
 		this.POIs = POIs;
 		this.lock = new Object();

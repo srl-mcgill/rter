@@ -85,9 +85,6 @@ public class POI {
 	 * Use this method to render each POI, called from the frame render in CameraGLRenderer.java
 	 */
 	public void render(GL10 gl, Location userLocation, float[] displacement){
-		if(userLocation != null) {
-			Log.d("POIS", "Distance to " + poiId + ": " + distanceTo(userLocation));
-		}
 		if(userLocation == null || distanceTo(userLocation) < 1 || this.type.equals("streaming-video-v1") || this.type.equals("type1")) {
 			return;
 		}
@@ -99,11 +96,11 @@ public class POI {
 		 						* the limit that OpenGL renders objects. So, if changed to 10^5, you will see some POIs dissappear. If you want to change the sizes
 		 						* of the POI, instead change the glScalef below.*/
 //			gl.glTranslatef(displacement[0], displacement[1], 0.0f); // If you want to auto-walk close to a POI and demo the size increase
-		gl.glTranslatef((float)(loc.getLongitude() - userLocation.getLongitude()) * scale, (float)(loc.getLatitude() - userLocation.getLatitude()) * scale, 0.0f);
 		float size = 0.1f;
-		//if(this.type.equals("breadcrumb")) {
-		//	size = 0.02f;
-		//}
+		if(this.type.equals("breadcrumb")) {
+			size = size / 3;
+		}
+		gl.glTranslatef((float)(loc.getLongitude() - userLocation.getLongitude()) * scale, (float)(loc.getLatitude() - userLocation.getLatitude()) * scale, -size / 2);
 		gl.glScalef(size, size, size); // Scaling the POI to a suitable size. This may need to be adjusted if you change the 'scale' variable.
 
 		if(squareFrame == (null) || triangleFrame == (null)){

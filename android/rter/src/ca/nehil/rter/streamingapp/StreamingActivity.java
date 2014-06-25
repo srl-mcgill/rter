@@ -87,7 +87,7 @@ public class StreamingActivity extends Activity {
 	private static String server_url;
 	private HandShakeTask handshakeTask = null;
 	private int PutHeadingTimer = 2000; //	Updating the User location, heading and orientation every 4 secs.
-	private int BreadcrumbTimer = 2000;
+	private int BreadcrumbTimer = 250;
 	private SharedPreferences storedValues;
 	private SharedPreferences cookies;
 	private SharedPreferences.Editor cookieEditor;
@@ -965,7 +965,7 @@ public class StreamingActivity extends Activity {
 				this.postBreadcrumb();
 
 				try {
-					Thread.sleep((BreadcrumbTimer - millis % 1000));
+					Thread.sleep(BreadcrumbTimer);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
