@@ -53,5 +53,5 @@
 	<string name="LocationEvent">LocationEvent</string>
 	
 	<!-- Google Glass voice trigger "OK -->
-	<string name="glass_voice_trigger">I\'m a Fireman</string>
+	<string name="glass_voice_trigger">Responder</string>
 </resources>
