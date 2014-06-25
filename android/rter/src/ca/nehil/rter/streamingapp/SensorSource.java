@@ -48,12 +48,11 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	}
 
 	public static SensorSource getInstance(Context context){
-
 		if (singleton == null){
 			singleton = new SensorSource(context);
+			mLocationManager.requestLocationUpdates(provider, 1000, 0, singleton); //register singleton with locationmanager
+			mcontext = context;
 		}
-		mLocationManager.requestLocationUpdates(provider, 1000, 0, singleton); //register singleton with locationmanager
-		mcontext = context;
 		return singleton;
 	}
 
