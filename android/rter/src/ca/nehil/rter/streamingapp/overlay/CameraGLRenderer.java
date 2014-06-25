@@ -73,6 +73,7 @@ public class CameraGLRenderer implements Renderer {
 		
 		synchronized(lock) {
 			gl.glLoadIdentity();
+			userLocation = sensorSource.getLocation();
 			POIs.render(gl, userLocation);
 		}
 	}

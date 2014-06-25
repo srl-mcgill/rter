@@ -198,7 +198,7 @@ angular.module('termview', [
 
 	$scope.markerBundles = [];
 
-	$scope.mapCenter = new google.maps.LatLng(45.50745, -73.5793);
+	$scope.mapCenter = new google.maps.LatLng(37.40784, -122.02905);
 
 	$scope.mapOptions = {
 		center: $scope.mapCenter,
