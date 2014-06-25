@@ -520,47 +520,51 @@ public class StreamingActivity extends Activity {
 			return true;
 
 		} else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER){
-			Toast.makeText(StreamingActivity.this, "Attempting to create beacon", Toast.LENGTH_SHORT).show();
-			JSONObject jsonParams = new JSONObject();
-			Date date = new Date();
-			SimpleDateFormat dateFormatUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-			dateFormatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
-			String formattedDate = dateFormatUTC.format(date);
-			try {
-				jsonParams.put("Type", "beacon");
-				jsonParams.put("StartTime", formattedDate);
-				jsonParams.put("StopTime", formattedDate);
-				jsonParams.put("HasGeo", true);
-				jsonParams.put("Lat", lati);
-				jsonParams.put("Lng", longi);
-				jsonParams.put("Heading", sensorSource.getCurrentOrientation());
-				StringEntity entity = new StringEntity(jsonParams.toString());
-				client.post(this, server_url + "/1.0/items", entity, "application/json", new JsonHttpResponseHandler() {
-					@Override
-					public void onSuccess(JSONObject response) {
-						try {
-							int id = response.getInt("ID");
-							Toast.makeText(StreamingActivity.this, "Beacon Created", Toast.LENGTH_SHORT).show();
-							Log.e("MSC", "Beacon Created");
-						} catch (JSONException e) {
-							Toast.makeText(StreamingActivity.this, "Error: Beacon not created", Toast.LENGTH_SHORT).show();
-							Log.e("MSC", "Error: unexpected response from server");
-							e.printStackTrace();
-						}
-					}
-				});
-			} catch (JSONException e) {
-				Log.e("MSC", "Error: " + e.toString());
-				e.printStackTrace();
-			} catch (UnsupportedEncodingException e) {
-				Log.e("MSC", "Error: " + e.toString());
-				e.printStackTrace();
-			}
+			createBeacon();
 		} else if (keyCode == KeyEvent.KEYCODE_CAMERA){
 			// Camera button clicked.
 		}
 
 		return super.onKeyDown(keyCode, event);
+	}
+	
+	private void createBeacon() {
+		Toast.makeText(StreamingActivity.this, "Attempting to create beacon", Toast.LENGTH_SHORT).show();
+		JSONObject jsonParams = new JSONObject();
+		Date date = new Date();
+		SimpleDateFormat dateFormatUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+		dateFormatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
+		String formattedDate = dateFormatUTC.format(date);
+		try {
+			jsonParams.put("Type", "beacon");
+			jsonParams.put("StartTime", formattedDate);
+			jsonParams.put("StopTime", formattedDate);
+			jsonParams.put("HasGeo", true);
+			jsonParams.put("Lat", lati);
+			jsonParams.put("Lng", longi);
+			jsonParams.put("Heading", sensorSource.getCurrentOrientation());
+			StringEntity entity = new StringEntity(jsonParams.toString());
+			client.post(this, server_url + "/1.0/items", entity, "application/json", new JsonHttpResponseHandler() {
+				@Override
+				public void onSuccess(JSONObject response) {
+					try {
+						int id = response.getInt("ID");
+						Toast.makeText(StreamingActivity.this, "Beacon Created", Toast.LENGTH_SHORT).show();
+						Log.e("MSC", "Beacon Created");
+					} catch (JSONException e) {
+						Toast.makeText(StreamingActivity.this, "Error: Beacon not created", Toast.LENGTH_SHORT).show();
+						Log.e("MSC", "Error: unexpected response from server");
+						e.printStackTrace();
+					}
+				}
+			});
+		} catch (JSONException e) {
+			Log.e("MSC", "Error: " + e.toString());
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			Log.e("MSC", "Error: " + e.toString());
+			e.printStackTrace();
+		}
 	}
 
 	@Override

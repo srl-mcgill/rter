@@ -21,7 +21,6 @@ import android.content.Context;
 import android.location.Location;
 import android.util.Log;
 import android.widget.Toast;
-
 import ca.nehil.rter.streamingapp.overlay.Triangle;
 
 import com.codebutler.android_websockets.WebSocketClient;
@@ -157,12 +156,15 @@ public class POIList {
 	 * in a real scenario.
 	 */
 	private void generateTestList() {
-		POI poi1 = new POI(context , 1, 45.5056, -73.5769, "", "http://rter.zapto.org:8080/v1/videos/385/thumb/000000001.jpg", "type1");
-		POI poi2 = new POI(context, 2, 45.5058, -73.5755, "","","type2");
-//		POI poi3 = new POI(context, 3, 3.5, 45.5047, -73.5762, "", "", "");
+		SensorSource sensorSource = SensorSource.getInstance(context);
+		Location userLocation = sensorSource.getLocation();
+		POI poi1 = new POI(context , 1, userLocation.getLatitude() + 0.0015, userLocation.getLongitude() + 0.0006, "", "http://rter.zapto.org:8080/v1/videos/385/thumb/000000001.jpg", "type1");
+		POI poi2 = new POI(context, 2, userLocation.getLatitude() - 0.0024, userLocation.getLongitude() + 0.0018, "","","type2");
+		POI poi3 = new POI(context, 3, userLocation.getLatitude() - 0.0020, userLocation.getLongitude() + 0.0040, "","","type2");
 		
 		items.put(Integer.valueOf(1), poi1);
 		items.put(Integer.valueOf(2), poi2);
+		items.put(Integer.valueOf(3), poi3);
 	}
 	
 	public void render(GL10 gl, Location userLocation) {

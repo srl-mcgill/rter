@@ -72,6 +72,7 @@ public class CameraGLRenderer implements Renderer {
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT); //Clear color and depth buffers using clear-value set earlier
 		
 		synchronized(lock) {
+			userLocation = sensorSource.getLocation();
 			gl.glLoadIdentity();
 			POIs.render(gl, userLocation);
 		}
