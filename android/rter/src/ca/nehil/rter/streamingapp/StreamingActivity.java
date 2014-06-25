@@ -408,10 +408,11 @@ public class StreamingActivity extends Activity {
 				+ button_height);
 
 		Log.d("CameraDebug", "InitLayout acquired camera");
-		cameraDevice = openCamera();
-		cameraView = new CameraView(this, cameraDevice);
-
-		topLayout.addView(cameraView, layoutParam);
+		//cameraDevice = openCamera();
+		//cameraView = new CameraView(this, cameraDevice);
+		cameraDevice = null;
+		
+		//topLayout.addView(cameraView, layoutParam);
 		topLayout.addView(mGLView, layoutParam);
 
 		FrameLayout preViewLayout = (FrameLayout) myInflate.inflate(R.layout.activity_streaming, null);
