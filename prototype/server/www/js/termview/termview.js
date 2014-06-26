@@ -196,15 +196,59 @@ angular.module('termview', [
 		$scope.mapBounds = $scope.map.getBounds();
 	};
 
+	$scope.mapLoaded = false;
+
+	$scope.mapIdle = function() {
+		if($scope.mapLoaded) {
+			return;
+		}
+		$scope.mapLoaded = true;
+		var imageBounds = new google.maps.LatLngBounds(
+			new google.maps.LatLng(37.411767927590226, -122.02900886535645),
+		 	new google.maps.LatLng(37.41253488617168, -122.02810764312744));
+
+		var overlay = new google.maps.GroundOverlay(
+		    'http://rter.cim.mcgill.ca/asset/schematic.png',
+		    imageBounds);
+		overlay.setMap($scope.map);
+		google.maps.event.addListener(overlay, 'rightclick', function(event){
+			$scope.beacon = {
+				Lat: event.latLng.lat(),
+				Lng: event.latLng.lng()
+			};
+			$scope.beacon.Type = "beacon";
+			$scope.beacon.HasGeo = true;
+			$scope.beacon.StartTime = new Date();
+			$scope.beacon.StopTime = $scope.beacon.StartTime;
+
+			$scope.inProgress = true;
+
+			ItemCache.create(
+				$scope.beacon,
+				function() {
+					$scope.inProgress = false;
+				},
+				function() {
+					$scope.inProgress = false;
+				}
+			);
+			$scope.beacon = {};
+		});
+	};
+
+	$scope.model = { map: undefined };
+
 	$scope.markerBundles = [];
 
-	$scope.mapCenter = new google.maps.LatLng(37.40784, -122.02905);
+	$scope.mapCenter = new google.maps.LatLng(37.41215566874344, -122.02852606773376);
 
 	$scope.mapOptions = {
 		center: $scope.mapCenter,
-		zoom: 18,
+		zoom: 19,
 		mapTypeId: google.maps.MapTypeId.ROADMAP
 	};
+
+
 
 	$scope.resizeMap = function() {
 		google.maps.event.trigger($scope.map, "resize");
@@ -256,6 +300,7 @@ angular.module('termview', [
 
 	$scope.showMapMenu = function($event, $params) {
 		$(".context-dropdown").hide();
+		
 		map_dropdown.css({
 			display: "block",
 			left: $event.pixel.x,
