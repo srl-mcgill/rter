@@ -20,6 +20,7 @@ type User struct {
 	Heading		float64
 	Lat			float64
 	Lng			float64
+	Temperature	float64
 	UpdateTime 	time.Time `json:",omitempty"`
 	Status		string
 	StatusTime	time.Time `json:",omitempty"`

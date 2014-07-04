@@ -157,6 +157,7 @@ CREATE TABLE IF NOT EXISTS `Users` (
   `Heading` decimal(9,6) NOT NULL DEFAULT '0.000000',
   `Lat` decimal(9,6) NOT NULL DEFAULT '0.000000',
   `Lng` decimal(9,6) NOT NULL DEFAULT '0.000000',
+  `Temperature` decimal(9,6) NOT NULL DEFAULT '0.000000',
   `UpdateTime` datetime NOT NULL DEFAULT '0001-01-01 00:00:00',
   `Status` varchar(64) NOT NULL,
   `StatusTime` datetime NOT NULL DEFAULT '0001-01-01 00:00:00',

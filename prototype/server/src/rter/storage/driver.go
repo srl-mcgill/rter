@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"rter/data"
 	"time"
-	"fmt"
 )
 
 func Insert(val interface{}) error {
@@ -183,8 +182,6 @@ func Update(val interface{}) error {
 		err error
 	)
 
-	fmt.Printf("%v\n", val)
-
 	now := time.Now().UTC()
 
 	switch v := val.(type) {
@@ -238,12 +235,17 @@ func Update(val interface{}) error {
 		)
 	case *data.User:
 		res, err = Exec(
-			"UPDATE Users SET Username=?, Password=?, Salt=?, Role=?, TrustLevel=? WHERE Username=?",
+			"UPDATE Users SET Username=?, Password=?, Salt=?, Role=?, TrustLevel=?, Heading=?, Lat=?, Lng=?, Temperature=?, UpdateTime=? WHERE Username=?",
 			v.Username,
 			v.Password,
 			v.Salt,
 			v.Role,
 			v.TrustLevel,
+			v.Heading,
+			v.Lat,
+			v.Lng,
+			v.Temperature,
+			now,
 			v.Username,
 		)
 	case *data.UserDirection:

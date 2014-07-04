@@ -145,6 +145,7 @@ func scanUser(user *data.User, rows *sql.Rows) error {
 		&user.Heading,
 		&user.Lat,
 		&user.Lng,
+		&user.Temperature,
 		&user.UpdateTime,
 		&user.Status,
 		&user.StatusTime,

@@ -62,7 +62,7 @@ func main() {
 
 	log.Println("Launching rtER Server")
 
-	err := storage.OpenStorage("rter", "j2pREch8", "tcp", "localhost:3306", "rter")
+	err := storage.OpenStorage("responder", "j2pREch8", "tcp", "localhost:3306", "responder")
 
 	if err != nil {
 		log.Fatalf("Failed to open connection to database %v", err)
