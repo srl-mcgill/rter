@@ -22,11 +22,12 @@ public class DeviceScanService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
-        Log.d("alok", "Service onStart");
-        doScan = true;
-        scan.start();
-        return super.onStartCommand(intent, flags, startId);
+    	if(!doScan){
+    		Log.d("alok", "Service onStart");
+    		doScan = true;
+    		scan.start();
+    	}
+    	return super.onStartCommand(intent, flags, startId);
     }
     
     @Override

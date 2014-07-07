@@ -110,6 +110,8 @@ public class StreamingActivity extends Activity {
 	private int numberOfCameras;
 	private float lati;
 	private float longi;
+	
+	public double sensorTagTemperatureIR = 0;
 
 	/*************
 	 * Mikes variables for JAVACV testing
@@ -717,13 +719,15 @@ public class StreamingActivity extends Activity {
 			JSONObject jsonObjSend = new JSONObject();
 
 			try {
-
+				
 				float lat = lati;
 				float lng = longi;
 				float heading = sensorSource.getCurrentOrientation();
 				jsonObjSend.put("Lat", lat);
 				jsonObjSend.put("Lng", lng);
 				jsonObjSend.put("Heading", heading);
+				Log.d("alok", "Sending temp to server: " + sensorTagTemperatureIR);
+				jsonObjSend.put("Temperature", sensorTagTemperatureIR);
 
 				// Output the JSON object we're sending to Logcat:
 				Log.i(TAG, "PUTHEADNG::Body of update heading feed json = "

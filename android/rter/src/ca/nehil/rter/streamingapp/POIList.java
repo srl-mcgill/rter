@@ -58,7 +58,7 @@ public class POIList {
 	Triangle triangleFrame;
 	float[] displacement = new float[2];
 	private double sensorTagTemperatureAmbient;
-	private double sensorTagTemperatureTarget;
+	private double sensorTagTemperatureIR;
 	StreamingActivity mStreamingActivity;
 	private boolean mSensorTagBound = false;
 	private Intent scanIntent;
@@ -67,7 +67,7 @@ public class POIList {
 	
 	public POIList(Context context, URL baseURL, String rterCredentials) {
 		this.context = context;
-		this.mStreamingActivity = (StreamingActivity)context;
+		this.mStreamingActivity = (StreamingActivity)context; // Need instance of streaming activity to alter textview and send back data.
 		items = new ConcurrentHashMap<Integer, POI>();
 		try {
 			serverURI = new URI("ws", baseURL.getHost(), baseURL.getPath() + "/1.0/streaming/items/websocket", null);
@@ -110,7 +110,7 @@ public class POIList {
 			        	JSONObject event = new JSONObject(message);
 						String action = event.getString("Action");
 						JSONObject item = event.getJSONObject("Val");
-						
+						Log.d("alok", "From server: " + item.getDouble("Temperature"));
 						if(action.equals("create") || action.equals("update")) {
 							boolean hasGeo = item.getBoolean("HasGeo");
 							String type = item.getString("Type");
@@ -242,17 +242,27 @@ public class POIList {
 	};
 	
 	/**
-	 * [SensorTag]
+	 * [SensorTag] This is where we get temperature (and possibly other) data from the tags.
+	 * Can also figure out if we connected, disconnected or discovered services from the tags.
 	 */
 	private BroadcastReceiver sensorTagDataReceiver = new BroadcastReceiver() {
 		
 		@Override
-		public void onReceive(Context context, Intent intent) {
+		public void onReceive(final Context context, Intent intent) {
 			final String action = intent.getAction();
 			if(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)){
 				mTISensorTagService.temperatureEnable((byte)1); //Enable the temperature sensor.
 				mTISensorTagService.temperatureSetPeriod(1000); 
+			}else if(BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)){
+				mStreamingActivity.runOnUiThread(new Runnable() {
+					
+					@Override
+					public void run() {
+						Toast.makeText(context, "Connected to a sensor tag", Toast.LENGTH_SHORT).show();
+					}
+				});
 			}else if(BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)){
+			
 				if(mSensorTagBound){
 					context.unbindService(sensorTagConnection);
 					mSensorTagBound = false;
@@ -265,12 +275,13 @@ public class POIList {
                     TISensorTagTemperature tiSensorTagTemperature = (TISensorTagTemperature)bundle.getSerializable("sensor_object");
                     Log.d("alok", "Got temperature event: " + tiSensorTagTemperature.asString());
                     sensorTagTemperatureAmbient = Math.round(tiSensorTagTemperature.getAmbient());
-                    sensorTagTemperatureTarget = Math.round(tiSensorTagTemperature.getTarget());
+                    sensorTagTemperatureIR = Math.round(tiSensorTagTemperature.getTarget());
                     mStreamingActivity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                        	mStreamingActivity.tempTextView.setText("Ambient: " + convertCtoF(sensorTagTemperatureAmbient) + "F Focus:" + convertCtoF(sensorTagTemperatureTarget) + "F");
-                        	mStreamingActivity.tempTextView.setTextColor(getColor(sensorTagTemperatureTarget));
+                        	mStreamingActivity.tempTextView.setText("Ambient: " + convertCtoF(sensorTagTemperatureAmbient) + "F Focus:" + convertCtoF(sensorTagTemperatureIR) + "F");
+                        	mStreamingActivity.tempTextView.setTextColor(getColor(sensorTagTemperatureIR));
+                        	mStreamingActivity.sensorTagTemperatureIR = sensorTagTemperatureIR;
                         }
                     });
                 }
