@@ -39,7 +39,7 @@ LocationListener  {
 
 	private int PutLocationTimer = 15000; /* Updating the User location, heading and orientation every 4 secs. */
 	private static final String TAG = "Background Service";
-	private static final String SERVER_URL = "http://rter.cim.mcgill.ca";
+	private static final String SERVER_URL = "http://rter.zapto.org";
 
 	private SharedPreferences cookies;
 	private String setRterCredentials;
@@ -52,7 +52,7 @@ LocationListener  {
 
 
 	public BackgroundService() {
-
+		Log.d("alok", "BGSErvice");
 	}
 
 	@Override
@@ -64,6 +64,7 @@ LocationListener  {
 	@Override
 	public void onCreate(){
 		super.onCreate();
+		Log.d("alok", "bgservice");
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 		if(!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER));
 		{
@@ -152,6 +153,7 @@ LocationListener  {
 					jsonObjSend.put("Lat", lat );
 					jsonObjSend.put("Lng", lng );
 					jsonObjSend.put("Heading", heading);
+					jsonObjSend.put("Temperature", "20.0");
 
 					// Output the JSON object we're sending to Logcat:
 					Log.i(TAG,"postHeading()::Body of update location service feed json = "+ jsonObjSend.toString(2));				

@@ -4,6 +4,7 @@
 package ca.nehil.rter.streamingapp;
 
 import de.grundid.ble.sensors.tisensortag.TISensorTagTemperature;
+import de.grundid.ble.sensors.tisensortag.TISensorTagAccelerometer;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -66,6 +67,7 @@ public class POIList {
 	private TISensorTagService mTISensorTagService;
 	
 	public POIList(Context context, URL baseURL, String rterCredentials) {
+		Log.d("SensorDebug", "Made a POIlist");
 		this.context = context;
 		this.mStreamingActivity = (StreamingActivity)context; // Need instance of streaming activity to alter textview and send back data.
 		items = new ConcurrentHashMap<Integer, POI>();
@@ -189,8 +191,8 @@ public class POIList {
 		POI poi2 = new POI(context, 2, 45.5058, -73.5755, "","","type2", null);
 //		POI poi3 = new POI(context, 3, 3.5, 45.5047, -73.5762, "", "", "");
 		
-//		items.put(Integer.valueOf(1), poi1);
-//		items.put(Integer.valueOf(2), poi2);
+		items.put(Integer.valueOf(1), poi1);
+		items.put(Integer.valueOf(2), poi2);
 	}
 	
 	/**
@@ -253,6 +255,9 @@ public class POIList {
 			if(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)){
 				mTISensorTagService.temperatureEnable((byte)1); //Enable the temperature sensor.
 				mTISensorTagService.temperatureSetPeriod(1000); 
+				
+				mTISensorTagService.accelerometerEnable((byte)1);
+				mTISensorTagService.accelerometerSetPeriod(100);
 			}else if(BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)){
 				mStreamingActivity.runOnUiThread(new Runnable() {
 					
@@ -271,8 +276,21 @@ public class POIList {
 				// Get extra data included in the Intent
                 Bundle bundle = intent.getExtras();
                 switch(bundle.getInt("type")) {
+                case TISensorTagService.TISENSORTAG_SENSORTYPE_ACCELEROMETER:
+                	TISensorTagAccelerometer tiSensorTagAccelerometer = (TISensorTagAccelerometer)bundle.getSerializable("sensor_object");
+//                	Log.d("SensorDebug", "gravityx: " + tiSensorTagAccelerometer.gravityX());
+//                	Log.d("SensorDebug", "linearx: " + tiSensorTagAccelerometer.linearX());
+//                	Log.d("SensorDebug", "x: " + tiSensorTagAccelerometer.x());
+                	double x = tiSensorTagAccelerometer.linearX();
+                	double y = tiSensorTagAccelerometer.linearY();
+                	double z = tiSensorTagAccelerometer.linearZ();
+                	double test = Math.sqrt((x*x) + (y*y) + (z*z));
+//                	Log.d("SensorDebug", "srqt: " + test);
+                	Log.d("SensorDebug", "x: " + x + " y: " + y + " z" + z);
+                	break;
                 case TISensorTagService.TISENSORTAG_SENSORTYPE_TEMPERATURE:
                     TISensorTagTemperature tiSensorTagTemperature = (TISensorTagTemperature)bundle.getSerializable("sensor_object");
+                    
                     Log.d("alok", "Got temperature event: " + tiSensorTagTemperature.asString());
                     sensorTagTemperatureAmbient = Math.round(tiSensorTagTemperature.getAmbient());
                     sensorTagTemperatureIR = Math.round(tiSensorTagTemperature.getTarget());
@@ -284,15 +302,14 @@ public class POIList {
                         	mStreamingActivity.sensorTagTemperatureIR = sensorTagTemperatureIR;
                         }
                     });
+                    break;
                 }
 			}
 		}
-		
 	};
 	
 	private int getColor(double temperature){
 		int color = Color.BLUE;
-
 		if(temperature >60){
 			color = Color.RED;
 			POI poi3 = new POI(context, 3, sensorSource.getLocation().getLatitude(), sensorSource.getLocation().getLongitude(), "", "", "sensorTag", (int)temperature);
@@ -343,7 +360,6 @@ public class POIList {
 	};
 	
 	public void render(GL10 gl, Location userLocation) {
-
 		gl.glLineWidth(2);
 		
 		float[] lrm = sensorSource.getLandscapeRotationMatrix();

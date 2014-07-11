@@ -149,11 +149,10 @@ public class TISensorTagAccelerometer implements Serializable {
 
     public String asString() {
         String str;
-        final String fmt = "%.02f";
-        str = "inst(" + String.format(fmt, instant.x) + "," + String.format(fmt, instant.y) + "," + String.format(fmt, instant.z) ;
-        str+= ")  grav(" + String.format(fmt, gravity.x) + "," + String.format(fmt, gravity.y) + "," + String.format(fmt, gravity.z);
-        str+= ")  lina(" + String.format(fmt, linear.x) + "," + String.format(fmt, linear.y) + "," + String.format(fmt, linear.z);
-        str+= ")\n";
+        str = "TISensorTagAccelerometer inst : " + instant.x + ", " + instant.x + ", " + instant.z ;
+        str+= "  grav : " + gravity.x  + ", " + gravity.y + ", " + gravity.z;
+        str+= "  lina : " + linear.x  + ", " + linear.y + ", " + linear.z;
+        str+= "\n";
         return str;
     }
 }

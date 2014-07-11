@@ -2,6 +2,7 @@ package ca.nehil.rter.streamingapp.overlay;
 
 import ca.nehil.rter.streamingapp.POIList;
 import android.content.Context;
+import android.util.Log;
 
 /**
  * NORTH: 0 deg

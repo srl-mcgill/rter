@@ -4,13 +4,13 @@ import ca.nehil.rter.streamingapp.POIList;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.opengl.GLSurfaceView;
+import android.util.Log;
 
 public class CameraGLSurfaceView extends GLSurfaceView {
 	protected CameraGLRenderer camGLRenderer;
 	
 	public CameraGLSurfaceView(Context context, POIList POIs) {
 		super(context);
-		
 		//needed to overlay gl view over camera preview
 		this.setZOrderMediaOverlay(true);
 		

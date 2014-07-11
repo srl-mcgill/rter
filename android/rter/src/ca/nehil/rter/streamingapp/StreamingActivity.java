@@ -216,7 +216,6 @@ public class StreamingActivity extends Activity {
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}		
-
 		overlay = new OverlayController(this, POIs); // OpenGL overlay 
 
 		/* Get location */

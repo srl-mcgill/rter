@@ -30,7 +30,6 @@ public class CameraGLRenderer implements Renderer {
 		this.context = context;
 		this.POIs = POIs;
 		this.lock = new Object();
-		
 		sensorSource = SensorSource.getInstance(context);
 		LocalBroadcastManager.getInstance(context).registerReceiver(locationBroadcastReceiver, 
 				new IntentFilter(context.getString(R.string.LocationEvent)));
@@ -70,7 +69,6 @@ public class CameraGLRenderer implements Renderer {
 
 	public void onDrawFrame(GL10 gl) {
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT); //Clear color and depth buffers using clear-value set earlier
-		
 		synchronized(lock) {
 			gl.glLoadIdentity();
 			POIs.render(gl, userLocation);

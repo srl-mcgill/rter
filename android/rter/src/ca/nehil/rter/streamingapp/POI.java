@@ -85,14 +85,12 @@ public class POI {
 	}
 
 	/*
-	 * Use this method to render each POI, called from the frame render in CameraGLRenderer.java
+	 * Use this method to render each POI.
 	 */
 	public void render(GL10 gl, Location userLocation, float[] displacement){
 		gl.glLoadIdentity();
 		gl.glMultMatrixf(sensorSource.getLandscapeRotationMatrix(), 0);
-
 		if(userLocation != null){
-			Log.d("alok", "rendering: " + userLocation.getLatitude() + ", " + userLocation.getLongitude());
 			float scale = 10000.0f; /* Scale to world. Increasing this to 10^5 will make the world bigger, and hence the POIs smaller. It will also push the POI outside
 			 						* the limit that OpenGL renders objects. So, if changed to 10^5, you will see some POIs dissappear. If you want to change the sizes
 			 						* of the POI, instead change the glScalef below.*/
@@ -136,8 +134,6 @@ public class POI {
 			gl.glPopMatrix();
 		}else if(this.type.equals("sensorTag") || this.type.equals("type3")){
 			//draw something
-			//set the color based on temperature. Will need temp value here.
-			
 		}
 	}
 }
