@@ -37,21 +37,22 @@ public final class R {
         public static final int semi_black=0x7f020001;
     }
     public static final class id {
-        public static final int action_change_server=0x7f0a000e;
-        public static final int action_forgot_password=0x7f0a000d;
-        public static final int action_settings=0x7f0a000f;
-        public static final int add_server_button=0x7f0a000c;
+        public static final int action_change_server=0x7f0a000f;
+        public static final int action_forgot_password=0x7f0a000e;
+        public static final int action_settings=0x7f0a0010;
+        public static final int add_server_button=0x7f0a000d;
+        public static final int call=0x7f0a0009;
         public static final int login=0x7f0a0006;
         public static final int login_form=0x7f0a0003;
         public static final int login_status=0x7f0a0001;
         public static final int login_status_message=0x7f0a0002;
         public static final int password=0x7f0a0005;
-        public static final int record_layout=0x7f0a0009;
+        public static final int record_layout=0x7f0a000a;
         public static final int recorder_control=0x7f0a0008;
-        public static final int server_listview=0x7f0a000b;
+        public static final int server_listview=0x7f0a000c;
         public static final int sign_in_button=0x7f0a0007;
         public static final int surface_camera=0x7f0a0000;
-        public static final int textView1=0x7f0a000a;
+        public static final int textView1=0x7f0a000b;
         public static final int username=0x7f0a0004;
     }
     public static final class layout {
@@ -60,7 +61,8 @@ public final class R {
         public static final int activity_streaming=0x7f030002;
         public static final int activity_token=0x7f030003;
         public static final int javacvtext_main=0x7f030004;
-        public static final int server_listview=0x7f030005;
+        public static final int make_call=0x7f030005;
+        public static final int server_listview=0x7f030006;
     }
     public static final class menu {
         public static final int login=0x7f090000;
