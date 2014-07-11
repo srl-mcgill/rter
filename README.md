@@ -23,3 +23,10 @@ and the server code (written in Go) in:
 
 	prototype/server
 	prototype/videoserver
+
+For the Android project:
+* In Eclipse, use 'Import existing Android code', and select the rter directory. You'll see all the sub-projects listed now. Check mark only 'android-websockets', 'bledevices' and 'rter' and hit finish.
+* You should now see 3 different projects in your Eclipse Package Explorer view, one for each of the above 3 checkboxes you marked.
+* Make sure 'bledevices' and 'rter' are set to compile on the 'Glass Development Preview' Android snapshot (which is Android 4.4) or higher.
+* Also make sure 'rter' is using 'bledevices' and 'anroid-websockets' as a Library.
+* You should be able to compile and run on any Android device running 4.4 or higher.

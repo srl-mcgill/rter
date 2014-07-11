@@ -257,7 +257,7 @@ public class POIList {
 				mTISensorTagService.temperatureSetPeriod(1000); 
 				
 				mTISensorTagService.accelerometerEnable((byte)1);
-				mTISensorTagService.accelerometerSetPeriod(100);
+				mTISensorTagService.accelerometerSetPeriod(200);
 			}else if(BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)){
 				mStreamingActivity.runOnUiThread(new Runnable() {
 					
