@@ -157,9 +157,9 @@ public class POIList {
 	 */
 	private void generateTestList() {
 		Location userLocation = mSensorSource.getLocation();
-		POI poi1 = new POI(context , 1, userLocation.getLatitude() + 0.0150, userLocation.getLongitude() + 0.0060, "", "http://rter.zapto.org:8080/v1/videos/385/thumb/000000001.jpg", "type1");
-		POI poi2 = new POI(context, 2, userLocation.getLatitude() - 0.0240, userLocation.getLongitude() + 0.0180, "","","type2");
-		POI poi3 = new POI(context, 3, userLocation.getLatitude() - 0.0150, userLocation.getLongitude() + 0.0400, "","","type2");
+		POI poi1 = new POI(context , 1, userLocation.getLatitude() + 0.0003, userLocation.getLongitude() + 0.0001, "", "http://rter.zapto.org:8080/v1/videos/385/thumb/000000001.jpg", "type1");
+		POI poi2 = new POI(context, 2, userLocation.getLatitude() - 0.0005, userLocation.getLongitude() + 0.0003, "","","type2");
+		POI poi3 = new POI(context, 3, userLocation.getLatitude() - 0.0003, userLocation.getLongitude() + 0.0008, "","","type2");
 		
 		items.put(Integer.valueOf(1), poi1);
 		items.put(Integer.valueOf(2), poi2);

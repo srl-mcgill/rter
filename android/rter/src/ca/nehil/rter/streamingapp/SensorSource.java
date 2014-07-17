@@ -75,6 +75,13 @@ public class SensorSource implements SensorEventListener, LocationListener{
 	}
 
 	public Location getLocation(){
+		
+		if(this.location == null) {
+			this.location = new Location("test");
+		}
+		this.location.setLatitude(45.505958f);
+		this.location.setLongitude(-73.576254f);
+		
 		if(this.location != null){
 			Log.d("Location: ", this.location+"");
 			return this.location;

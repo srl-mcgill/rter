@@ -89,8 +89,6 @@ public class POI {
 			return;
 		}
 		
-		Log.d("OPENGL", "Rendering POI #" + this.poiId);
-		
 		gl.glLoadIdentity();
 		gl.glMultMatrixf(sensorSource.getLandscapeRotationMatrix(), 0);
 		float scale = 10000.0f; /* Scale to world. Increasing this to 10^5 will make the world bigger, and hence the POIs smaller. It will also push the POI outside
