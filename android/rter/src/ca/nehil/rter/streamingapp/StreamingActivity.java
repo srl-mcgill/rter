@@ -120,6 +120,8 @@ public class StreamingActivity extends Activity {
 	private int imageWidth = 320;
 	private int imageHeight = 240;
 	private int frameRate = 30;
+	
+	private boolean CAMERA_PREVIEW = false;
 
 	/* video data getting thread */
 	private Camera cameraDevice;
@@ -393,10 +395,14 @@ public class StreamingActivity extends Activity {
 				+ button_height);
 
 		Log.d("CameraDebug", "InitLayout acquired camera");
-		cameraDevice = openCamera();
-		cameraView = new CameraView(this, cameraDevice);
-
-		topLayout.addView(cameraView, layoutParam);
+		
+		if(CAMERA_PREVIEW) {
+			cameraDevice = openCamera();
+			cameraView = new CameraView(this, cameraDevice);
+	
+			topLayout.addView(cameraView, layoutParam);
+		}
+			
 		topLayout.addView(mGLView, layoutParam);
 
 		FrameLayout preViewLayout = (FrameLayout) myInflate.inflate(R.layout.activity_streaming, null);

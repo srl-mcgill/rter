@@ -37,7 +37,7 @@ public class POIList {
 	private URI serverURI;
 	private String rterCredentials;
 	private ConcurrentHashMap<Integer, POI> items;
-	private SensorSource sensorSource;
+	private SensorSource mSensorSource;
 	private Context context;
 	Triangle triangleFrame;
 	float[] displacement = new float[2];
@@ -52,7 +52,7 @@ public class POIList {
 			e.printStackTrace();
 		}
 		this.rterCredentials = rterCredentials;
-		sensorSource = SensorSource.getInstance(context);
+		mSensorSource = SensorSource.getInstance(context);
 		initClient();
 		Log.d(TAG, "Connecting to " + serverURI.toString());
 		client.connect();
@@ -156,8 +156,7 @@ public class POIList {
 	 * in a real scenario.
 	 */
 	private void generateTestList() {
-		SensorSource sensorSource = SensorSource.getInstance(context);
-		Location userLocation = sensorSource.getLocation();
+		Location userLocation = mSensorSource.getLocation();
 		POI poi1 = new POI(context , 1, userLocation.getLatitude() + 0.0150, userLocation.getLongitude() + 0.0060, "", "http://rter.zapto.org:8080/v1/videos/385/thumb/000000001.jpg", "type1");
 		POI poi2 = new POI(context, 2, userLocation.getLatitude() - 0.0240, userLocation.getLongitude() + 0.0180, "","","type2");
 		POI poi3 = new POI(context, 3, userLocation.getLatitude() - 0.0150, userLocation.getLongitude() + 0.0400, "","","type2");
@@ -171,7 +170,7 @@ public class POIList {
 
 		gl.glLineWidth(2);
 		
-		float[] lrm = sensorSource.getLandscapeRotationMatrix();
+		float[] lrm = mSensorSource.getLandscapeRotationMatrix();
 		float scale = 0.1f;
 		displacement[0] += lrm[2] * scale; // used for the auto-walk demo feature to show POI size increase
 		displacement[1] += lrm[6] * scale;
