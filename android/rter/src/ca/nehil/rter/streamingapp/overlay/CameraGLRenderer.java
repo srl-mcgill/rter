@@ -23,15 +23,15 @@ public class CameraGLRenderer implements Renderer {
 	float aspect;
 	private POIList POIs;
 	Location userLocation;
-	private SensorSource sensorSource;
+	private SensorSource mSensorSource;
 	
 	// Constructor with global application context
-	public CameraGLRenderer(Context context, POIList POIs) {
+	public CameraGLRenderer(Context context, POIList POIs, SensorSource mSensorSource) {
 		this.context = context;
 		this.POIs = POIs;
 		this.lock = new Object();
 		
-		sensorSource = SensorSource.getInstance(context);
+		this.mSensorSource = mSensorSource;
 		LocalBroadcastManager.getInstance(context).registerReceiver(locationBroadcastReceiver, 
 				new IntentFilter(context.getString(R.string.LocationEvent)));
 	}
@@ -72,7 +72,7 @@ public class CameraGLRenderer implements Renderer {
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT); //Clear color and depth buffers using clear-value set earlier
 		
 		synchronized(lock) {
-			userLocation = sensorSource.getLocation();
+			userLocation = mSensorSource.getLocation();
 			gl.glLoadIdentity();
 			POIs.render(gl, userLocation);
 		}
@@ -82,8 +82,7 @@ public class CameraGLRenderer implements Renderer {
 	private BroadcastReceiver locationBroadcastReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			userLocation = sensorSource.getLocation();
-			Log.d("LocationDebug", "renderer received broadcast: "+userLocation);
+			userLocation = mSensorSource.getLocation();
 		}
 	};
 

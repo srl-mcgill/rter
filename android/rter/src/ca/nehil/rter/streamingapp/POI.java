@@ -13,12 +13,13 @@ import android.util.Log;
 
 public class POI {
 
-	SensorSource sensorSource;
+	SensorSource mSensorSource;
 	protected ArrayList<POI> poiList;
 	IndicatorFrame squareFrame;
 	Triangle triangleFrame;
+	private final static String TAG = "POIObject";
 
-	public POI(Context context, int _poiId, double _lat, double _lng, String _color, String _curThumbnailURL, String _type) {
+	public POI(Context context, int _poiId, double _lat, double _lng, String _color, String _curThumbnailURL, String _type, SensorSource mSensorSource) {
 		poiId = _poiId;
 		loc = new Location("poi");
 		loc.setLatitude(_lat);
@@ -26,7 +27,7 @@ public class POI {
 		color = _color;
 		curThumbnailURL = _curThumbnailURL;
 		type = _type;
-		sensorSource = SensorSource.getInstance(context);
+		this.mSensorSource = mSensorSource;
 	}
 
 	public void updatePOIList(ArrayList<POI> newPoi){
@@ -43,9 +44,7 @@ public class POI {
 		return fromLoc.bearingTo(loc);
 	}
 	public float relativeBearingTo(Location fromLoc) { //bearing relative to user position
-//		Log.d("SensorDebug", "curr orien: " + sensorSource.getCurrentOrientation());
-		return minDegreeDelta(fromLoc.bearingTo(loc), sensorSource.getCurrentOrientation());
-		//		return minDegreeDelta(fromLoc.bearingTo(loc), (float)sensorSource.getHeading());
+		return minDegreeDelta(fromLoc.bearingTo(loc), mSensorSource.getCurrentOrientation());
 	}
 	public float distanceTo(Location fromLoc) {
 		return fromLoc.distanceTo(loc);
@@ -55,7 +54,6 @@ public class POI {
 		float delta = deg1-deg2;
 		if(delta > 180) delta -= 360;
 		if(delta < -180) delta += 360;
-		//Log.d("DegreeDelta", "Delta: "+ delta + " deg1: " + deg1 + " deg2: " + deg2);
 
 		return delta;
 	}
@@ -88,10 +86,10 @@ public class POI {
 		if(userLocation == null || distanceTo(userLocation) < 0.5) {
 			return;
 		}
-		
+
 		gl.glLoadIdentity();
 		gl.glRotatef(270, 0, 0, 1);
-		gl.glMultMatrixf(sensorSource.getLandscapeRotationMatrix(), 0);
+		gl.glMultMatrixf(mSensorSource.getLandscapeRotationMatrix(), 0);
 		float scale = 10000.0f; /* Scale to world. Increasing this to 10^5 will make the world bigger, and hence the POIs smaller. It will also push the POI outside
 		 						* the limit that OpenGL renders objects. So, if changed to 10^5, you will see some POIs dissappear. If you want to change the sizes
 		 						* of the POI, instead change the glScalef below.*/
@@ -103,13 +101,11 @@ public class POI {
 		if(squareFrame == (null) || triangleFrame == (null)){
 			squareFrame = new IndicatorFrame();
 			triangleFrame = new Triangle();
-			Log.d("CameraDebug", "created new objects");
 		}
 
 		if(squareFrame == (null) || triangleFrame == (null)){
 			squareFrame = new IndicatorFrame();
 			triangleFrame = new Triangle();
-			Log.d("CameraDebug", "created new objects");
 		}
 		
 		if(this.type.equals("streaming-video-v1") || this.type.equals("type1")){

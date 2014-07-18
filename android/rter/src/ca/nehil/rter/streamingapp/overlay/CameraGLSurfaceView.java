@@ -1,6 +1,7 @@
 package ca.nehil.rter.streamingapp.overlay;
 
 import ca.nehil.rter.streamingapp.POIList;
+import ca.nehil.rter.streamingapp.SensorSource;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.opengl.GLSurfaceView;
@@ -8,7 +9,7 @@ import android.opengl.GLSurfaceView;
 public class CameraGLSurfaceView extends GLSurfaceView {
 	protected CameraGLRenderer camGLRenderer;
 	
-	public CameraGLSurfaceView(Context context, POIList POIs) {
+	public CameraGLSurfaceView(Context context, POIList POIs, SensorSource mSensorSource) {
 		super(context);
 		
 		//needed to overlay gl view over camera preview
@@ -20,7 +21,7 @@ public class CameraGLSurfaceView extends GLSurfaceView {
         this.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         
         // Set the Renderer for drawing on the GLSurfaceView
-        this.camGLRenderer = new CameraGLRenderer(context, POIs);
+        this.camGLRenderer = new CameraGLRenderer(context, POIs, mSensorSource);
         this.setRenderer(camGLRenderer);
            
         // Render the view only when there is a change in the drawing data

@@ -42,7 +42,7 @@ public class POIList {
 	Triangle triangleFrame;
 	float[] displacement = new float[2];
 	
-	public POIList(Context context, URL baseURL, String rterCredentials) {
+	public POIList(Context context, URL baseURL, String rterCredentials, SensorSource mSensorSource) {
 		this.context = context;
 		items = new ConcurrentHashMap<Integer, POI>();
 		try {
@@ -52,7 +52,7 @@ public class POIList {
 			e.printStackTrace();
 		}
 		this.rterCredentials = rterCredentials;
-		mSensorSource = SensorSource.getInstance(context);
+		this.mSensorSource = mSensorSource;
 		initClient();
 		Log.d(TAG, "Connecting to " + serverURI.toString());
 		client.connect();
@@ -107,7 +107,8 @@ public class POIList {
 										item.getDouble("Lat"),
 										item.getDouble("Lng"), "red", 
 										"", 
-										type);
+										type,
+										mSensorSource);
 								items.put(Integer.valueOf(id), poi);
 							} else {
 								return;
@@ -157,9 +158,9 @@ public class POIList {
 	 */
 	private void generateTestList() {
 		Location userLocation = mSensorSource.getLocation();
-		POI poi1 = new POI(context , 1, userLocation.getLatitude() + 0.0003, userLocation.getLongitude() + 0.0001, "", "http://rter.zapto.org:8080/v1/videos/385/thumb/000000001.jpg", "type1");
-		POI poi2 = new POI(context, 2, userLocation.getLatitude() - 0.0005, userLocation.getLongitude() + 0.0003, "","","type2");
-		POI poi3 = new POI(context, 3, userLocation.getLatitude() - 0.0003, userLocation.getLongitude() + 0.0008, "","","type2");
+		POI poi1 = new POI(context , 1, userLocation.getLatitude() + 0.0003, userLocation.getLongitude() + 0.0001, "", "http://rter.zapto.org:8080/v1/videos/385/thumb/000000001.jpg", "type1", mSensorSource);
+		POI poi2 = new POI(context, 2, userLocation.getLatitude() - 0.0005, userLocation.getLongitude() + 0.0003, "","","type2", mSensorSource);
+		POI poi3 = new POI(context, 3, userLocation.getLatitude() - 0.0003, userLocation.getLongitude() + 0.0008, "","","type2", mSensorSource);
 		
 		items.put(Integer.valueOf(1), poi1);
 		items.put(Integer.valueOf(2), poi2);

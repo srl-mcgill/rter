@@ -102,7 +102,7 @@ public class StreamingActivity extends Activity {
 	private Thread putHeadingfeed;
 	private CameraGLSurfaceView mGLView;
 	private OverlayController overlay;
-	private SensorSource sensorSource;
+	private SensorSource mSensorSource;
 	private int numberOfCameras;
 	private float lati;
 	private float longi;
@@ -122,6 +122,8 @@ public class StreamingActivity extends Activity {
 	private int frameRate = 30;
 	
 	private boolean CAMERA_PREVIEW = false;
+	
+	private boolean GET_LOCATION_FROM_SERVER = true;
 
 	/* video data getting thread */
 	private Camera cameraDevice;
@@ -209,16 +211,17 @@ public class StreamingActivity extends Activity {
 			newCookie.setDomain(serverURL.getHost());
 			newCookie.setPath("/");
 			myCookieStore.addCookie(newCookie);
-			POIs = new POIList(this, serverURL, setRterCredentials);
+			mSensorSource = SensorSource.getInstance(this, GET_LOCATION_FROM_SERVER, serverURL, setRterCredentials, setUsername);
+			POIs = new POIList(this, serverURL, setRterCredentials, mSensorSource);
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}		
 
-		overlay = new OverlayController(this, POIs); // OpenGL overlay 
+		overlay = new OverlayController(this, POIs, mSensorSource); // OpenGL overlay 
 
 		/* Get location */
-		sensorSource = SensorSource.getInstance(this);
-		Location location = sensorSource.getLocation();
+		
+		Location location = mSensorSource.getLocation();
 		if (location != null) {
 			lati = (float) (location.getLatitude());
 			longi = (float) (location.getLongitude());
@@ -250,7 +253,7 @@ public class StreamingActivity extends Activity {
 		}
 
 		initLayout();
-		sensorSource.initListeners();
+		mSensorSource.initListeners();
 		attemptHandshake(); // Start recording.
 	}
 
@@ -259,7 +262,7 @@ public class StreamingActivity extends Activity {
 		super.onPause();
 
 		stopRecording();
-		sensorSource.stopListeners(); // Stop sensorSource from receiving sensor and location updates
+		mSensorSource.stopListeners(); // Stop mSensorSource from receiving sensor and location updates
 		topLayout.removeAllViews(); // Removes the camera view from the layout, as it is re-added in initlayout from onResume.
 
 		if (putHeadingfeed != null) {
@@ -299,7 +302,7 @@ public class StreamingActivity extends Activity {
 			cameraDevice.release();
 			cameraDevice = null;
 		}
-		sensorSource.stopListeners();
+		mSensorSource.stopListeners();
 	}
 
 	@Override
@@ -548,7 +551,7 @@ public class StreamingActivity extends Activity {
 			jsonParams.put("HasGeo", true);
 			jsonParams.put("Lat", lati);
 			jsonParams.put("Lng", longi);
-			jsonParams.put("Heading", sensorSource.getCurrentOrientation());
+			jsonParams.put("Heading", mSensorSource.getCurrentOrientation());
 			StringEntity entity = new StringEntity(jsonParams.toString());
 			client.post(this, server_url + "/1.0/items", entity, "application/json", new JsonHttpResponseHandler() {
 				@Override
@@ -720,7 +723,7 @@ public class StreamingActivity extends Activity {
 
 				float lat = lati;
 				float lng = longi;
-				float heading = sensorSource.getCurrentOrientation();
+				float heading = mSensorSource.getCurrentOrientation();
 				jsonObjSend.put("Lat", lat);
 				jsonObjSend.put("Lng", lng);
 				jsonObjSend.put("Heading", heading);
