@@ -86,7 +86,7 @@ public class StreamingActivity extends Activity {
 
 	private static String server_url;
 	private HandShakeTask handshakeTask = null;
-	private int PutHeadingTimer = 2000; //	Updating the User location, heading and orientation every 4 secs.
+	private static final int UPDATE_SERVER_INTERVAL = 200; //	Updating the User location, heading and orientation every 4 secs.
 	private SharedPreferences storedValues;
 	private SharedPreferences cookies;
 	private SharedPreferences.Editor cookieEditor;
@@ -143,6 +143,8 @@ public class StreamingActivity extends Activity {
 
 	private static final String TAG = "Streaming Activity";
 	private FrameLayout topLayout;
+	
+	private static final int HTTP_TIMEOUT = 1000;
 
 	public class NotificationRunnable implements Runnable {
 		private String message = null;
@@ -544,6 +546,8 @@ public class StreamingActivity extends Activity {
 		SimpleDateFormat dateFormatUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 		dateFormatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
 		String formattedDate = dateFormatUTC.format(date);
+		Location userLocation = mSensorSource.getLocation();
+		float lati = (float) userLocation.getLatitude(), longi = (float) userLocation.getLongitude();
 		try {
 			jsonParams.put("Type", "beacon");
 			jsonParams.put("StartTime", formattedDate);
@@ -721,8 +725,8 @@ public class StreamingActivity extends Activity {
 
 			try {
 
-				float lat = lati;
-				float lng = longi;
+				Location userLocation = mSensorSource.getLocation();
+				float lat = (float) userLocation.getLatitude(), lng = (float) userLocation.getLongitude();
 				float heading = mSensorSource.getCurrentOrientation();
 				jsonObjSend.put("Lat", lat);
 				jsonObjSend.put("Lng", lng);
@@ -732,17 +736,18 @@ public class StreamingActivity extends Activity {
 				Log.i(TAG, "PUTHEADNG::Body of update heading feed json = "
 						+ jsonObjSend.toString(2));
 
-				int TIMEOUT_MILLISEC = 1000; // = 1 seconds
 				Log.i(TAG, "postHeading()Put Request being sent" + server_url
 						+ "/1.0/items/" + recievedItemID);
+				
+				// POST to item geolocations endpoint
 				URL url = new URL(server_url + "/1.0/items/" + recievedItemID + "/geolocations");
 				HttpURLConnection httpcon = (HttpURLConnection) url
 						.openConnection();
 				httpcon.setRequestProperty("Cookie", setRterCredentials);
 				httpcon.setRequestProperty("Content-Type", "application/json");
 				httpcon.setRequestMethod("POST");
-				httpcon.setConnectTimeout(TIMEOUT_MILLISEC);
-				httpcon.setReadTimeout(TIMEOUT_MILLISEC);
+				httpcon.setConnectTimeout(HTTP_TIMEOUT);
+				httpcon.setReadTimeout(HTTP_TIMEOUT);
 				httpcon.connect();
 				byte[] outputBytes = jsonObjSend.toString().getBytes("UTF-8");
 				OutputStream os = httpcon.getOutputStream();
@@ -751,11 +756,11 @@ public class StreamingActivity extends Activity {
 				os.close();
 
 				int status = httpcon.getResponseCode();
-				Log.i(TAG, "PUTHEADNG Status of response " + status);
+				Log.i(TAG, "POSTHEADING item/geolocations Status of response " + status);
 				switch (status) {
 				case 200:
 				case 304:
-					Log.i(TAG, "PUTHEADNG sensor Feed response = successful");
+					Log.i(TAG, "POSTHEADING item/geolocations sensor Feed response = successful");
 
 				}
 				
@@ -766,8 +771,8 @@ public class StreamingActivity extends Activity {
 				httpcon.setRequestProperty("Cookie", setRterCredentials);
 				httpcon.setRequestProperty("Content-Type", "application/json");
 				httpcon.setRequestMethod("PUT");
-				httpcon.setConnectTimeout(TIMEOUT_MILLISEC);
-				httpcon.setReadTimeout(TIMEOUT_MILLISEC);
+				httpcon.setConnectTimeout(HTTP_TIMEOUT);
+				httpcon.setReadTimeout(HTTP_TIMEOUT);
 				httpcon.connect();
 				outputBytes = jsonObjSend.toString().getBytes("UTF-8");
 				os = httpcon.getOutputStream();
@@ -776,11 +781,37 @@ public class StreamingActivity extends Activity {
 				os.close();
 
 				status = httpcon.getResponseCode();
-				Log.i(TAG, "PUTHEADNG Status of response " + status);
+				Log.i(TAG, "PUTHEADING item Status of response " + status);
 				switch (status) {
 				case 200:
 				case 304:
-					Log.i(TAG, "PUTHEADNG sensor Feed response = successful");
+					Log.i(TAG, "PUTHEADING item sensor Feed response = successful");
+
+				}
+				
+				// also PUT to user endpoint
+				url = new URL(server_url + "/1.0/users/" + setUsername);
+				jsonObjSend.put("Username", setUsername);
+				httpcon = (HttpURLConnection) url
+						.openConnection();
+				httpcon.setRequestProperty("Cookie", setRterCredentials);
+				httpcon.setRequestProperty("Content-Type", "application/json");
+				httpcon.setRequestMethod("PUT");
+				httpcon.setConnectTimeout(HTTP_TIMEOUT);
+				httpcon.setReadTimeout(HTTP_TIMEOUT);
+				httpcon.connect();
+				outputBytes = jsonObjSend.toString().getBytes("UTF-8");
+				os = httpcon.getOutputStream();
+				os.write(outputBytes);
+
+				os.close();
+
+				status = httpcon.getResponseCode();
+				Log.i(TAG, "PUTHEADING user Status of response " + status);
+				switch (status) {
+				case 200:
+				case 304:
+					Log.i(TAG, "PUTHEADING user sensor Feed response = successful");
 
 				}
 
@@ -860,7 +891,7 @@ public class StreamingActivity extends Activity {
 				this.getHeading();
 
 				try {
-					Thread.sleep((PutHeadingTimer - millis % 1000));
+					Thread.sleep(UPDATE_SERVER_INTERVAL);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}

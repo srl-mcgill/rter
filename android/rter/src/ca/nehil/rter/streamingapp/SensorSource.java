@@ -117,11 +117,10 @@ public class SensorSource implements SensorEventListener, LocationListener{
 
 	public Location getLocation(){
 		if(location == null) {
-			location = new Location("test");
+			location = new Location("rtER");
 			location.setLatitude(45.505958f);
 			location.setLongitude(-73.576254f);
 		}
-		Log.d(TAG, "Lng: " + location.getLongitude());
 		return location;
 	}
 
