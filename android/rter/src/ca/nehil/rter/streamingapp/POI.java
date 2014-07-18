@@ -90,6 +90,7 @@ public class POI {
 		}
 		
 		gl.glLoadIdentity();
+		gl.glRotatef(270, 0, 0, 1);
 		gl.glMultMatrixf(sensorSource.getLandscapeRotationMatrix(), 0);
 		float scale = 10000.0f; /* Scale to world. Increasing this to 10^5 will make the world bigger, and hence the POIs smaller. It will also push the POI outside
 		 						* the limit that OpenGL renders objects. So, if changed to 10^5, you will see some POIs dissappear. If you want to change the sizes
