@@ -442,11 +442,13 @@ func ReadWhere(w http.ResponseWriter, r *http.Request) {
 
 // Generic Update handler
 func Update(w http.ResponseWriter, r *http.Request) {
-	user, permissions := auth.Challenge(w, r, true)
+	user, _ := auth.Challenge(w, r, true)
+	/*
 	if user == nil || permissions < 1 {
 		http.Error(w, "Please Login", http.StatusUnauthorized)
 		return
 	}
+	*/
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
@@ -477,10 +479,12 @@ func Update(w http.ResponseWriter, r *http.Request) {
 
 		val = v
 	case "users":
+		/*
 		if vars["key"] != user.Username {
 			http.Error(w, "Please don't hack other users", http.StatusUnauthorized)
 			return
 		}
+		*/
 
 		v := new(data.User)
 		v.Username = vars["key"]
