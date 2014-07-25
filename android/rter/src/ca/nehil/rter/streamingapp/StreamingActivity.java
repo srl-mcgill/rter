@@ -121,7 +121,7 @@ public class StreamingActivity extends Activity {
 	private int imageHeight = 240;
 	private int frameRate = 30;
 	
-	private boolean CAMERA_PREVIEW = false;
+	private boolean CAMERA_PREVIEW = true;
 	
 	private boolean GET_LOCATION_FROM_SERVER = true;
 
@@ -390,8 +390,10 @@ public class StreamingActivity extends Activity {
 			prev_rw = display_width_d;
 			prev_rh = (int) (1.0 * display_width_d * live_height / live_width);
 		}
-
-		layoutParam = new FrameLayout.LayoutParams(prev_rw, prev_rh, Gravity.CENTER);
+		
+		
+		layoutParam = new FrameLayout.LayoutParams(1, 1, Gravity.BOTTOM);
+		
 		Log.d("LAYOUT", "display_width_d:" + display_width_d
 				+ ":: display_height_d:" + display_height_d + ":: prev_rw:"
 				+ prev_rw + ":: prev_rh:" + prev_rh + ":: live_width:"
@@ -407,6 +409,8 @@ public class StreamingActivity extends Activity {
 	
 			topLayout.addView(cameraView, layoutParam);
 		}
+		
+		layoutParam = new FrameLayout.LayoutParams(prev_rw, prev_rh, Gravity.CENTER);
 			
 		topLayout.addView(mGLView, layoutParam);
 
