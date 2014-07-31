@@ -95,6 +95,11 @@ public class POI {
 		 						* of the POI, instead change the glScalef below.*/
 //			gl.glTranslatef(displacement[0], displacement[1], 0.0f); // If you want to auto-walk close to a POI and demo the size increase
 		float size = 0.1f;
+		
+		if(this.type.equals("breadcrumb")) {
+			size = size / 4;
+		}
+		
 		gl.glTranslatef((float)(loc.getLongitude() - userLocation.getLongitude()) * scale, (float)(loc.getLatitude() - userLocation.getLatitude()) * scale, -size / 2);
 		gl.glScalef(size, size, size); // Scaling the POI to a suitable size. This may need to be adjusted if you change the 'scale' variable.
 
