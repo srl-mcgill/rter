@@ -199,14 +199,14 @@ angular.module('termview', [
 	$scope.mapLoaded = false;
 
 	$scope.mapIdle = function() {
-		if(true) {
-		//if($scope.mapLoaded) {
+		//if(true) {
+		if($scope.mapLoaded) {
 			return;
 		}
 		$scope.mapLoaded = true;
 		var imageBounds = new google.maps.LatLngBounds(
-			new google.maps.LatLng(39.07215, -94.88228),
-		 	new google.maps.LatLng(39.07216, -94.88226));
+			new google.maps.LatLng(39.072264712686895, -94.88259136676788),
+		 	new google.maps.LatLng(39.07217569271187, -94.88233521580696));
 
 		var overlay = new google.maps.GroundOverlay(
 		    'http://rter.cim.mcgill.ca/asset/schematic.png',

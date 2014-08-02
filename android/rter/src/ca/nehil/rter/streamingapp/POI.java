@@ -94,10 +94,14 @@ public class POI {
 		 						* the limit that OpenGL renders objects. So, if changed to 10^5, you will see some POIs dissappear. If you want to change the sizes
 		 						* of the POI, instead change the glScalef below.*/
 //			gl.glTranslatef(displacement[0], displacement[1], 0.0f); // If you want to auto-walk close to a POI and demo the size increase
-		float size = 0.005f;
+		//float size = 0.005f;
+		float size = 0.0075f;
+		float z_offset = 0f;
 		
 		if(this.type.equals("breadcrumb")) {
-			size = size / 4;
+			//size = size / 4;
+			size = size / 10;
+			z_offset = -0.1f;
 			/*
 			if(framecount++ % 30 == 0){
 				Log.d("RENDER", this.poiId +" poi.lng: " + loc.getLongitude() + ", user.lng: " + userLocation.getLongitude());
@@ -107,7 +111,8 @@ public class POI {
 		}
 		
 		//Log.d("RENDER", "x: " + (float)(loc.getLongitude() - userLocation.getLongitude()) * scale + ", y: " + (float)(loc.getLatitude() - userLocation.getLatitude()) * scale);
-		gl.glTranslatef((float)(loc.getLongitude() - userLocation.getLongitude()) * scale, (float)(loc.getLatitude() - userLocation.getLatitude()) * scale, -0.5f);
+		//gl.glTranslatef((float)(loc.getLongitude() - userLocation.getLongitude()) * scale, (float)(loc.getLatitude() - userLocation.getLatitude()) * scale, -0.5f);
+		gl.glTranslatef((float)(loc.getLongitude() - userLocation.getLongitude()) * scale, (float)(loc.getLatitude() - userLocation.getLatitude()) * scale, z_offset);
 		gl.glScalef(size, size, size); // Scaling the POI to a suitable size. This may need to be adjusted if you change the 'scale' variable.
 
 		if(squareFrame == (null) || triangleFrame == (null)){
