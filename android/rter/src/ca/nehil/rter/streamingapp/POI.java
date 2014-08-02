@@ -100,8 +100,8 @@ public class POI {
 		
 		if(this.type.equals("breadcrumb")) {
 			//size = size / 4;
-			size = size / 10;
-			z_offset = -0.1f;
+			size = size / 4;
+			z_offset = -0.5f;
 			/*
 			if(framecount++ % 30 == 0){
 				Log.d("RENDER", this.poiId +" poi.lng: " + loc.getLongitude() + ", user.lng: " + userLocation.getLongitude());

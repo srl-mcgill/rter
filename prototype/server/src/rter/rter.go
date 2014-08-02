@@ -31,7 +31,7 @@ import (
 	"rter/rest"
 	"rter/storage"
 	"rter/streaming"
-	"rter/twitter"
+	//"rter/twitter"
 )
 
 // TODO: Make a flag for the secret token (video server)
@@ -124,7 +124,7 @@ func main() {
 		},
 	)
 
-	r.PathPrefix("/twitter").Handler(http.StripPrefix("/twitter", twitter.NewTwitterHandler()))
+	//r.PathPrefix("/twitter").Handler(http.StripPrefix("/twitter", twitter.NewTwitterHandler()))
 
 	r.HandleFunc("/", // Web client
 		func(w http.ResponseWriter, r *http.Request) {
