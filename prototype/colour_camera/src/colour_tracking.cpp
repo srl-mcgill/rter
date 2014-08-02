@@ -26,7 +26,7 @@ extern "C" {
 using namespace std;
 
 const int CAM_ID = 1;
-const bool DISPLAY_PREVIEW = false;
+const bool DISPLAY_PREVIEW = true;
 const string SERVER_URL = "http://localhost:8000";
 const int UPDATE_INTERVAL = 500;
 
