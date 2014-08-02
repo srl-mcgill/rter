@@ -50,7 +50,7 @@ angular.module('streamingVideoV1Item', [
 })
 
 .controller('CloseupStreamingVideoV1ItemCtrl', function($scope, $timeout, $window, ItemCache, CloseupItemDialog) {
-	$scope.isChromeBorwser = $window.navigator.userAgent.toLowerCase().indexOf("chrome") !== -1;
+	//$scope.isChromeBorwser = $window.navigator.userAgent.toLowerCase().indexOf("chrome") !== -1;
 
 	$scope.videoConfig = {
 		width: 480,
@@ -81,7 +81,7 @@ angular.module('streamingVideoV1Item', [
 	});
 
 
-	if(!$scope.isChromeBorwser) {
+	//if(!$scope.isChromeBorwser) {
 		videojs.options.flash.swf = "/vendor/video-js/video-js.swf";
 		var player;
 	    
@@ -97,7 +97,7 @@ angular.module('streamingVideoV1Item', [
 		    player.dispose();
 		});
 
-	}
+	//}
 
 	$scope.toggleLive = function() {
     	player.currentTime(player.duration());

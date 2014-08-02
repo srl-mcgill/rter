@@ -5,8 +5,8 @@ angular.module('edit-map', [
 
 .controller('EditMapCtrl', function($scope, $timeout) {
 	$scope.mapOptions = {
-		center: new google.maps.LatLng(45.50745, -73.5793),
-		zoom: 10,
+		center: new google.maps.LatLng(39.072155, -94.88227),
+		zoom: 21,
 		mapTypeId: google.maps.MapTypeId.ROADMAP
 	};
 
