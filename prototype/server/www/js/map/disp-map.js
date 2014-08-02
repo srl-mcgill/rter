@@ -6,7 +6,7 @@ angular.module('disp-map', [
 
 .controller('DispMapCtrl', function($scope, $timeout, UserDirectionCache) {
 	$scope.mapOptions = {
-		zoom: 16,
+		zoom: 21,
 		mapTypeId: google.maps.MapTypeId.ROADMAP
 	};
 
