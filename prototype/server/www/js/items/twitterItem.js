@@ -22,7 +22,9 @@ angular.module('twitterItem',  [
 	}	
 
 
-	$scope.mapCenter = new google.maps.LatLng(39.072155, -94.88227);
+	//$scope.mapCenter = new google.maps.LatLng(39.072155, -94.88227);
+	$scope.mapCenter = new google.maps.LatLng(39.0722285321, -94.8824656382);
+	
 
 	$scope.mapOptions = {
 		center: $scope.mapCenter,

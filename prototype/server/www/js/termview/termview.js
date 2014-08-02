@@ -205,8 +205,8 @@ angular.module('termview', [
 		}
 		$scope.mapLoaded = true;
 		var imageBounds = new google.maps.LatLngBounds(
-			new google.maps.LatLng(39.072264712686895, -94.88259136676788),
-		 	new google.maps.LatLng(39.07217569271187, -94.88233521580696));
+			new google.maps.LatLng(39.07217985739157, -94.88259270787239),
+		 	new google.maps.LatLng(39.0722772067095, -94.88233856856823));
 
 		var overlay = new google.maps.GroundOverlay(
 		    'http://rter.cim.mcgill.ca/asset/schematic.png',
@@ -241,7 +241,8 @@ angular.module('termview', [
 
 	$scope.markerBundles = [];
 
-	$scope.mapCenter = new google.maps.LatLng(39.072155, -94.88227);
+	//$scope.mapCenter = new google.maps.LatLng(39.072155, -94.88227);
+	$scope.mapCenter = new google.maps.LatLng(39.0722285321, -94.8824656382);
 
 	$scope.mapOptions = {
 		center: $scope.mapCenter,

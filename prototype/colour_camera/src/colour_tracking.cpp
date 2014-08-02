@@ -29,13 +29,22 @@ const int CAM_ID = 1;
 const bool DISPLAY_PREVIEW = false;
 const string SERVER_URL = "http://localhost:8000";
 const int UPDATE_INTERVAL = 500;
+
+
+
+
+// new values
+const double LAT_MIN = 39.072179857392;
+const double LAT_MAX = 39.07227720671;
+const double LNG_MIN = -94.882592707872;
+const double LNG_MAX = -94.882338568568;
+/* old small values
 const double LAT_MIN = 39.07215;
-//const double LAT_MAX = 39.07228;
 const double LAT_MAX = 39.07216;
-const double LAT_INTERVAL = LAT_MAX - LAT_MIN;
 const double LNG_MIN = -94.88228;
-//const double LNG_MAX = -94.88245;
 const double LNG_MAX = -94.88226;
+*/
+const double LAT_INTERVAL = LAT_MAX - LAT_MIN;
 const double LNG_INTERVAL = LNG_MAX - LNG_MIN;
 const int CAPTURE_WIDTH = 1280;
 const int CAPTURE_HEIGHT = 720;
