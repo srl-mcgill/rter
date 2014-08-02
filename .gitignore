@@ -7,10 +7,11 @@ nohup.out
 
 # Folders
 bin/
-gen/
+gen
 pkg
 prototype/videoserver/data/*
 !prototype/videoserver/data/.gitkeep
+!prototype/videoserver/data/log
 
 ##### Xcode stuff #####
 

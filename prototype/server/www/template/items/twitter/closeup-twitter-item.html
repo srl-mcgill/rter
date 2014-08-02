@@ -1,21 +1,23 @@
 <div class="closeup-twitter-item">
 	
 	<ul class="twitter-list">
-		<li ng-repeat = "tweet in searchResult.results" class="twitter" >			
+		<li ng-repeat = "tweet in searchResult.statuses" class="twitter" >			
 			<header>
-				<span class="author"><a href="http://twitter.com/{{tweet.from_user}}">{{tweet.from_user_name}} </a></span>
-				<span>(@{{tweet.from_user}})</span>
+				<span class="author"><a href="http://twitter.com/{{tweet.user.screen_name}}">{{tweet.user.name}} </a></span>
+				<span>(@{{tweet.user.screen_name}})</span>
 				<span class="time">{{tweet.created_at | fromNow}}</span>
 				
 				<button class="btn btn-mini btn-danger" ng-click='test(tweet, $event)'> Promote </button>
-				<button class="btn btn-mini btn-info"><a href="https://twitter.com/{{tweet.from_user}}/status/{{tweet.id_str}}" target="_blank">React</a>  </button>
+				<button class="btn btn-mini btn-info"><a href="https://twitter.com/{{tweet.user.screen_name}}/status/{{tweet.id_str}}" target="_blank">React</a>  </button>
 			</header>
 			<article>{{tweet.text}}</article>
+			<!--
 			<article ng-show="tweet.entities.urls[0].expanded_url"><span class="author">URL :</span><a href="{{tweet.entities.urls[0].expanded_url}}">{{tweet.entities.urls[0].expanded_url}}</a></article>
 			<article ng-show="tweet.entities.media[0].media_url"><span class="author">Pic URL :</span><a href="{{tweet.entities.media[0].media_url}}">{{tweet.entities.media[0].media_url}}</a></article>
+			-->
 		</li>
 	</ul>
-	<div class="alert alert-error" ng-hide="searchResult.results.length">
+	<div class="alert alert-error" ng-hide="searchResult.statuses.length">
   		<span>No tweets from Twitter search, right now!</span>
 	</div>
 </div>

@@ -130,6 +130,9 @@ func main() {
 		}
 	*/
 
+	// crossdomain file handler for Flash player
+	r.HandleFunc("/crossdomain.xml", CrossdomainHandler)
+
 	// have a single index handler at server URI root
 	r.HandleFunc("/", IndexHandler)
 
@@ -192,6 +195,10 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
 	w.Header().Set("Content-Type", "text/plain")
 	w.Write([]byte("This is the rtER video server.\n"))
+}
+
+func CrossdomainHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "crossdomain.xml")
 }
 
 func AVCIngestHandler(w http.ResponseWriter, r *http.Request) {

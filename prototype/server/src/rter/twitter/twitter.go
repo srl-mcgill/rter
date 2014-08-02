@@ -8,7 +8,8 @@ import (
 	"rter/auth"
 	"encoding/json"
 	"errors"
-	"fmt"
+	"io"
+	"strings"
 )
 
 type twitterToken struct {
@@ -22,41 +23,55 @@ func init() {
 	token, _ = getToken()
 }
 
+type TwitterHandler struct {}
+
+func NewTwitterHandler() *TwitterHandler {
+	return new(TwitterHandler)
+}
+
+func (t *TwitterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	TwitterHandlerFunc(w, r)
+}
+
 func TwitterHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	user, permissions := auth.Challenge(w, r, true)
 	if user == nil || permissions < 1 {
 		http.Error(w, "Please Login", http.StatusUnauthorized)
 		return
 	}
-	
-	url := "https://api.twitter.com/1.1/search/tweets.json?count=40&callback=angular.callbacks._0&include_entities=true&q=fire&result_type=recent&geocode=45.56021795715051,-73.5774564743042,38.36127544070008km"
-	req, err := http.NewRequest("GET", url, nil)
+
+	twitterURL := "https://api.twitter.com" + r.URL.Path + "?" + r.URL.RawQuery
+	req, err := http.NewRequest("GET", twitterURL, nil)
 	if err != nil {
 		http.Error(w, "Failed to build request : " + err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	token, err = getToken()
+	if strings.HasPrefix(r.URL.Path, "/1.1") {
+		token, err = getToken()
 
-	req.Header.Add("Authorization", "Bearer " + token.AccessToken)
-	fmt.Printf("%v\n", req)
+		req.Header.Add("Authorization", "Bearer " + token.AccessToken)
+	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		http.Error(w, "Failed to send request: " + err.Error(), http.StatusBadRequest)
 		return
 	}
-	fmt.Printf("%v\n", resp)
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		http.Error(w, "Unexpected status received: " + resp.Status, http.StatusBadRequest)
+		io.Copy(w, resp.Body)
+		//http.Error(w, "Unexpected status received: " + resp.Status, http.StatusBadRequest)
 		return
 	}
 
-	//TODO: this is not setting the Content-Type header in the response
 	w.Header().Set("Content-Type", "application/json")
+	//encoder := json.NewEncoder(w)
+	//err = encoder.Encode(token)
 	//w.WriteHeader(http.StatusOK)
+
+	io.Copy(w, resp.Body)
 }
 
 func getToken() (*twitterToken, error) {
@@ -89,3 +104,9 @@ func getToken() (*twitterToken, error) {
 
 	return token, nil
 }
+
+/*
+func searchQuery(query string) (http.Response, error){
+
+}
+*/
