@@ -26,16 +26,20 @@ extern "C" {
 using namespace std;
 
 const int CAM_ID = 1;
-const bool DISPLAY_PREVIEW = true;
+const bool DISPLAY_PREVIEW = false;
 const string SERVER_URL = "http://localhost:8000";
 const int UPDATE_INTERVAL = 500;
 const double LAT_MIN = 39.07215;
-const double LAT_MAX = 39.07228;
-const double LNG_MIN = -94.88245;
-const double LNG_MAX = -94.88228;
+//const double LAT_MAX = 39.07228;
+const double LAT_MAX = 39.07216;
+const double LAT_INTERVAL = LAT_MAX - LAT_MIN;
+const double LNG_MIN = -94.88228;
+//const double LNG_MAX = -94.88245;
+const double LNG_MAX = -94.88226;
+const double LNG_INTERVAL = LNG_MAX - LNG_MIN;
 const int CAPTURE_WIDTH = 1280;
 const int CAPTURE_HEIGHT = 720;
-const float PREVIEW_SCALE = 0.35;
+const double PREVIEW_SCALE = 0.35;
 
 
 int get_time_in_msec(){
@@ -62,9 +66,9 @@ IplImage* GetThresholdedImageRed(IplImage* img)
 {
 	//red has a hue of 180
 	int red_hue_max_low=35;
-	int red_sat_min=100;
-	int red_val_min=100;
-	int red_hue_min_high=175;
+	int red_sat_min=160;
+	int red_val_min=200;
+	int red_hue_min_high=155;
 	int red_sat_max=255;
 	int red_val_max=255;
 
@@ -92,10 +96,10 @@ IplImage* GetThresholdedImageRed(IplImage* img)
 IplImage* GetThresholdedImageBlue(IplImage* img)
 {
 	//blue has a hue of 120
-	int blue_hue_min=65;
-	int blue_sat_min=200;
-	int blue_val_min=200;
-	int blue_hue_max=105;
+	int blue_hue_min=70;
+	int blue_sat_min=77;
+	int blue_val_min=100;
+	int blue_hue_max=175;
 	int blue_sat_max=255;
 	int blue_val_max=255;
 
@@ -117,11 +121,11 @@ IplImage* GetThresholdedImageBlue(IplImage* img)
 IplImage* GetThresholdedImageGreen(IplImage* img)
 {
 	//green has a hue of 60
-	int green_hue_min=0;
-	int green_sat_min=0;
-	int green_val_min=100;
-	int green_hue_max=255;
-	int green_sat_max=100;
+	int green_hue_min=64;
+	int green_sat_min=180;
+	int green_val_min=200;
+	int green_hue_max=104;
+	int green_sat_max=255;
 	int green_val_max=255;
 
 	//convert the image into an HSV image
@@ -152,19 +156,23 @@ int red_calculations (IplImage* imgRedThresh, ofstream* redfile_ptr, double star
 	 static int posY_red = 0;
 	 int current_time, time_since_start;
 	 stringstream red_output, red_file;
+	 red_output.precision(12);
 
 	 if(area_red!=0){
 		 posX_red = moment10_red/area_red;
 		 posY_red = moment01_red/area_red;
+
+		 double lat = (((double) posY_red) / ((double) CAPTURE_HEIGHT) * LAT_INTERVAL) + LAT_MIN;
+		 double lng = ((1 - ((double) posX_red) / ((double) CAPTURE_WIDTH)) * LNG_INTERVAL) + LNG_MIN;
+
 		 current_time=get_time_in_msec();
 		 time_since_start=current_time-start_time;
 		 //printf("position of red object(%d, %d)\n", posX_red, posY_red);
 		 red_file<< time_since_start << "," << posX_red <<","<< posY_red << ";\n";
-		 float lat = posX_red;
-		 float lng = posY_red;
 		 red_output << "{\"Username\": \"red\", \"Lat\": " << lat << ", \"Lng\": " << lng << "}";
 		 RestClient::response r = RestClient::put(SERVER_URL + "/1.0/users/red", "text/json", red_output.str());
-		 cout << "Status: " << r.code << ", " << r.body;
+		 //cout << "Status: " << r.code << ", " << r.body;
+		 //cout << "R: " << lat << ", " << lng << "\n";
 		 *redfile_ptr << red_file.str();
 	 }
 
@@ -187,20 +195,24 @@ int blue_calculations (IplImage* imgBlueThresh, ofstream* bluefile_ptr, int star
 	 int current_time, time_since_start;
 
 	 stringstream blue_output, blue_file;
-
+	 blue_output.precision(12);
+	 cout.precision(12);
 
 	 if(area_blue!=0){
 		 posX_blue = moment10_blue/area_blue;
 		 posY_blue = moment01_blue/area_blue;
+
+		 double lat = (((double) posY_blue) / ((double) CAPTURE_HEIGHT) * LAT_INTERVAL) + LAT_MIN;
+		 double lng = ((1 - ((double) posX_blue) / ((double) CAPTURE_WIDTH)) * LNG_INTERVAL) + LNG_MIN;
+
 		 current_time=get_time_in_msec();
 		 time_since_start=current_time-start_time;
 		 //printf("position of blue object(%d, %d)\n", posX_blue, posY_blue);
 		 blue_file<<time_since_start<<"," << posX_blue <<","<< posY_blue << ";\n";
-		 float lat = posX_blue;
-		 float lng = posY_blue;
 		 blue_output << "{\"Username\": \"blue\", \"Lat\": " << lat << ", \"Lng\": " << lng << "}";
 		 RestClient::response r = RestClient::put(SERVER_URL + "/1.0/users/blue", "text/json", blue_output.str());
-		 cout << "Status: " << r.code << ", " << r.body;
+		 //cout << "Status: " << r.code << ", " << r.body;
+		 cout << "B: " << posX_blue << ", " << posY_blue << "  " << lat << ", " << lng << "\n";
 		 *bluefile_ptr << blue_file.str();
 	 }
 
@@ -223,19 +235,23 @@ int green_calculations (IplImage* imgGreenThresh, ofstream* greenfile_ptr, int s
 	 int current_time, time_since_start;
 
 	 stringstream green_output, green_file;
+	 green_output.precision(12);
 
 	 if(area_green!=0){
 		 posX_green = moment10_green/area_green;
 		 posY_green = moment01_green/area_green;
+
+		 double lat = (((double) (posY_green)) / ((double) CAPTURE_HEIGHT) * LAT_INTERVAL) + LAT_MIN;
+		 double lng = ((1 - ((double) posX_green) / ((double) CAPTURE_WIDTH)) * LNG_INTERVAL) + LNG_MIN;
+
 		 current_time=get_time_in_msec();
 		 time_since_start=current_time-start_time;
 		 //printf("position of green object(%d, %d)\n", posX_green, posY_green);
 		 green_file<<time_since_start <<","<< posX_green <<","<< posY_green << ";\n";
-		 float lat = posX_green;
-		 float lng = posY_green;
 		 green_output << "{\"Username\": \"green\", \"Lat\": " << lat << ", \"Lng\": " << lng << "}";
 		 RestClient::response r = RestClient::put(SERVER_URL + "/1.0/users/green", "text/json", green_output.str());
-		 cout << "Status: " << r.code << ", " << r.body;
+		 //cout << "Status: " << r.code << ", " << r.body;
+		 cout << "G: " << lat << ", " << lng << "\n";
 		 *greenfile_ptr << green_file.str();
 	 }
 
@@ -314,8 +330,8 @@ int main() {
 		cvMoveWindow("thresh_red", 720, 0);
 		cvNamedWindow("thresh_blue");
 		cvMoveWindow("thresh_blue", 0, 560);
-		cvNamedWindow("thresh_green");
-		cvMoveWindow("thresh_green", 720, 560);
+		//cvNamedWindow("thresh_green");
+		//cvMoveWindow("thresh_green", 720, 560);
 	}
 
 	int start_time = get_time_in_msec();
@@ -355,10 +371,10 @@ int main() {
 
 		IplImage* imgRedThresh = GetThresholdedImageRed(frame);
 		IplImage* imgBlueThresh = GetThresholdedImageBlue(frame);
-		IplImage* imgGreenThresh = GetThresholdedImageGreen(frame);
+		//IplImage* imgGreenThresh = GetThresholdedImageGreen(frame);
 		red_calculations (imgRedThresh, redfile_ptr, start_time);
 		blue_calculations (imgBlueThresh, bluefile_ptr, start_time);
-		green_calculations (imgGreenThresh, greenfile_ptr, start_time);
+		//green_calculations (imgGreenThresh, greenfile_ptr, start_time);
 
 		if(DISPLAY_PREVIEW) {
 			IplImage* imgRedThresh_scaled = cvCreateImage(cvSize((int) imgRedThresh->width * PREVIEW_SCALE, (int) imgRedThresh->height * PREVIEW_SCALE), 8, 1);
@@ -367,18 +383,18 @@ int main() {
 			IplImage* imgBlueThresh_scaled = cvCreateImage(cvSize((int) imgBlueThresh->width * PREVIEW_SCALE, (int) imgBlueThresh->height * PREVIEW_SCALE), 8, 1);
 			cvResize(imgBlueThresh, imgBlueThresh_scaled);
 			cvShowImage("thresh_blue", imgBlueThresh_scaled);
-			IplImage* imgGreenThresh_scaled = cvCreateImage(cvSize((int) imgGreenThresh->width * PREVIEW_SCALE, (int) imgGreenThresh->height * PREVIEW_SCALE), 8, 1);
-			cvResize(imgGreenThresh, imgGreenThresh_scaled);
-			cvShowImage("thresh_green", imgGreenThresh_scaled);
+			//IplImage* imgGreenThresh_scaled = cvCreateImage(cvSize((int) imgGreenThresh->width * PREVIEW_SCALE, (int) imgGreenThresh->height * PREVIEW_SCALE), 8, 1);
+			//cvResize(imgGreenThresh, imgGreenThresh_scaled);
+			//cvShowImage("thresh_green", imgGreenThresh_scaled);
 
 			cvReleaseImage(&imgRedThresh_scaled);
 			cvReleaseImage(&imgBlueThresh_scaled);
-			cvReleaseImage(&imgGreenThresh_scaled);
+			//cvReleaseImage(&imgGreenThresh_scaled);
 		}
 
 		cvReleaseImage(&imgRedThresh);
 		cvReleaseImage(&imgBlueThresh);
-		cvReleaseImage(&imgGreenThresh);
+		//cvReleaseImage(&imgGreenThresh);
 
 
 		usleep(UPDATE_INTERVAL * 1000);
