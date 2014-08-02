@@ -20,7 +20,7 @@
 						<div ng-repeat="bundle in markerBundles" ui-map-marker="bundle.marker"
 						  ui-event="{'map-click': 'closeupItemDialog(bundle.item)', 'map-rightclick': 'showMarkerMenu($event, $params, bundle)'}">
 						</div>
-						<div id="map_canvas" class="map" ui-map="map" ui-options="mapOptions" ui-event="{'map-dragend': 'boundsChanged()', 'map-zoom_changed': 'boundsChanged()', 'map-rightclick': 'showMapMenu($event, $params)'}"></div>
+						<div id="map_canvas" class="map" ui-map="map" ui-options="mapOptions" ui-event="{'map-idle': 'mapIdle()', 'map-dragend': 'boundsChanged()', 'map-zoom_changed': 'boundsChanged()', 'map-rightclick': 'showMapMenu($event, $params)'}"></div>
 						
 						
 						<div id="map_dropdown" class="dropdown context-dropdown">
