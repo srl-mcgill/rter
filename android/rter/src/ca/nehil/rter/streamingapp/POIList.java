@@ -46,7 +46,7 @@ public class POIList {
 		this.context = context;
 		items = new ConcurrentHashMap<Integer, POI>();
 		try {
-			serverURI = new URI("ws", baseURL.getHost(), baseURL.getPath() + "/1.0/streaming/items/websocket", null);
+			serverURI = new URI("ws", "", baseURL.getHost(), baseURL.getPort(), baseURL.getPath() + "/1.0/streaming/items/websocket", "", "");
 		} catch (URISyntaxException e) {
 			Log.e(TAG, "URISyntaxException");
 			e.printStackTrace();
@@ -56,7 +56,7 @@ public class POIList {
 		initClient();
 		Log.d(TAG, "Connecting to " + serverURI.toString());
 		client.connect();
-		generateTestList();
+		//generateTestList();
 		
 		triangleFrame = new Triangle();
 	}
@@ -100,8 +100,9 @@ public class POIList {
 								} else {
 									return;
 								}
-							} else if(type.equals("streaming-video-v1") && live || type.equals("beacon")) {
+							} else if(/*type.equals("streaming-video-v1") && live ||*/ type.equals("beacon")  || type.equals("breadcrumb")) {
 								int id = item.getInt("ID");
+								Log.d(TAG, "Inserting item " + id + " of type " + type + "");
 								POI poi = new POI(context, 
 										id, 
 										item.getDouble("Lat"),
@@ -110,12 +111,27 @@ public class POIList {
 										type,
 										mSensorSource);
 								items.put(Integer.valueOf(id), poi);
+								
+								final double lata = item.getDouble("Lat");
+								final double lnga = item.getDouble("Lng");
+								
+								/*
+								if(type.equals("breadcrumb")) {
+									((Activity)context).runOnUiThread(new Runnable(){
+									    public void run() {
+									    	Toast.makeText(context, "Breadcrumb at " + lata + ", " + lnga, Toast.LENGTH_SHORT).show();
+									    }
+									 });
+								}
+								*/
+								
 							} else {
 								return;
 							}
 						} else if(action.equals("delete")) {
 							items.remove(Integer.valueOf(item.getInt("ID")));
-						}				
+						}
+						Log.d(TAG, "items: " + items.size());
 					} catch (JSONException e) {
 						Log.e(TAG, "Malformed JSON received on websocket: " + e.toString());
 						return;

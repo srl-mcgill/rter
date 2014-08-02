@@ -12,7 +12,7 @@ import android.location.Location;
 import android.util.Log;
 
 public class POI {
-
+	long framecount = 0;
 	SensorSource mSensorSource;
 	protected ArrayList<POI> poiList;
 	IndicatorFrame squareFrame;
@@ -83,7 +83,7 @@ public class POI {
 	 * Use this method to render each POI, called from the frame render in CameraGLRenderer.java
 	 */
 	public void render(GL10 gl, Location userLocation, float[] displacement){
-		if(userLocation == null || distanceTo(userLocation) < 0.5) {
+		if(userLocation == null) { // || distanceTo(userLocation) < 0.2) {
 			return;
 		}
 
@@ -94,13 +94,20 @@ public class POI {
 		 						* the limit that OpenGL renders objects. So, if changed to 10^5, you will see some POIs dissappear. If you want to change the sizes
 		 						* of the POI, instead change the glScalef below.*/
 //			gl.glTranslatef(displacement[0], displacement[1], 0.0f); // If you want to auto-walk close to a POI and demo the size increase
-		float size = 0.1f;
+		float size = 0.005f;
 		
 		if(this.type.equals("breadcrumb")) {
 			size = size / 4;
+			/*
+			if(framecount++ % 30 == 0){
+				Log.d("RENDER", this.poiId +" poi.lng: " + loc.getLongitude() + ", user.lng: " + userLocation.getLongitude());
+			}
+			*/
+			
 		}
 		
-		gl.glTranslatef((float)(loc.getLongitude() - userLocation.getLongitude()) * scale, (float)(loc.getLatitude() - userLocation.getLatitude()) * scale, -size / 2);
+		//Log.d("RENDER", "x: " + (float)(loc.getLongitude() - userLocation.getLongitude()) * scale + ", y: " + (float)(loc.getLatitude() - userLocation.getLatitude()) * scale);
+		gl.glTranslatef((float)(loc.getLongitude() - userLocation.getLongitude()) * scale, (float)(loc.getLatitude() - userLocation.getLatitude()) * scale, -0.5f);
 		gl.glScalef(size, size, size); // Scaling the POI to a suitable size. This may need to be adjusted if you change the 'scale' variable.
 
 		if(squareFrame == (null) || triangleFrame == (null)){
@@ -126,7 +133,18 @@ public class POI {
 		}else if (this.type.equals("beacon") || this.type.equals("type2")){
 			triangleFrame.draw(gl);
 			gl.glPushMatrix();
-			triangleFrame.colour(Triangle.Colour.GREEN);
+			triangleFrame.colour(Triangle.Colour.RED);
+			gl.glRotatef(90, 1, 0, 0);
+			gl.glScalef(2, 2, 2);
+			for ( int i = 0; i < 8; i++ ){
+				gl.glRotatef(360.0f/8.0f, 0, 1, 0);
+				triangleFrame.draw(gl);
+			}
+			gl.glPopMatrix();
+		}else if (this.type.equals("breadcrumb")){
+			triangleFrame.draw(gl);
+			gl.glPushMatrix();
+			triangleFrame.colour(Triangle.Colour.BLUE);
 			gl.glRotatef(90, 1, 0, 0);
 			gl.glScalef(5, 5, 5);
 			for ( int i = 0; i < 8; i++ ){

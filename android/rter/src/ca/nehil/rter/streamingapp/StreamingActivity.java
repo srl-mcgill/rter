@@ -86,11 +86,13 @@ public class StreamingActivity extends Activity {
 
 	private static String server_url;
 	private HandShakeTask handshakeTask = null;
-	private static final int UPDATE_SERVER_INTERVAL = 200; //	Updating the User location, heading and orientation every 4 secs.
+	private static final int UPDATE_SERVER_INTERVAL = 500; //	Updating the User location, heading and orientation every 4 secs.
+	private static final int BREADCRUMB_INTERVAL = 2000;
 	private SharedPreferences storedValues;
 	private SharedPreferences cookies;
 	private SharedPreferences.Editor cookieEditor;
 	private Boolean PutHeadingBool = false;
+	private Boolean breadCrumbRunning = false;
 	private String setUsername = null;
 	private String setRterCredentials = null;
 	private String recievedRterResource = null;
@@ -100,6 +102,7 @@ public class StreamingActivity extends Activity {
 	private String authToken;
 	private Handler handler = new Handler();
 	private Thread putHeadingfeed;
+	private Thread breadcrumbThread;
 	private CameraGLSurfaceView mGLView;
 	private OverlayController overlay;
 	private SensorSource mSensorSource;
@@ -123,7 +126,7 @@ public class StreamingActivity extends Activity {
 	
 	private boolean CAMERA_PREVIEW = true;
 	
-	private boolean GET_LOCATION_FROM_SERVER = true;
+	private final static boolean GET_LOCATION_FROM_SERVER = true;
 
 	/* video data getting thread */
 	private Camera cameraDevice;
@@ -272,6 +275,13 @@ public class StreamingActivity extends Activity {
 				putHeadingfeed.interrupt();
 			}
 		}
+		
+		if (breadcrumbThread != null) {
+			if (breadcrumbThread.isAlive()) {
+				Log.d("THREAD", "interrupting onPause");
+				breadcrumbThread.interrupt();
+			}
+		}
 
 		if(cameraDevice != null){
 			Log.d("CameraDebug", "onPause releasing");
@@ -295,6 +305,13 @@ public class StreamingActivity extends Activity {
 		if (putHeadingfeed != null) {
 			if (putHeadingfeed.isAlive()) {
 				putHeadingfeed.interrupt();
+			}
+		}
+		
+		if (breadcrumbThread != null) {
+			if (breadcrumbThread.isAlive()) {
+				Log.d("THREAD", "interrupting onPause");
+				breadcrumbThread.interrupt();
 			}
 		}
 
@@ -472,10 +489,14 @@ public class StreamingActivity extends Activity {
 	public void startRecording() {
 		putHeadingfeed = new PutSensorsFeed(this.handler,
 				this.notificationRunnable);
+		breadcrumbThread = new BreadcrumbThread(this.handler,
+				this.notificationRunnable);
 		if(recorder != null){
 			try {
 				PutHeadingBool = true;
+				breadCrumbRunning = true;
 				putHeadingfeed.start();
+				breadcrumbThread.start();
 				recorder.start();
 				startTime = System.currentTimeMillis();
 				recording = true;
@@ -491,6 +512,7 @@ public class StreamingActivity extends Activity {
 
 	public void stopRecording() {
 		PutHeadingBool = false;
+		breadCrumbRunning = false;
 		if (putHeadingfeed != null) {
 			Log.v(LOG_TAG, "Stopping Put Heading Feed");
 			putHeadingfeed.interrupt();
@@ -498,8 +520,15 @@ public class StreamingActivity extends Activity {
 		} else {
 			Log.v(LOG_TAG, "Some Issue with this thread");
 		}
+		
+		if (breadcrumbThread != null) {
+			Log.v(LOG_TAG, "Stopping breadcrumbThread");
+			breadcrumbThread.interrupt();
+
+		}
 
 		putHeadingfeed = null;
+		breadcrumbThread = null;
 		CloseFeed closefeed = new CloseFeed(this.handler,
 				this.notificationRunnable);
 		closefeed.start();
@@ -730,7 +759,7 @@ public class StreamingActivity extends Activity {
 			try {
 
 				Location userLocation = mSensorSource.getLocation();
-				float lat = (float) userLocation.getLatitude(), lng = (float) userLocation.getLongitude();
+				double lat = userLocation.getLatitude(), lng = userLocation.getLongitude();
 				float heading = mSensorSource.getCurrentOrientation();
 				jsonObjSend.put("Lat", lat);
 				jsonObjSend.put("Lng", lng);
@@ -896,6 +925,101 @@ public class StreamingActivity extends Activity {
 
 				try {
 					Thread.sleep(UPDATE_SERVER_INTERVAL);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	class BreadcrumbThread extends Thread {
+		private Handler handler = null;
+		private NotificationRunnable runnable = null;
+	 
+		public BreadcrumbThread(Handler handler, NotificationRunnable runnable) {
+			this.handler = handler;
+			this.runnable = runnable;
+			this.handler.post(this.runnable);
+		}
+	 
+		/**
+	 		 * Show UI notification.
+	 		 * @param message
+	 		 */
+	 		private void showMessage(String message) {
+	 			this.runnable.setMessage(message);
+	 			this.handler.post(this.runnable);
+	 		}
+	 
+	 		private void postBreadcrumb() {
+	 			JSONObject jsonObjSend = new JSONObject();
+	 
+	 			try {
+	 				Location location = mSensorSource.getLocation();
+	 				double lat = location.getLatitude();
+	 				double lng = location.getLongitude();
+	 				
+	 				Date date = new Date();
+	 				SimpleDateFormat dateFormatUTC = new SimpleDateFormat(
+	 						"yyyy-MM-dd'T'HH:mm:ss'Z'");
+	 				dateFormatUTC.setTimeZone(TimeZone.getTimeZone("UTC"));
+	 				String formattedDate = dateFormatUTC.format(date);
+	 				
+	 				jsonObjSend.put("Type", "breadcrumb");
+	 				jsonObjSend.put("HasGeo", true);
+	 				jsonObjSend.put("StartTime", formattedDate);
+	 				jsonObjSend.put("Lat", lat);
+	 				jsonObjSend.put("Lng", lng);
+	 
+	 			// Output the JSON object we're sending to Logcat:
+	 			Log.i(TAG, "postBreadcrumb::Body of update heading feed json = "
+						+ jsonObjSend.toString(2));
+
+				int TIMEOUT_MILLISEC = 500; // = 1 seconds
+				Log.i(TAG, "postBreadcrumb() Put Request being sent" + server_url
+						+ "/1.0/items/" + recievedItemID);
+				URL url = new URL(server_url + "/1.0/items");
+				HttpURLConnection httpcon = (HttpURLConnection) url
+						.openConnection();
+				httpcon.setRequestProperty("Cookie", setRterCredentials);
+				httpcon.setRequestProperty("Content-Type", "application/json");
+				httpcon.setRequestMethod("POST");
+				httpcon.setConnectTimeout(TIMEOUT_MILLISEC);
+				httpcon.setReadTimeout(TIMEOUT_MILLISEC);
+				httpcon.connect();
+				byte[] outputBytes = jsonObjSend.toString().getBytes("UTF-8");
+				OutputStream os = httpcon.getOutputStream();
+				os.write(outputBytes);
+
+				os.close();
+
+				int status = httpcon.getResponseCode();
+				Log.i(TAG, "Breadcrumb Status of response " + status);
+				switch (status) {
+				case 200:
+				case 304:
+					Log.i(TAG, "Breadcrumb response = successful");
+				}
+
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			} catch (ClientProtocolException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		@Override
+		public void run() {
+			while (breadCrumbRunning) {
+				long millis = System.currentTimeMillis();
+				this.postBreadcrumb();
+
+				try {
+					Thread.sleep((BREADCRUMB_INTERVAL));
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}

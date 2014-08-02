@@ -63,7 +63,7 @@ public class SensorSource implements SensorEventListener, LocationListener{
 		
 		if(get_location_from_server) {
 			try {
-				serverURI = new URI("ws", baseURL.getHost(), baseURL.getPath() + "/1.0/streaming/users/websocket", null);
+				serverURI = new URI("ws", "", baseURL.getHost(), baseURL.getPort(), baseURL.getPath() + "/1.0/streaming/users/websocket", "", "");
 			} catch (URISyntaxException e) {
 				Log.e(TAG, "URISyntaxException");
 				e.printStackTrace();
@@ -117,6 +117,7 @@ public class SensorSource implements SensorEventListener, LocationListener{
 
 	public Location getLocation(){
 		if(location == null) {
+			Log.w(TAG, "userlocation is null");
 			location = new Location("rtER");
 			location.setLatitude(45.505958f);
 			location.setLongitude(-73.576254f);
@@ -216,6 +217,7 @@ public class SensorSource implements SensorEventListener, LocationListener{
 						String action = event.getString("Action");
 						JSONObject user = event.getJSONObject("Val");
 						if(action.equals("update") && user.getString("Username").equals(username)) {
+							Log.d(TAG, "setting location to " + user.getDouble("Lat") + ", " + user.getDouble("Lng"));
 							Location userLocation = new Location("rtER Server");
 							userLocation.setLatitude(user.getDouble("Lat"));
 							userLocation.setLongitude(user.getDouble("Lng"));
