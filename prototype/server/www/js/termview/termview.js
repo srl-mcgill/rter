@@ -148,6 +148,19 @@ angular.module('termview', [
 		else return false;
 	};
 
+	$scope.clearItems = function() {
+		angular.forEach($scope.items, function(v) {
+			console.log(v);
+			ItemCache.remove(
+				v,
+				function() {
+					$scope.cancel();
+				}
+			);
+		});
+		
+	};
+
 	$scope.dragFreeze = false; //FIXME: Hack to fix drag bug with firefox http://forum.jquery.com/topic/jquery-ui-sortable-triggers-a-click-in-firefox-15
 
 	$scope.dragCallback = function(e) {		
